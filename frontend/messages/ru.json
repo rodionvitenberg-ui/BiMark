@@ -1,0 +1,49 @@
+{
+  "Index": {
+    "title": "Платформа готова к разработке",
+    "button": "Проверить акцентный цвет"
+  },
+  "Header": {
+    "investors": "Инвесторам",
+    "markets": "Рынки",
+    "assetsCatalog": "Каталог активов",
+    "assetsCatalogDesc": "YouTube, Telegram, IT-проекты",
+    "presales": "Пресейлы (Launchpad)",
+    "presalesDesc": "Ранний доступ к перспективным долям",
+    "information": "Информация",
+    "howItWorks": "Как это работает",
+    "howItWorksDesc": "Гайд по инвестированию и выводу средств",
+    "partners": "Партнерам",
+    "cooperation": "Сотрудничество",
+    "raiseCapital": "Привлечь капитал",
+    "raiseCapitalDesc": "Оставить заявку на токенизацию проекта",
+    "referralSystem": "Реферальная система",
+    "referralSystemDesc": "Зарабатывайте % от сделок партнеров",
+    "search": "Поиск...",
+    "login": "Войти",
+    "openAccount": "Создать аккаунт"
+  },
+  "Hero": {
+    "badge": "Платформа токенизации нового поколения",
+    "title": "Инвестируйте в цифровые активы",
+    "subtitle": "Покупайте доли прибыльных YouTube-каналов, IT-стартапов и медиа-проектов. Получайте пассивный доход вместе с создателями.",
+    "primaryCta": "Начать инвестировать",
+    "secondaryCta": "Смотреть проекты",
+    "statUsers": "10k+",
+    "statUsersText": "Активных инвесторов",
+    "statVolume": "$2.5M",
+    "statVolumeText": "Объем торгов"
+  },
+  "Projects": {
+    "sectionTitle": "Доступные активы",
+    "sectionSubtitle": "Тщательно отобранные проекты с подтвержденной доходностью",
+    "statusLive": "Идет сбор",
+    "statusPresale": "Пресейл",
+    "statusFunded": "Сбор закрыт",
+    "raised": "Собрано",
+    "target": "Цель",
+    "pricePerShare": "за долю",
+    "investBtn": "Инвестировать",
+    "viewBtn": "Подробнее"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "Index": {
+    "title": "Plataforma lista para el desarrollo",
+    "button": "Comprobar color de acento"
+  },
+  "Header": {
+    "investors": "Inversores",
+    "markets": "Mercados",
+    "assetsCatalog": "Catálogo de activos",
+    "assetsCatalogDesc": "YouTube, Telegram, proyectos IT",
+    "presales": "Preventas (Launchpad)",
+    "presalesDesc": "Acceso anticipado a acciones prometedoras",
+    "information": "Información",
+    "howItWorks": "Cómo funciona",
+    "howItWorksDesc": "Guía de inversión y retiro de fondos",
+    "partners": "Socios",
+    "cooperation": "Cooperación",
+    "raiseCapital": "Atraer capital",
+    "raiseCapitalDesc": "Enviar solicitud para la tokenización del proyecto",
+    "referralSystem": "Sistema de referidos",
+    "referralSystemDesc": "Gana % de las operaciones de tus socios",
+    "search": "Buscar...",
+    "login": "Iniciar sesión",
+    "openAccount": "Crear cuenta"
+  },
+  "Hero": {
+    "badge": "Plataforma de tokenización de nueva generación",
+    "title": "Invierte en Activos Digitales",
+    "subtitle": "Compra participaciones en canales de YouTube, startups de TI y proyectos de medios. Obtén ingresos pasivos junto a los creadores.",
+    "primaryCta": "Empezar a Invertir",
+    "secondaryCta": "Ver Proyectos",
+    "statUsers": "10k+",
+    "statUsersText": "Inversores Activos",
+    "statVolume": "$2.5M",
+    "statVolumeText": "Volumen de Operaciones"
+  },
+  "Projects": {
+    "sectionTitle": "Activos Disponibles",
+    "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
+    "statusLive": "En vivo",
+    "statusPresale": "Preventa",
+    "statusFunded": "Financiado",
+    "raised": "Recaudado",
+    "target": "Objetivo",
+    "pricePerShare": "por acción",
+    "investBtn": "Invertir",
+    "viewBtn": "Ver Detalles"
+  }
+}

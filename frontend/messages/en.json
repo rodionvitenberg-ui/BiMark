@@ -1,0 +1,49 @@
+{
+  "Index": {
+    "title": "Platform ready for development",
+    "button": "Check accent color"
+  },
+  "Header": {
+    "investors": "Investors",
+    "markets": "Markets",
+    "assetsCatalog": "Assets Catalog",
+    "assetsCatalogDesc": "YouTube, Telegram, IT projects",
+    "presales": "Presales (Launchpad)",
+    "presalesDesc": "Early access to promising shares",
+    "information": "Information",
+    "howItWorks": "How it works",
+    "howItWorksDesc": "Guide to investing and withdrawing funds",
+    "partners": "Partners",
+    "cooperation": "Cooperation",
+    "raiseCapital": "Raise Capital",
+    "raiseCapitalDesc": "Submit an application for project tokenization",
+    "referralSystem": "Referral System",
+    "referralSystemDesc": "Earn % from partners' deals",
+    "search": "Search...",
+    "login": "Log in",
+    "openAccount": "Open account"
+  },
+  "Hero": {
+    "badge": "Next-generation tokenization platform",
+    "title": "Invest in Digital Assets",
+    "subtitle": "Buy shares of profitable YouTube channels, IT startups, and media projects. Earn passive income alongside creators.",
+    "primaryCta": "Start Investing",
+    "secondaryCta": "View Projects",
+    "statUsers": "10k+",
+    "statUsersText": "Active Investors",
+    "statVolume": "$2.5M",
+    "statVolumeText": "Trading Volume"
+  },
+  "Projects": {
+    "sectionTitle": "Available Assets",
+    "sectionSubtitle": "Carefully vetted projects with proven yield",
+    "statusLive": "Live",
+    "statusPresale": "Presale",
+    "statusFunded": "Funded",
+    "raised": "Raised",
+    "target": "Target",
+    "pricePerShare": "per share",
+    "investBtn": "Invest",
+    "viewBtn": "View Details"
+  }
+}
