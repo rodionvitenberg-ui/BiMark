@@ -1,0 +1,62 @@
+# =========================
+# БЭКЕНД (Django / Python)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Виртуальные окружения
+venv/
+env/
+.venv/
+
+# Переменные окружения (КРИТИЧНО!)
+.env
+.env.backend
+
+# Статика и медиафайлы (генерируются автоматически)
+backend/staticfiles/
+backend/media/
+
+# Локальная база данных (на случай если откатишься на sqlite)
+*.sqlite3
+
+# Логи и Celery
+*.log
+celerybeat-schedule
+celerybeat.pid
+
+# =========================
+# ФРОНТЕНД (Next.js / Node.js)
+# =========================
+# Зависимости
+node_modules/
+.pnp
+.pnp.js
+
+# Сборка Next.js
+.next/
+out/
+build/
+
+# Переменные окружения фронтенда (КРИТИЧНО!)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.frontend
+
+# Логи пакетов
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# ОС И РЕДАКТОРЫ КОДА
+# =========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
