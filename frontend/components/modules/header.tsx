@@ -74,7 +74,7 @@ export function Header() {
                       <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">{t("markets")}</h4>
                       <ul className="space-y-3">
                         <li>
-                          <Link href="#" className="block group">
+                          <Link href="category" className="block group">
                             <div className="text-sm font-medium text-brand-black group-hover:text-brand-blue transition-colors">{t("assetsCatalog")}</div>
                             <div className="text-xs text-gray-500 mt-0.5">{t("assetsCatalogDesc")}</div>
                           </Link>
@@ -167,12 +167,12 @@ export function Header() {
           <div className={`w-px h-6 hidden md:block transition-colors ${isLight ? "bg-gray-300" : "bg-gray-600/50"}`}></div>
 
           <div className="flex items-center gap-4">
-            <Link href="#" className={`text-sm font-medium transition-colors ${
+            <Link href="login" className={`text-sm font-medium transition-colors ${
               isLight ? "text-brand-black hover:text-brand-blue" : "text-white hover:text-gray-300"
             }`}>
               {t("login")}
             </Link>
-            <Link href="#" className="bg-brand-blue text-white text-sm font-semibold px-5 py-2 rounded-md hover:bg-[#007cbd] transition-colors">
+            <Link href="register" className="bg-brand-blue text-white text-sm font-semibold px-5 py-2 rounded-md hover:bg-[#007cbd] transition-colors">
               {t("openAccount")}
             </Link>
           </div>

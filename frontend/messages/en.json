@@ -35,15 +35,52 @@
     "statVolumeText": "Trading Volume"
   },
   "Projects": {
-    "sectionTitle": "Available Assets",
-    "sectionSubtitle": "Carefully vetted projects with proven yield",
-    "statusLive": "Live",
-    "statusPresale": "Presale",
-    "statusFunded": "Funded",
-    "raised": "Raised",
-    "target": "Target",
-    "pricePerShare": "per share",
-    "investBtn": "Invest",
-    "viewBtn": "View Details"
+    "sectionTitle": "Activos Disponibles",
+    "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
+    "statusLive": "Activo",
+    "statusPresale": "Preventa",
+    "statusSold": "Agotado",
+    "availableShares": "Disponible",
+    "totalShares": "Total",
+    "pricePerShare": "por acción",
+    "uncategorized": "Sin categoría"
+  },
+  "Auth": {
+    "title": "Sign Up",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "Enter your email",
+    "sendCode": "Send code",
+    "codeLabel": "Verification code",
+    "codePlaceholder": "6-digit code from email",
+    "verifyCode": "Verify code",
+    "passwordLabel": "Create password",
+    "passwordPlaceholder": "Minimum 10 characters",
+    "confirmPasswordLabel": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "register": "Create account",
+    "continueWithGoogle": "Continue with Google",
+    "alreadyHaveAccount": "Already have an account? Log in",
+    "loginTitle": "Log In",
+    "loginSubmit": "Log in",
+    "dontHaveAccount": "Don't have an account? Sign up",
+    "forgotPassword": "Forgot password?",
+    "errors": {
+      "invalidEmail": "Please enter a valid email",
+      "required": "This field is required",
+      "codeLength": "Code must be exactly 6 digits",
+      "passwordLength": "Password must be at least 10 characters",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
+  },
+  "Category": {
+    "notFound": "Category not found",
+    "backToHome": "Back to Home",
+    "empty": "There are no active projects in this category yet.",
+    "projectsCount": "Available projects:"
+  },
+  "CategoriesIndex": {
+    "title": "Markets & Directions",
+    "subtitle": "Choose an asset category to invest in",
+    "empty": "No categories created yet. Check back later!"
   }
 }

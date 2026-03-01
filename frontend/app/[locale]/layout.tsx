@@ -5,6 +5,7 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 import { QueryProvider } from "../../components/providers/query-provider";
+import GoogleProvider from "@/components/providers/google-provider";
 import { Header } from "../../components/modules/header";
 import "./globals.css";
 
@@ -35,10 +36,12 @@ export default async function RootLayout({
       <body className={`${inter.className} min-h-[100dvh] flex flex-col`}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
+            <GoogleProvider>
             <Header />
             <main className="flex-1 flex flex-col w-full pt-16">
               {children}
             </main>
+            </GoogleProvider>
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

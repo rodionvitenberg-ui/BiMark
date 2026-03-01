@@ -37,13 +37,50 @@
   "Projects": {
     "sectionTitle": "Доступные активы",
     "sectionSubtitle": "Тщательно отобранные проекты с подтвержденной доходностью",
-    "statusLive": "Идет сбор",
+    "statusLive": "Активен",
     "statusPresale": "Пресейл",
-    "statusFunded": "Сбор закрыт",
-    "raised": "Собрано",
-    "target": "Цель",
+    "statusSold": "Продано",
+    "availableShares": "Доступно",
+    "totalShares": "Всего",
     "pricePerShare": "за долю",
-    "investBtn": "Инвестировать",
-    "viewBtn": "Подробнее"
+    "uncategorized": "Без категории"
+  },
+  "Auth": {
+    "title": "Регистрация",
+    "emailLabel": "Email адрес",
+    "emailPlaceholder": "Введите ваш email",
+    "sendCode": "Получить код",
+    "codeLabel": "Код подтверждения",
+    "codePlaceholder": "6-значный код из письма",
+    "verifyCode": "Подтвердить код",
+    "passwordLabel": "Придумайте пароль",
+    "passwordPlaceholder": "Минимум 10 символов",
+    "confirmPasswordLabel": "Повторите пароль",
+    "confirmPasswordPlaceholder": "Повторите пароль",
+    "register": "Создать аккаунт",
+    "continueWithGoogle": "Продолжить с Google",
+    "alreadyHaveAccount": "Уже есть аккаунт? Войти",
+    "loginTitle": "Вход в аккаунт",
+    "loginSubmit": "Войти",
+    "dontHaveAccount": "Нет аккаунта? Зарегистрироваться",
+    "forgotPassword": "Забыли пароль?",
+    "errors": {
+      "invalidEmail": "Введите корректный email",
+      "required": "Это поле обязательно",
+      "codeLength": "Код должен состоять ровно из 6 цифр",
+      "passwordLength": "Пароль должен содержать не менее 10 символов",
+      "passwordsDoNotMatch": "Пароли не совпадают"
+    }
+  },
+  "Category": {
+    "notFound": "Категория не найдена",
+    "backToHome": "Вернуться на главную",
+    "empty": "В этой категории пока нет активных проектов.",
+    "projectsCount": "Доступно проектов:"
+  },
+  "CategoriesIndex": {
+    "title": "Рынки и направления",
+    "subtitle": "Выберите категорию активов для инвестирования",
+    "empty": "Категории пока не созданы. Загляните позже!"
   }
 }

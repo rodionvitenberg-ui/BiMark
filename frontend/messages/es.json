@@ -37,13 +37,50 @@
   "Projects": {
     "sectionTitle": "Activos Disponibles",
     "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
-    "statusLive": "En vivo",
+    "statusLive": "Activo",
     "statusPresale": "Preventa",
-    "statusFunded": "Financiado",
-    "raised": "Recaudado",
-    "target": "Objetivo",
+    "statusSold": "Agotado",
+    "availableShares": "Disponible",
+    "totalShares": "Total",
     "pricePerShare": "por acción",
-    "investBtn": "Invertir",
-    "viewBtn": "Ver Detalles"
+    "uncategorized": "Sin categoría"
+  },
+  "Auth": {
+    "title": "Registrarse",
+    "emailLabel": "Dirección de correo electrónico",
+    "emailPlaceholder": "Introduce tu correo electrónico",
+    "sendCode": "Enviar código",
+    "codeLabel": "Código de verificación",
+    "codePlaceholder": "Código de 6 dígitos",
+    "verifyCode": "Verificar código",
+    "passwordLabel": "Crear contraseña",
+    "passwordPlaceholder": "Mínimo 10 caracteres",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
+    "register": "Crear cuenta",
+    "continueWithGoogle": "Continuar con Google",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta? Iniciar sesión",
+    "loginTitle": "Iniciar sesión",
+    "loginSubmit": "Iniciar sesión",
+    "dontHaveAccount": "¿No tienes una cuenta? Regístrate",
+    "forgotPassword": "¿Has olvidado tu contraseña?",
+    "errors": {
+      "invalidEmail": "Por favor, introduce un correo electrónico válido",
+      "required": "Este campo es obligatorio",
+      "codeLength": "El código debe tener exactamente 6 dígitos",
+      "passwordLength": "La contraseña debe tener al menos 10 caracteres",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    }
+  },
+  "Category": {
+    "notFound": "Categoría no encontrada",
+    "backToHome": "Volver al inicio",
+    "empty": "Aún no hay proyectos activos en esta categoría.",
+    "projectsCount": "Proyectos disponibles:"
+  },
+  "CategoriesIndex": {
+    "title": "Mercados y Direcciones",
+    "subtitle": "Elige una categoría de activos para invertir",
+    "empty": "Aún no se han creado categorías. ¡Vuelve más tarde!"
   }
 }
