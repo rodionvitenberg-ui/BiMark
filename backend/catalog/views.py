@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ValidationError
 
-from catalog.models import Project, Ownership
-from catalog.serializers import ProjectSerializer, OwnershipSerializer
+from catalog.models import Project, Ownership, Category
+from catalog.serializers import ProjectSerializer, OwnershipSerializer, CategorySerializer
 from catalog.services import PurchaseService, NotEnoughShares
 from billing.exceptions import InsufficientFunds
 
@@ -68,3 +68,27 @@ class BuySharesView(views.APIView):
             return Response({"detail": list(e)[0]}, status=status.HTTP_400_BAD_REQUEST)
         except Project.DoesNotExist:
             return Response({"detail": "Проект не найден."}, status=status.HTTP_404_NOT_FOUND)
+        
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """Список всех категорий"""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    """Каталог проектов: список и деталка"""
+    serializer_class = ProjectSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        # Базовый QuerySet
+        qs = Project.objects.filter(status__in=[Project.Status.PRESALE, Project.Status.ACTIVE])
+        
+        # Фильтрация по категории через GET-параметр (?category=slug)
+        category_slug = self.request.query_params.get('category')
+        if category_slug:
+            qs = qs.filter(category__slug=category_slug)
+            
+        return qs.select_related('category')

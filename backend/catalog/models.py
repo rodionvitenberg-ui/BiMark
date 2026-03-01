@@ -4,6 +4,23 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
 
+class Category(models.Model):
+    """Категории проектов (например: YouTube, Telegram, IT-Стартапы)"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True, db_index=True)
+    image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    
+    # Если используешь modeltranslation, поля name_ru, name_en добавятся автоматически
+    
+    class Meta:
+        db_table = 'categories'
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+
+    def __str__(self):
+        return self.name
+
 class Project(models.Model):
     """Модель самого актива (YouTube канал, соцсеть и т.д.)"""
     class Status(models.TextChoices):
@@ -11,7 +28,9 @@ class Project(models.Model):
         PRESALE = 'PRESALE', 'Сбор средств (Пресейл)'
         ACTIVE = 'ACTIVE', 'Сбор закрыт / Активен'
         SOLD = 'SOLD', 'Продан полностью (Экзит)'
-
+        
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='projects')
+    image = models.ImageField(upload_to='projects/', null=True, blank=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, db_index=True)

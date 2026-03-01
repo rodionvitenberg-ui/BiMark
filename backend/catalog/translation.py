@@ -3,5 +3,5 @@ from catalog.models import Project
 
 @register(Project)
 class ProjectTranslationOptions(TranslationOptions):
-    fields = ('title', 'description')
+    fields = ('title', 'description', 'category')
     # fallback_values = _('--перевод отсутствует--') # Можно настроить дефолтный текст
