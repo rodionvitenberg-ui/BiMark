@@ -19,21 +19,25 @@
     "raiseCapitalDesc": "Submit an application for project tokenization",
     "referralSystem": "Referral System",
     "referralSystemDesc": "Earn % from partners' deals",
-    "search": "Search...",
-    "login": "Log in",
-    "openAccount": "Open account"
+    "search": "Search",
+    "login": "Log In",
+    "register": "Sign Up",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "logout": "Log Out",
+    "searchPlaceholder": "What are you looking for?",
+"popularSearches": "Popular searches",
+"realEstate": "Real Estate",
+"startups": "IT Startups",
+"integratedSearchPlaceholder": "Enter asset name, project, or topic..."
   },
   "Hero": {
-    "badge": "Next-generation tokenization platform",
-    "title": "Invest in Digital Assets",
-    "subtitle": "Buy shares of profitable YouTube channels, IT startups, and media projects. Earn passive income alongside creators.",
+    "badge": "New assets now available",
+    "title": "Invest in Digital Assets with",
+    "subtitle": "Become a co-owner of the world's largest social media channels, pages, and projects.",
     "primaryCta": "Start Investing",
-    "secondaryCta": "View Projects",
-    "statUsers": "10k+",
-    "statUsersText": "Active Investors",
-    "statVolume": "$2.5M",
-    "statVolumeText": "Trading Volume"
-  },
+    "secondaryCta": "View Projects"
+},
   "Projects": {
     "sectionTitle": "Activos Disponibles",
     "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
@@ -43,7 +47,16 @@
     "availableShares": "Disponible",
     "totalShares": "Total",
     "pricePerShare": "por acción",
-    "uncategorized": "Sin categoría"
+    "uncategorized": "Sin categoría",
+    "loginToBuy": "Log in to invest",
+    "buySharesBtn": "Buy Shares",
+    "sharesSelected": "Shares selected:",
+    "totalCost": "Total cost:",
+    "successPurchase": "Purchase completed successfully!",
+    "errInsufficientFunds": "Insufficient funds. Please top up your wallet.",
+    "errNotEnoughShares": "Not enough available shares.",
+    "errDefault": "Purchase error. Please try again later.",
+    "goToDashboard": "Go to Portfolio"
   },
   "Auth": {
     "title": "Sign Up",
@@ -82,5 +95,96 @@
     "title": "Markets & Directions",
     "subtitle": "Choose an asset category to invest in",
     "empty": "No categories created yet. Check back later!"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "walletBalance": "Current Balance",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "portfolio": "Your Portfolio",
+    "shares": "shares",
+    "avgPrice": "avg. price",
+    "transactions": "Transaction History",
+    "statusPending": "Pending",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed",
+    "emptyPortfolio": "You don't have any active investments yet.",
+    "emptyTransactions": "No transactions yet.",
+    "depositTitle": "Top Up Wallet",
+    "depositDesc": "Enter the amount you want to add to your investment balance.",
+    "amountLabel": "Amount (USD)",
+    "cancel": "Cancel",
+    "confirmDeposit": "Top Up Balance",
+    "depositSuccess": "Balance successfully topped up!"
+    
+  },
+  "Profile": {
+    "title": "Profile Settings",
+    "personalInfo": "Personal Information",
+    "emailLabel": "Your Email",
+    "balanceLabel": "Available Balance",
+    "changeAvatar": "Change Photo",
+    "changePassword": "Change Password",
+    "oldPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "saveChanges": "Save Changes",
+    "passwordChanged": "Password changed successfully!",
+    "errors": {
+      "required": "This field is required",
+      "passwordLength": "Minimum 10 characters",
+      "passwordsDoNotMatch": "Passwords do not match"
+    }
+ },
+ "HowItWorks": {
+    "title": "The world's first exchange for social media and application shares.",
+    "subtitle": "Media assets appreciate every year. Earn 5-15% monthly income through a stable revenue stream for everyone.",
+    "goalsTitle": "Project goals for each of you:",
+    "goal1": "Become a co-owner of major online projects such as YouTube channels, Facebook pages, TikTok, Instagram accounts, and mobile applications.",
+    "goal2": "Bimark is an ecosystem where every project is interconnected. Every six months you receive bonuses: by leveraging a global audience of over 100 million subscribers, we will create new brands, world-class artists, and produce films. With a multi-million audience, we achieve instant million-scale reach. Each of you will receive a bonus and a stake in these newly created projects.",
+    "goal3": "Receive a monthly income of 5-15% thanks to stable advertising payouts from these projects. If your specific project experiences a downturn, the minimum payout is compensated by other projects."
+},
+"CategoriesPreview": {
+    "title": "Popular Directions",
+    "subtitle": "Choose a market that you understand and find interesting",
+    "viewAll": "All categories",
+    "empty": "Categories are loading..."
+  },
+  "Search": {
+    "title": "Search Results",
+    "placeholder": "What are you looking for?",
+    "searchButton": "Search",
+    "resultsFor": "Search results for:",
+    "noResults": "No results found. Please try a different query.",
+    "popularSearches": "Popular searches",
+    "realEstate": "Real Estate",
+    "startups": "IT Startups"
+},
+"AboutUs": {
+    "title": "About Us",
+    "p1": "Our goal is to create an ecosystem with a daily global audience of over 1 billion people through social media projects, mobile applications, and various local and international services.",
+    "p2": "We don’t rely solely on advertisers; our objective is to leverage the power of marketing and audience reach to build our own Brands.",
+    "p3": "Become part of the Bimark Ecosystem now. Soon, we will have hundreds of brands worldwide and our own currency, allowing us to set our own rules in the market.",
+    "p4": "If you are interested in becoming a partner, please reach out via the contact details provided on our website."
+},
+  "Contacts": {
+    "title": "Contact Us",
+    "subtitle": "Have questions or want to become a partner? We are always open to dialogue.",
+    "emailLabel": "Email",
+    "addressLabel": "Head Office",
+    "address": "Georgia, Tbilisi. Police lane 4",
+    "telegram": "Message on Telegram",
+    "whatsapp": "Message on WhatsApp"
+  },
+  "Footer": {
+    "description": "The world's first share exchange for social networks and apps.",
+    "investors": "For Investors",
+    "partners": "For Partners",
+    "legal": "Legal Information",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "aml": "AML/KYC Policy",
+    "rights": "© 2026 Bimark. All rights reserved."
   }
 }

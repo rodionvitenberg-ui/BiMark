@@ -3,6 +3,7 @@ from pathlib import Path
 import environ
 from django.utils.translation import gettext_lazy as _
 from decimal import Decimal
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -248,3 +249,14 @@ EMAIL_USE_TLS = env('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15), # Короткий срок для безопасности
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Пользователь остается залогиненным 7 дней
+    'ROTATE_REFRESH_TOKENS': True,                  # При каждом рефреше выдавать новый refresh-токен (безопасно)
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

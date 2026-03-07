@@ -19,21 +19,26 @@
     "raiseCapitalDesc": "Enviar solicitud para la tokenización del proyecto",
     "referralSystem": "Sistema de referidos",
     "referralSystemDesc": "Gana % de las operaciones de tus socios",
-    "search": "Buscar...",
+    "search": "Buscar",
     "login": "Iniciar sesión",
-    "openAccount": "Crear cuenta"
+    "register": "Regístrate",
+    "dashboard": "Panel de control",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión",
+    "searchPlaceholder": "¿Qué estás buscando?",
+"popularSearches": "Búsquedas populares",
+"realEstate": "Bienes Raíces",
+"startups": "Startups de IT",
+"integratedSearchPlaceholder": "Ingrese el nombre del activo, proyecto o tema..."
+    
   },
   "Hero": {
-    "badge": "Plataforma de tokenización de nueva generación",
-    "title": "Invierte en Activos Digitales",
-    "subtitle": "Compra participaciones en canales de YouTube, startups de TI y proyectos de medios. Obtén ingresos pasivos junto a los creadores.",
+    "badge": "Nuevos activos ya disponibles",
+    "title": "Invierta en Activos Digitales con",
+    "subtitle": "Conviértase en copropietario de los canales, páginas y proyectos de redes sociales más grandes del mundo.",
     "primaryCta": "Empezar a Invertir",
-    "secondaryCta": "Ver Proyectos",
-    "statUsers": "10k+",
-    "statUsersText": "Inversores Activos",
-    "statVolume": "$2.5M",
-    "statVolumeText": "Volumen de Operaciones"
-  },
+    "secondaryCta": "Ver Proyectos"
+},
   "Projects": {
     "sectionTitle": "Activos Disponibles",
     "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
@@ -43,7 +48,16 @@
     "availableShares": "Disponible",
     "totalShares": "Total",
     "pricePerShare": "por acción",
-    "uncategorized": "Sin categoría"
+    "uncategorized": "Sin categoría",
+    "loginToBuy": "Iniciar sesión para invertir",
+    "buySharesBtn": "Comprar Acciones",
+    "sharesSelected": "Acciones seleccionadas:",
+    "totalCost": "Costo total:",
+    "successPurchase": "¡Compra completada con éxito!",
+    "errInsufficientFunds": "Fondos insuficientes. Recargue su billetera.",
+    "errNotEnoughShares": "No hay suficientes acciones disponibles.",
+    "errDefault": "Error en la compra. Inténtalo de nuevo más tarde.",
+    "goToDashboard": "Ir al Portafolio"
   },
   "Auth": {
     "title": "Registrarse",
@@ -82,5 +96,95 @@
     "title": "Mercados y Direcciones",
     "subtitle": "Elige una categoría de activos para invertir",
     "empty": "Aún no se han creado categorías. ¡Vuelve más tarde!"
+  },
+  "Dashboard": {
+    "title": "Panel de control",
+    "welcome": "Bienvenido de nuevo",
+    "walletBalance": "Saldo Actual",
+    "deposit": "Depositar",
+    "withdraw": "Retirar",
+    "portfolio": "Tu Portafolio",
+    "shares": "acciones",
+    "avgPrice": "precio medio",
+    "transactions": "Historial de transacciones",
+    "statusPending": "Pendiente",
+    "statusCompleted": "Completado",
+    "statusFailed": "Fallido",
+    "emptyPortfolio": "Aún no tienes inversiones activas.",
+    "emptyTransactions": "Aún no hay transacciones.",
+    "depositTitle": "Recargar Billetera",
+    "depositDesc": "Ingrese el monto que desea agregar a su saldo de inversión.",
+    "amountLabel": "Monto (USD)",
+    "cancel": "Cancelar",
+    "confirmDeposit": "Recargar Saldo",
+    "depositSuccess": "¡Saldo recargado con éxito!"
+  },
+  "Profile": {
+    "title": "Configuración del Perfil",
+    "personalInfo": "Información Personal",
+    "emailLabel": "Tu Email",
+    "balanceLabel": "Saldo Disponible",
+    "changeAvatar": "Cambiar Foto",
+    "changePassword": "Cambiar Contraseña",
+    "oldPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Nueva Contraseña",
+    "saveChanges": "Guardar Cambios",
+    "passwordChanged": "¡Contraseña cambiada con éxito!",
+    "errors": {
+      "required": "Este campo es obligatorio",
+      "passwordLength": "Mínimo 10 caracteres",
+      "passwordsDoNotMatch": "Las contraseñas no coinciden"
+    }
+  },
+ "HowItWorks": {
+    "title": "La primera bolsa del mundo de participaciones en redes sociales y aplicaciones.",
+    "subtitle": "Los activos mediáticos se revalorizan cada año. Obtenga ingresos del 5-15% mensual gracias a un flujo de beneficios estable para todos.",
+    "goalsTitle": "Objetivos del proyecto para cada uno de ustedes:",
+    "goal1": "Conviértase en copropietario de grandes proyectos en línea como canales de YouTube, páginas de Facebook, cuentas de TikTok e Instagram y aplicaciones móviles.",
+    "goal2": "Bimark es un ecosistema donde cada proyecto está interconectado. Cada seis meses recibirá bonificaciones: gracias al poder de más de 100 millones de suscriptores en todo el mundo, crearemos nuevas marcas, artistas de talla mundial y produciremos cine. Con una audiencia de millones, lograremos alcances millonarios instantáneos. Cada uno de ustedes recibirá un bono y una participación en los nuevos proyectos creados.",
+    "goal3": "Reciba un ingreso mensual del 5-15% gracias a los pagos publicitarios estables de estos proyectos. Si su proyecto sufre una caída, el pago mínimo se compensa a través de otros proyectos."
+},
+"CategoriesPreview": {
+    "title": "Direcciones Populares",
+    "subtitle": "Elige un mercado que entiendas y te parezca interesante",
+    "viewAll": "Todas las categorías",
+    "empty": "Cargando categorías..."
+  },
+  "Search": {
+    "title": "Resultados de búsqueda",
+    "placeholder": "¿Qué estás buscando?",
+    "searchButton": "Buscar",
+    "resultsFor": "Resultados para:",
+    "noResults": "No se encontraron resultados. Intenta con otra búsqueda.",
+    "popularSearches": "Búsquedas populares",
+    "realEstate": "Bienes Raíces",
+    "startups": "Startups de IT"
+},
+"AboutUs": {
+    "title": "Sobre Nosotros",
+    "p1": "Nuestro objetivo es crear un ecosistema con más de 1 billón de audiencia diaria en todo el mundo a través de proyectos en redes sociales, aplicaciones móviles y diversos servicios locales e internacionales.",
+    "p2": "No dependemos de los anunciantes; nuestro objetivo es utilizar el poder del marketing y la audiencia para crear nuestras propias Marcas.",
+    "p3": "Conviértete en parte del Ecosistema Bimark ahora. Pronto tendremos cientos de marcas en todo el mundo, nuestra propia moneda y podremos dictar nuestras propias reglas.",
+    "p4": "Si deseas convertirte en nuestro socio, contáctanos a través de los datos proporcionados en el sitio web."
+  },
+  "Contacts": {
+    "title": "Contáctenos",
+    "subtitle": "¿Tiene preguntas o quiere ser socio? Siempre estamos abiertos al diálogo.",
+    "emailLabel": "Correo electrónico",
+    "addressLabel": "Oficina Central",
+    "address": "Callejón de la Policía 4, Tbilisi, Georgia",
+    "telegram": "Escribir por Telegram",
+    "whatsapp": "Escribir por WhatsApp"
+  },
+  "Footer": {
+    "description": "La primera bolsa del mundo de participaciones en redes sociales y aplicaciones.",
+    "investors": "Inversores",
+    "partners": "Socios",
+    "legal": "Información Legal",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Uso",
+    "aml": "Política AML/KYC",
+    "rights": "© 2026 Bimark. Todos los derechos reservados."
   }
 }

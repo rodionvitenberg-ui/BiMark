@@ -1,14 +1,49 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import { ArrowRight, PlayCircle } from "lucide-react";
+import { useMemo } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import { ArrowRight, PlayCircle, Layers } from "lucide-react";
 import { Link } from "../../i18n/routing";
 import { motion, Variants } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+
+import { apiClient } from "../../lib/api/client";
+import { Project } from "../../types/project";
+import Carousel, { CarouselItem } from "../ui/Carousel"; 
 
 export function Hero() {
   const t = useTranslations("Hero");
+  const locale = useLocale() as "ru" | "en" | "es";
 
-  // Настройки анимации для родительского контейнера (каскадное появление детей)
+  // 1. Запрашиваем все проекты с бэкенда
+  const { data: projects, isLoading } = useQuery<Project[]>({
+    queryKey: ["projects", "hero-random"],
+    queryFn: async () => {
+      const response = await apiClient.get("/projects/");
+      return response.data.results || response.data;
+    },
+  });
+
+  // 2. Выбираем случайные проекты и мапим их под формат карусели
+  const carouselItems: CarouselItem[] = useMemo(() => {
+    if (!projects || projects.length === 0) return [];
+    
+    const shuffled = [...projects].sort(() => 0.5 - Math.random()).slice(0, 5);
+    
+    return shuffled.map((p) => ({
+      id: p.id as any,
+      title: p.title?.[locale] || p.title?.en || p.title?.ru || "Project",
+      description: p.description?.[locale] || p.description?.en || p.description?.ru || "",
+      icon: p.image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={p.image} alt="icon" className="w-full h-full object-cover rounded-full" />
+      ) : (
+        <Layers className="w-5 h-5 text-white" />
+      )
+    }));
+  }, [projects, locale]);
+
+  // Настройки анимации
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -17,18 +52,16 @@ export function Hero() {
     },
   };
 
-  // Настройки анимации для каждого отдельного элемента
   const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 120 } },
   };
-  
 
   return (
-    <section className="relative w-full pt-20 pb-24 md:pt-32 md:pb-32 overflow-hidden">
+    <section className="relative w-full pt-20 pb-24 md:pt-32 md:pb-32 overflow-hidden bg-[#0a0f1c] text-white border-b border-gray-800">
       
-      {/* Декоративный фоновый элемент (легкий градиент в стиле CoinList) */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-blue/10 blur-[120px] rounded-full pointer-events-none" />
+      {/* Декоративный фоновый элемент */}
+      <div className="absolute top-[-10%] left-[-0%] w-[100%] h-[100%] bg-brand-blue/20 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -38,107 +71,72 @@ export function Hero() {
             variants={containerVariants}
             initial="hidden"
             animate="show"
-            className="flex flex-col items-start text-left"
+            className="max-w-2xl"
           >
-            {/* Badge */}
-            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-blue/10 text-brand-blue text-sm font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
+            {/* Бейдж */}
+            <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-brand-blue text-sm font-semibold mb-6">
+              <span className="flex w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               {t("badge")}
             </motion.div>
-
+            
             {/* Заголовок */}
-            <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-brand-black leading-[1.1] mb-6 tracking-tight">
-              {t("title")}
+            <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight text-white">
+              {t("title")} <span className="text-brand-blue">Bimark</span>
             </motion.h1>
-
+            
             {/* Подзаголовок */}
-            <motion.p variants={itemVariants} className="text-lg md:text-xl text-gray-600 mb-8 max-w-lg leading-relaxed">
+            <motion.p variants={itemVariants} className="text-lg md:text-xl text-gray-400 mb-8 max-w-lg leading-relaxed">
               {t("subtitle")}
             </motion.p>
-
-            {/* Кнопки (Стиль CoinList) */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <Link href="#" className="w-full sm:w-auto">
-                <motion.button 
-                  whileHover={{ scale: 1.02, boxShadow: "0 10px 30px -10px rgba(0,150,223,0.5)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors hover:bg-[#007cbd]"
-                >
-                  {t("primaryCta")}
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-              </Link>
-              
-              <Link href="#" className="w-full sm:w-auto">
-                <motion.button 
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent text-brand-black border-2 border-gray-200 px-8 py-4 rounded-xl font-bold text-lg transition-colors hover:border-gray-300 hover:bg-gray-50"
-                >
-                  <PlayCircle className="w-5 h-5 text-gray-500" />
-                  {t("secondaryCta")}
-                </motion.button>
-              </Link>
-            </motion.div>
-
-            {/* Трастовая статистика прямо под кнопками (как у Republic) */}
-            <motion.div variants={itemVariants} className="mt-12 flex items-center gap-8 pt-8 border-t border-gray-200 w-full max-w-lg">
-              <div>
-                <div className="text-3xl font-extrabold text-brand-black">{t("statUsers")}</div>
-                <div className="text-sm font-medium text-gray-500 mt-1">{t("statUsersText")}</div>
-              </div>
-              <div className="w-px h-12 bg-gray-200" />
-              <div>
-                <div className="text-3xl font-extrabold text-brand-black">{t("statVolume")}</div>
-                <div className="text-sm font-medium text-gray-500 mt-1">{t("statVolumeText")}</div>
-              </div>
-            </motion.div>
+            
+            {/* Кнопки */}
+            <motion.div 
+  variants={itemVariants} 
+  className="flex flex-row items-center justify-start gap-4"
+>
+  <Link 
+    href="/register" 
+    className="w-auto bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2"
+  >
+    {t("primaryCta")}
+    <ArrowRight className="w-5 h-5" />
+  </Link>
+  
+  <button 
+    className="w-auto px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+  >
+    <PlayCircle className="w-5 h-5" />
+    {t("secondaryCta")}
+  </button>
+</motion.div>
           </motion.div>
 
-          {/* ПРАВАЯ ЧАСТЬ: Абстрактная карточка актива (Mockup) */}
+          {/* ПРАВАЯ ЧАСТЬ: Динамическая Карусель */}
           <motion.div 
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
-            className="hidden lg:flex relative w-full h-full min-h-[500px] items-center justify-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+            className="relative lg:h-[500px] flex flex-col items-center justify-center"
           >
-            {/* Здесь мы создаем красивую "левитирующую" карточку, которая показывает, как выглядит продукт */}
-            <motion.div 
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-              className="relative z-10 w-[80%] bg-white rounded-2xl shadow-2xl border border-gray-100 p-6"
-            >
-              <div className="w-full h-48 bg-gray-100 rounded-xl mb-6 overflow-hidden relative">
-                 <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/20 to-transparent" />
-                 {/* Имитация UI карточки проекта */}
-                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-brand-black shadow-sm">
-                   Live
-                 </div>
-              </div>
-              <h3 className="text-xl font-bold text-brand-black mb-2">Bimark.shop Revenue Share</h3>
-              <p className="text-sm text-gray-500 mb-6">Получайте долю от ежемесячной прибыли IT-продукта.</p>
-              
-              <div className="space-y-2 mb-6">
-                <div className="flex justify-between text-sm font-medium">
-                  <span className="text-brand-blue">Собрано $45,000</span>
-                  <span className="text-gray-500">Цель $100,000</span>
-                </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-brand-blue w-[45%] rounded-full" />
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div className="text-lg font-bold text-brand-black">$50 / доля</div>
-                <button className="bg-brand-black text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors">
-                  Инвестировать
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Декоративные круги на фоне карточки */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] rounded-full border border-gray-200/50 border-dashed" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full border border-gray-200/50 border-dashed" />
+            {isLoading ? (
+               <div className="w-12 h-12 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+            ) : carouselItems.length > 0 ? (
+               <div className="w-full max-w-md relative z-20">
+                 <Carousel 
+                   items={carouselItems} 
+                   loop={true} 
+                   autoplay={true} 
+                   autoplayDelay={3000} 
+                   round={true} 
+                 />
+               </div>
+            ) : (
+               <div className="w-full max-w-sm h-64 border border-white/10 rounded-3xl flex flex-col items-center justify-center bg-white/5 backdrop-blur-md">
+                 <Layers className="w-10 h-10 text-gray-500 mb-4" />
+                 <p className="text-gray-400 font-medium">Loading projects...</p>
+               </div>
+            )}
           </motion.div>
 
         </div>

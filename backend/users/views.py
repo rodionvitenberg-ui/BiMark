@@ -8,7 +8,8 @@ from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
 from dj_rest_auth.utils import jwt_encode
-from dj_rest_auth.app_settings import api_settings
+from dj_rest_auth.jwt_auth import set_jwt_cookies
+import uuid
 
 from .models import User, OTPCode
 from .serializers import OTPRequestSerializer, OTPRegistrationSerializer
@@ -64,8 +65,14 @@ class RegisterWithOTPView(views.APIView):
         otp_obj.is_used = True
         otp_obj.save()
 
-        # Создаем пользователя
+        # --- ИСПРАВЛЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ ---
+        # Генерируем уникальный username (например: alex_a1b2c3d4)
+        base_username = data['email'].split('@')[0]
+        unique_username = f"{base_username}_{uuid.uuid4().hex[:8]}"
+
+        # Создаем пользователя, передавая обязательный аргумент username
         user = User.objects.create_user(
+            username=unique_username,
             email=data['email'],
             password=data['password']
         )
@@ -81,8 +88,7 @@ class RegisterWithOTPView(views.APIView):
             }
         }, status=status.HTTP_201_CREATED)
 
-        # Ставим куки для фронтенда
-        api_settings.JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED = False
-        api_settings.JWT_AUTH_SET_COOKIE_RESPONSE_FUNCTION(response, access_token, refresh_token)
+        # Безопасно устанавливаем httpOnly куки с помощью встроенной функции
+        set_jwt_cookies(response, access_token, refresh_token)
 
         return response

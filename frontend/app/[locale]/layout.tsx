@@ -8,6 +8,7 @@ import { QueryProvider } from "../../components/providers/query-provider";
 import GoogleProvider from "@/components/providers/google-provider";
 import { Header } from "../../components/modules/header";
 import "./globals.css";
+import { Footer } from "../../components/modules/footer";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -41,6 +42,7 @@ export default async function RootLayout({
             <main className="flex-1 flex flex-col w-full pt-16">
               {children}
             </main>
+            <Footer />
             </GoogleProvider>
           </QueryProvider>
         </NextIntlClientProvider>

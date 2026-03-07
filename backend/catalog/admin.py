@@ -9,11 +9,10 @@ class ProjectAdmin(TabbedTranslationAdmin):
     search_fields = ('title', 'slug')
     autocomplete_fields = ('category',)
     
-    # Поля, которые будут отображаться во вкладках для каждого языка
-    # slug, price_per_share и остальные финансовые поля общие для всех
     fieldsets = (
         ('Основная информация', {
-            'fields': ('title', 'description', 'slug', 'status')
+            # ДОБАВЛЕНО: 'category' и 'image'
+            'fields': ('title', 'description', 'slug', 'category', 'image', 'status') 
         }),
         ('Финансы и доли', {
             'fields': ('price_per_share', 'total_shares', 'available_shares')

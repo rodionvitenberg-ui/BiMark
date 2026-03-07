@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.conf import settings # Добавить
+from django.conf.urls.static import static # Добавить
 
 # Импорты из наших приложений
 from catalog.views import ProjectViewSet, BuySharesView, PortfolioView, CategoryViewSet
-from billing.views import WalletView, TransactionHistoryView
+from billing.views import WalletView, TransactionHistoryView, DepositView
 from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView  # <--- Тот самый недостающий импорт
 
 # Роутер для ViewSets (автоматически создаст /api/projects/ и /api/projects/<slug>/)
@@ -32,4 +34,8 @@ urlpatterns = [
     # --- Биллинг ---
     path('api/wallet/', WalletView.as_view(), name='wallet'),
     path('api/wallet/transactions/', TransactionHistoryView.as_view(), name='transactions'),
+    path('api/wallet/deposit/', DepositView.as_view(), name='deposit'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

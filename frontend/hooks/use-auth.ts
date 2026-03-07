@@ -13,14 +13,13 @@ export const useUser = () => {
   return useQuery<User>({
     queryKey: ["user"],
     queryFn: async () => {
-      // Так как baseURL у тебя уже включает /api, запрос идет на /api/auth/user/
       const { data } = await apiClient.get("/auth/user/");
       return data;
     },
-    // Не повторяем запрос, если сервер ответил 401 (юзер не авторизован)
     retry: false, 
-    // Кэшируем профиль на 5 минут
     staleTime: 5 * 60 * 1000, 
+    // ВАЖНО: Отключаем фоновые запросы при возврате на вкладку браузера
+    refetchOnWindowFocus: false, 
   });
 };
 
