@@ -46,10 +46,9 @@ class SiteTranslationAdmin(admin.ModelAdmin):
         os.makedirs(MESSAGES_DIR, exist_ok=True)
 
         if request.method == 'POST':
-            # Собираем данные из таблицы
+            # Собираем данные из таблицы (эта часть без изменений)
             new_data = {lang: {} for lang in LANGUAGES}
             for input_name, value in request.POST.items():
-                # Ищем инпуты вида ru_Header.title
                 if input_name.startswith('ru_'): new_data['ru'][input_name[3:]] = value
                 elif input_name.startswith('en_'): new_data['en'][input_name[3:]] = value
                 elif input_name.startswith('es_'): new_data['es'][input_name[3:]] = value
@@ -68,7 +67,6 @@ class SiteTranslationAdmin(admin.ModelAdmin):
         flat_data = {lang: {} for lang in LANGUAGES}
         all_keys = set()
 
-        # Читаем все файлы и собираем ВСЕ возможные ключи
         for lang in LANGUAGES:
             filepath = os.path.join(MESSAGES_DIR, f'{lang}.json')
             if os.path.exists(filepath):
@@ -80,11 +78,21 @@ class SiteTranslationAdmin(admin.ModelAdmin):
                     except Exception:
                         pass
 
-        # Формируем строки для HTML таблицы
-        rows = []
+        # Группируем ключи по главному блоку (до первой точки)
+        grouped_data = {}
         for key in sorted(list(all_keys)):
-            rows.append({
-                'key': key,
+            # Разбиваем 'Hero.title' на ['Hero', 'title']. 
+            # Если точки нет, положим в 'Общие'
+            parts = key.split(".", 1) 
+            group_name = parts[0] if len(parts) > 1 else "Общие"
+            display_key = parts[1] if len(parts) > 1 else key
+
+            if group_name not in grouped_data:
+                grouped_data[group_name] = []
+                
+            grouped_data[group_name].append({
+                'full_key': key, # Полный ключ нужен для сохранения (напр. ru_Hero.title)
+                'display_key': display_key, # Короткий ключ для красоты (напр. title)
                 'ru': flat_data['ru'].get(key, ''),
                 'en': flat_data['en'].get(key, ''),
                 'es': flat_data['es'].get(key, ''),
@@ -93,7 +101,7 @@ class SiteTranslationAdmin(admin.ModelAdmin):
         context = {
             **self.admin_site.each_context(request),
             'title': 'Локализация интерфейса',
-            'rows': rows,
+            'grouped_data': grouped_data, # Передаем сгруппированные данные
             'opts': self.model._meta,
         }
         return render(request, 'admin/translation_form.html', context)

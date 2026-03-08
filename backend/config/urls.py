@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-from billing.webhooks import StripeWebhookView
+from billing.webhooks import StripeWebhookView, PayPalCaptureView
 
 # Импорты из наших приложений
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet
@@ -39,6 +39,7 @@ urlpatterns = [
     
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
+    path('api/webhooks/paypal/capture/', PayPalCaptureView.as_view(), name='paypal-capture'),
 
     path('api/cms/', include('cms.urls')),
 ]

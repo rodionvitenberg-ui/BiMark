@@ -8,6 +8,7 @@ from billing.models import Wallet, Transaction # Добавили Transaction
 from billing.services import WalletService
 from billing.exceptions import InsufficientFunds
 from referrals.services import ReferralService
+from billing.paypal import create_paypal_order
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -67,6 +68,8 @@ class PurchaseService:
             return cls._process_balance_checkout(user, project_map, cart_details, total_price)
         elif payment_method == 'STRIPE':
             return cls._process_stripe_checkout(user, cart_details, total_price)
+        elif payment_method == 'PAYPAL': # --- НОВОЕ УСЛОВИЕ ---
+            return cls._process_paypal_checkout(user, cart_details, total_price)
         else:
             raise ValidationError("Неизвестный метод оплаты.")
 
@@ -154,3 +157,38 @@ class PurchaseService:
             "client_secret": intent.client_secret,
             "message": "Ожидается оплата картой"
         }
+    
+    @classmethod
+    def _process_paypal_checkout(cls, user, cart_details, total_price):
+        """Формирование PENDING транзакции и заказа для PayPal"""
+        
+        # 1. Создаем PENDING транзакцию, как в Stripe
+        pending_tx = Transaction.objects.create(
+            wallet=user.wallet,
+            amount=total_price,
+            type=Transaction.Type.PURCHASE,
+            status=Transaction.Status.PENDING,
+            description=f"PayPal Checkout ({len(cart_details)} позиций)",
+            metadata={"cart": cart_details}
+        )
+
+        # 2. Делаем API запрос к PayPal для создания заказа
+        try:
+            # Отправляем сумму в PayPal
+            paypal_order = create_paypal_order(amount=total_price)
+            order_id = paypal_order.get("id")
+            
+            return {
+                "status": "pending_payment",
+                "transaction_id": str(pending_tx.id),
+                "order_id": order_id, # Отдаем фронту ID заказа PayPal
+                "payment_gateway": "paypal",
+                "message": "Ожидается оплата через PayPal"
+            }
+        except Exception as e:
+            # Если серверы PayPal лежат или упали, помечаем транзакцию как Failed
+            pending_tx.status = Transaction.Status.FAILED
+            pending_tx.description = "Ошибка при создании заказа в API PayPal"
+            pending_tx.save(update_fields=['status', 'description'])
+            raise ValidationError(f"Ошибка шлюза PayPal: {str(e)}")
+    

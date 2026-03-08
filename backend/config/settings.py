@@ -265,3 +265,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STRIPE_PUBLIC_KEY = 'pk_test_...'
 STRIPE_SECRET_KEY = 'sk_test_...'
 STRIPE_WEBHOOK_SECRET = 'whsec_...'
+
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='твой_тестовый_client_id')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='твой_тестовый_secret')
+PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox') # 'sandbox' или 'live'
