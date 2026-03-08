@@ -10,6 +10,7 @@ import { Header } from "../../components/modules/header";
 import "./globals.css";
 import { Footer } from "../../components/modules/footer";
 import { CookieConsent } from "../../components/ui/cookie-consent";
+import { ToastProvider } from '@/components/ui/toast';
 
 const manrope = Manrope({ 
   subsets: ["latin", "cyrillic"],
@@ -50,11 +51,13 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <GoogleProvider>
+              <ToastProvider>
             <Header />
             <main className="flex-1 flex flex-col w-full pt-16">
               {children}
             </main>
             <Footer />
+            </ToastProvider>
             <CookieConsent />
             </GoogleProvider>
           </QueryProvider>

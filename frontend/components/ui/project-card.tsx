@@ -74,9 +74,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
             alt={title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           />
-          <div className={`absolute top-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider backdrop-blur-md bg-white/90 shadow-sm ${currentStatus.textClass}`}>
-             {currentStatus.label}
-          </div>
         </Link>
 
         {/* HP Bar (на ширину фотографии) */}

@@ -96,7 +96,7 @@ export default function MegaMenu({ activeMenu, onClose, searchQuery, onSearchCha
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" onClick={onClose} className="block group">
+                  <Link href="/token" onClick={onClose} className="block group">
                     <div className="text-sm font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{t("presales")}</div>
                     <div className="text-xs text-gray-500 mt-1">{t("presalesDesc")}</div>
                   </Link>
@@ -107,7 +107,7 @@ export default function MegaMenu({ activeMenu, onClose, searchQuery, onSearchCha
               <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">{t("information")}</h4>
               <ul className="space-y-4">
                 <li>
-                  <Link href="#" onClick={onClose} className="block group">
+                  <Link href="/how-it-works" onClick={onClose} className="block group">
                     <div className="text-sm font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{t("howItWorks")}</div>
                     <div className="text-xs text-gray-500 mt-1">{t("howItWorksDesc")}</div>
                   </Link>
@@ -124,13 +124,13 @@ export default function MegaMenu({ activeMenu, onClose, searchQuery, onSearchCha
               <h4 className="text-sm font-semibold text-gray-900 border-b pb-2">{t("cooperation")}</h4>
               <ul className="space-y-4">
                 <li>
-                  <Link href="#" onClick={onClose} className="block group">
+                  <Link href="/raise-capital" onClick={onClose} className="block group">
                     <div className="text-sm font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{t("raiseCapital")}</div>
                     <div className="text-xs text-gray-500 mt-1">{t("raiseCapitalDesc")}</div>
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" onClick={onClose} className="block group">
+                  <Link href="/referral" onClick={onClose} className="block group">
                     <div className="text-sm font-bold text-gray-900 group-hover:text-brand-blue transition-colors">{t("referralSystem")}</div>
                     <div className="text-xs text-gray-500 mt-1">{t("referralSystemDesc")}</div>
                   </Link>

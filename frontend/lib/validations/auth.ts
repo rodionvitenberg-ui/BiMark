@@ -1,37 +1,33 @@
 import * as z from "zod";
 
-// Экспортируем функцию, которая принимает `t` для перевода ошибок
 export const getAuthSchemas = (t: any) => {
-  
-  // Шаг 1: Валидация Email
   const emailSchema = z.object({
-    email: z.string().email({ message: t("errors.invalidEmail") }),
+    email: z.string().email({ message: t("invalidEmail") }),
   });
 
-  // Шаг 2: Валидация OTP кода
   const otpSchema = z.object({
-    code: z.string().length(6, { message: t("errors.codeLength") }).regex(/^\d+$/, { message: t("errors.codeLength") }),
+    code: z.string().length(6, { message: t("invalidCode") }).regex(/^\d+$/, { message: t("invalidCode") }),
   });
 
-  // Шаг 3: Валидация Паролей
   const passwordSchema = z.object({
-    password: z.string().min(10, { message: t("errors.passwordLength") }),
+    password: z.string()
+      .min(8, { message: t("passwordTooWeak") })
+      // НОВОЕ: Запрещаем кириллицу
+      .regex(/^[^а-яА-ЯёЁ]*$/, { message: t("passwordCyrillic") }), 
     confirmPassword: z.string(),
   }).refine((data) => data.password === data.confirmPassword, {
-    message: t("errors.passwordsDoNotMatch"),
-    path: ["confirmPassword"], // Ошибка будет привязана к полю confirmPassword
+    message: t("passwordsDoNotMatch"),
+    path: ["confirmPassword"],
   });
 
-  // Шаг 4: Валидация Логина (добавь это внутрь функции getAuthSchemas)
   const loginSchema = z.object({
-    email: z.string().email({ message: t("errors.invalidEmail") }),
-    password: z.string().min(1, { message: t("errors.required") }),
+    email: z.string().email({ message: t("invalidEmail") }),
+    password: z.string().min(1, { message: t("required") }),
   });
 
-  return { emailSchema, otpSchema, passwordSchema, loginSchema }; // не забудь вернуть loginSchema
+  return { emailSchema, otpSchema, passwordSchema, loginSchema };
 };
 
-// Экспортируем типы для TypeScript, чтобы использовать их в формах
 export type EmailFormValues = z.infer<ReturnType<typeof getAuthSchemas>["emailSchema"]>;
 export type OtpFormValues = z.infer<ReturnType<typeof getAuthSchemas>["otpSchema"]>;
 export type PasswordFormValues = z.infer<ReturnType<typeof getAuthSchemas>["passwordSchema"]>;

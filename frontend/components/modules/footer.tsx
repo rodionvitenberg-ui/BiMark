@@ -15,11 +15,14 @@ export function Footer() {
           
           {/* Логотип и описание (Занимает 2 колонки) */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 font-bold text-2xl tracking-tight text-white mb-6 group inline-flex">
-              <div className="w-8 h-8 flex items-center justify-center rounded-md bg-white text-brand-black group-hover:bg-brand-blue group-hover:text-white transition-colors">
-                i
-              </div>
-              <span className="group-hover:text-brand-blue transition-colors">mark</span>
+            <Link href="/" className="flex items-center mb-6 inline-flex">
+              <Image 
+                src="/logo.png"
+                alt="Bimark Logo" 
+                width={140}
+                height={40}
+                className="transition-opacity duration-300 hover:opacity-80"
+              />
             </Link>
             <p className="text-gray-400 leading-relaxed max-w-sm">
               {t("description")}
@@ -31,8 +34,8 @@ export function Footer() {
             <h4 className="text-lg font-bold mb-6 text-white">{t("investors")}</h4>
             <ul className="space-y-4 text-gray-400">
               <li><Link href="/category" className="hover:text-brand-blue transition-colors">{h("assetsCatalog")}</Link></li>
-              <li><Link href="#" className="hover:text-brand-blue transition-colors">{h("presales")}</Link></li>
-              <li><Link href="#" className="hover:text-brand-blue transition-colors">{h("howItWorks")}</Link></li>
+              <li><Link href="/token" className="hover:text-brand-blue transition-colors">{h("presales")}</Link></li>
+              <li><Link href="/how-it-works" className="hover:text-brand-blue transition-colors">{h("howItWorks")}</Link></li>
             </ul>
           </div>
 
@@ -40,8 +43,8 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white">{t("partners")}</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><Link href="#" className="hover:text-brand-blue transition-colors">{h("raiseCapital")}</Link></li>
-              <li><Link href="#" className="hover:text-brand-blue transition-colors">{h("referralSystem")}</Link></li>
+              <li><Link href="/raise-capital" className="hover:text-brand-blue transition-colors">{h("raiseCapital")}</Link></li>
+              <li><Link href="/referral" className="hover:text-brand-blue transition-colors">{h("referralSystem")}</Link></li>
             </ul>
           </div>
 
@@ -49,9 +52,10 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white">{t("legal")}</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><Link href="#" className="hover:text-brand-blue transition-colors text-sm">{t("privacy")}</Link></li>
-              <li><Link href="#" className="hover:text-brand-blue transition-colors text-sm">{t("terms")}</Link></li>
-              <li><Link href="#" className="hover:text-brand-blue transition-colors text-sm">{t("aml")}</Link></li>
+              {/* Прописали правильные ссылки на страницы */}
+              <li><Link href="/privacy" className="hover:text-brand-blue transition-colors text-sm">{t("privacy")}</Link></li>
+              <li><Link href="/terms" className="hover:text-brand-blue transition-colors text-sm">{t("terms")}</Link></li>
+              <li><Link href="/aml" className="hover:text-brand-blue transition-colors text-sm">{t("aml")}</Link></li>
             </ul>
           </div>
 
