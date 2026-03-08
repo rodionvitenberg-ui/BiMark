@@ -73,6 +73,7 @@ class Transaction(models.Model):
     # Для аудита: кто создал транзакцию, внешние ID от платежек (Stripe/Crypto) и т.д.
     reference_id = models.CharField(max_length=255, blank=True, null=True, unique=True, help_text="ID во внешней системе")
     description = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

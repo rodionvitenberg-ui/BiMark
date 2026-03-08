@@ -32,6 +32,7 @@ export function Hero() {
     
     return shuffled.map((p) => ({
       id: p.id as any,
+      href: `/project/${p.slug}`, // <--- НОВАЯ СТРОКА: Указываем путь до детальной страницы проекта
       title: p.title?.[locale] || p.title?.en || p.title?.ru || "Project",
       description: p.description?.[locale] || p.description?.en || p.description?.ru || "",
       icon: p.image ? (
@@ -91,24 +92,27 @@ export function Hero() {
             
             {/* Кнопки */}
             <motion.div 
-  variants={itemVariants} 
-  className="flex flex-row items-center justify-start gap-4"
->
-  <Link 
-    href="/register" 
-    className="w-auto bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2"
-  >
-    {t("primaryCta")}
-    <ArrowRight className="w-5 h-5" />
-  </Link>
-  
-  <button 
-    className="w-auto px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
-  >
-    <PlayCircle className="w-5 h-5" />
-    {t("secondaryCta")}
-  </button>
-</motion.div>
+              variants={itemVariants} 
+              className="flex flex-row items-center justify-start gap-4"
+            >
+              {/* Первая CTA ведет в каталог долей */}
+              <Link 
+                href="/category" 
+                className="w-auto bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2"
+              >
+                {t("primaryCta")}
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              
+              {/* Вторая CTA ведет к полным проектам (заменили button на Link) */}
+              <Link 
+                href="/project"
+                className="w-auto px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
+              >
+                <PlayCircle className="w-5 h-5" />
+                {t("secondaryCta")}
+              </Link>
+            </motion.div>
           </motion.div>
 
           {/* ПРАВАЯ ЧАСТЬ: Динамическая Карусель */}

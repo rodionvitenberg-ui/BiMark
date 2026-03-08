@@ -7,9 +7,9 @@ from billing.services import WalletService
 class ReferralService:
     
     @classmethod
-    def process_purchase_bonus(cls, user, purchase_amount: Decimal, project_title: str):
+    def process_purchase_bonus(cls, user, purchase_amount: Decimal, project_title: str = "Активы"):
         """
-        Высчитывает и начисляет бонус пригласившему (если он есть) при покупке доли.
+        Высчитывает и начисляет бонус пригласившему (если он есть) при покупке доли или корзины.
         """
         try:
             # Ищем, кто пригласил этого пользователя
@@ -18,15 +18,21 @@ class ReferralService:
         except Referral.DoesNotExist:
             return None  # Пользователь пришел сам, без ссылки
 
+        # УМНАЯ ЛОГИКА ПРОЦЕНТА:
+        # Берем персональный процент юзера. Если он None, берем базовый из настроек (по умолчанию 5.0)
+        if referrer.personal_referral_percent is not None:
+            percent = referrer.personal_referral_percent
+        else:
+            percent = getattr(settings, 'REFERRAL_PURCHASE_PERCENT', Decimal('5.0'))
+
         # Считаем бонус (Сумма * Процент / 100)
-        percent = getattr(settings, 'REFERRAL_PURCHASE_PERCENT', Decimal('5.0'))
         bonus_amount = (purchase_amount * percent / Decimal('100')).quantize(Decimal('0.01'))
 
         if bonus_amount > 0:
             # Получаем кошелек пригласившего
             wallet, _ = Wallet.objects.get_or_create(user=referrer)
             
-            description = f"Реферальный бонус ({percent}%) за покупку в проекте '{project_title}' пользователем {user.email}"
+            description = f"Реферальный бонус ({percent}%) за покупку пользователя {user.email}"
             
             # Начисляем деньги через надежный сервис
             return WalletService.process_referral_bonus(

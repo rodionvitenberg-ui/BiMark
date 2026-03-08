@@ -9,6 +9,7 @@ import GoogleProvider from "@/components/providers/google-provider";
 import { Header } from "../../components/modules/header";
 import "./globals.css";
 import { Footer } from "../../components/modules/footer";
+import { CookieConsent } from "../../components/ui/cookie-consent";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -43,6 +44,7 @@ export default async function RootLayout({
               {children}
             </main>
             <Footer />
+            <CookieConsent />
             </GoogleProvider>
           </QueryProvider>
         </NextIntlClientProvider>

@@ -10,10 +10,13 @@ export type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED";
 
 export interface Transaction {
   id: string;
-  transaction_type: TransactionType;
-  amount: string | number;
-  status: TransactionStatus;
+  // Обрати внимание: если бэкенд отдает поле как 'type', а не 'transaction_type', 
+  // то в интерфейсе должно быть type, и в компоненте тоже нужно заменить tx.transaction_type на tx.type
+  transaction_type: "DEPOSIT" | "WITHDRAWAL" | "PURCHASE" | "REFERRAL"; 
+  amount: number | string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
   created_at: string;
+  description?: string;
 }
 
 export interface Ownership {

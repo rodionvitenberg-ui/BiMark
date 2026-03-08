@@ -10,6 +10,7 @@ from django.conf import settings
 from dj_rest_auth.utils import jwt_encode
 from dj_rest_auth.jwt_auth import set_jwt_cookies
 import uuid
+from referrals.models import Referral
 
 from .models import User, OTPCode
 from .serializers import OTPRequestSerializer, OTPRegistrationSerializer
@@ -65,19 +66,32 @@ class RegisterWithOTPView(views.APIView):
         otp_obj.is_used = True
         otp_obj.save()
 
-        # --- ИСПРАВЛЕНИЕ НАЧИНАЕТСЯ ЗДЕСЬ ---
-        # Генерируем уникальный username (например: alex_a1b2c3d4)
+        # Генерируем уникальный username
         base_username = data['email'].split('@')[0]
         unique_username = f"{base_username}_{uuid.uuid4().hex[:8]}"
 
-        # Создаем пользователя, передавая обязательный аргумент username
+        # Создаем пользователя
         user = User.objects.create_user(
             username=unique_username,
             email=data['email'],
             password=data['password']
         )
 
-        # Генерируем токены для автоматического входа (как это делает dj-rest-auth)
+        # --- НОВАЯ ЛОГИКА РЕФЕРАЛОВ ---
+        # Пытаемся получить ref из валидированных данных сериализатора
+        ref_id = data.get('ref')
+        if ref_id:
+            try:
+                # Проверяем, существует ли пользователь с таким ID
+                referrer = User.objects.get(id=ref_id)
+                # Если да, создаем связь в базе
+                Referral.objects.create(referrer=referrer, referred=user)
+            except (User.DoesNotExist, ValueError):
+                # Если ссылка битая или ID не является UUID - просто игнорируем
+                pass 
+        # --- КОНЕЦ НОВОЙ ЛОГИКИ ---
+
+        # Генерируем токены для автоматического входа
         access_token, refresh_token = jwt_encode(user)
         
         response = Response({
@@ -88,7 +102,7 @@ class RegisterWithOTPView(views.APIView):
             }
         }, status=status.HTTP_201_CREATED)
 
-        # Безопасно устанавливаем httpOnly куки с помощью встроенной функции
+        # Безопасно устанавливаем httpOnly куки
         set_jwt_cookies(response, access_token, refresh_token)
 
         return response

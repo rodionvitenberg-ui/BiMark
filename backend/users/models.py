@@ -13,6 +13,14 @@ class User(AbstractUser):
     # Флаг для мягкого удаления (soft delete) вместо физического
     is_deleted = models.BooleanField(default=False)
 
+    personal_referral_percent = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        null=True, 
+        blank=True, 
+        help_text="Индивидуальный реферальный процент. Если пусто, используется базовый."
+    )
+
     # Переопределяем логин по email
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

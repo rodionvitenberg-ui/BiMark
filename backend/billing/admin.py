@@ -40,6 +40,16 @@ class TransactionAdmin(admin.ModelAdmin):
             f'Успешно одобрено заявок на вывод: {updated_count}.', 
             messages.SUCCESS
         )
+    # Запрещаем удалять транзакции всем, кроме суперюзера (владельца)
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+        
+    # Разрешаем изменять только статус и описание (чтобы менеджер случайно не поменял сумму!)
+    def get_readonly_fields(self, request, obj=None):
+        if obj and not request.user.is_superuser:
+            # Если это менеджер, он не может менять сумму, тип и кошелек
+            return ('wallet', 'type', 'amount', 'created_at')
+        return ('created_at',)
 
     @admin.action(description='❌ Отклонить выбранные заявки на вывод')
     def reject_withdrawals(self, request, queryset):

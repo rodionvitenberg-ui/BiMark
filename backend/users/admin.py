@@ -11,8 +11,12 @@ class CustomUserAdmin(UserAdmin):
     
     # Переопределяем поля формы в админке, убирая username
     fieldsets = (
-        (None, {'fields': ('email', 'password')}),
-        ('Персональная информация', {'fields': ('first_name', 'last_name')}),
+        (None, {'fields': ('username', 'password')}),
+        ('Персональная информация', {'fields': ('email',)}),
+        ('Реферальная система', {
+            'fields': ('personal_referral_percent',),
+            'description': 'Укажите процент (например, 10.00). Если оставить пустым, будет применяться стандартный процент системы.'
+        }),
         ('Права доступа', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Важные даты', {'fields': ('last_login', 'date_joined')}),
     )

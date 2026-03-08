@@ -10,13 +10,17 @@ import {
   OtpFormValues, 
   PasswordFormValues 
 } from "@/lib/validations/auth";
-import { useRouter } from "next/navigation";
-import { apiClient } from "@/lib/api/client"; // <-- Добавлен импорт клиента
-import { useGoogleLogin } from "@react-oauth/google"; // <-- Добавлен импорт хука
+import { useRouter, useSearchParams } from "next/navigation"; // <-- Добавили useSearchParams
+import { apiClient } from "@/lib/api/client"; 
+import { useGoogleLogin } from "@react-oauth/google"; 
 
 export default function RegistrationFlow() {
   const t = useTranslations("Auth");
   const router = useRouter();
+  
+  // Достаем параметр ref из URL (например, ?ref=123-456)
+  const searchParams = useSearchParams();
+  const refCode = searchParams.get("ref");
   
   // Управление шагами формы
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -81,6 +85,7 @@ export default function RegistrationFlow() {
         email: email,
         code: otpCode,
         password: data.password,
+        ...(refCode && { ref: refCode }) // <-- Передаем ref, если он есть
       });
 
       // Успех! JWT токены уже в куках (httpOnly). 
@@ -110,6 +115,7 @@ export default function RegistrationFlow() {
       try {
         await apiClient.post("/auth/google/", {
           access_token: tokenResponse.access_token,
+          ...(refCode && { ref: refCode }) // <-- Также передаем ref при логине через Google (если нужно отслеживать)
         });
 
         router.push("/dashboard");

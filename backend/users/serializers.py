@@ -36,6 +36,9 @@ class OTPRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6, min_length=6)
     password = serializers.CharField(write_only=True, validators=[validate_password])
+    
+    # --- НОВОЕ ПОЛЕ ДЛЯ РЕФЕРАЛКИ ---
+    ref = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
     def validate(self, data):
         email = data.get('email')

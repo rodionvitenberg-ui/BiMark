@@ -1,11 +1,15 @@
+import stripe
+from django.conf import settings
 from decimal import Decimal
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from catalog.models import Project, Ownership
-from billing.models import Wallet
+from billing.models import Wallet, Transaction # Добавили Transaction
 from billing.services import WalletService
 from billing.exceptions import InsufficientFunds
 from referrals.services import ReferralService
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CatalogError(Exception):
     """Базовый класс ошибок каталога"""
@@ -19,74 +23,134 @@ class PurchaseService:
     
     @classmethod
     @transaction.atomic
-    def buy_shares(cls, user, project_id: str, shares_to_buy: int):
+    def process_checkout(cls, user, items: list, payment_method: str):
         """
-        Полный цикл покупки долей проекта.
+        Обработка корзины покупок.
+        items: [{"project_id": "uuid", "shares_amount": 5}, ...]
         """
-        if shares_to_buy <= 0:
-            raise ValueError("Количество долей должно быть больше нуля.")
-
-        # 1. БЛОКИРУЕМ ПРОЕКТ (select_for_update).
-        # Никто другой не сможет купить доли этого проекта, пока транзакция не завершится.
-        project = Project.objects.select_for_update().get(id=project_id)
-
-        # 2. Проверки бизнес-логики
-        if project.status != Project.Status.PRESALE:
-            raise ValidationError("Проект недоступен для покупки (сбор средств закрыт).")
-
-        if project.available_shares < shares_to_buy:
-            raise NotEnoughShares(f"Недостаточно долей. Осталось доступно: {project.available_shares}")
-
-        # Вычисляем итоговую стоимость
-        total_price = project.price_per_share * Decimal(shares_to_buy)
-
-        # 3. СПИСЫВАЕМ СРЕДСТВА
-        # Получаем кошелек. (Предполагается, что кошелек создается автоматически при регистрации)
-        wallet = Wallet.objects.get(user=user)
+        # 1. Извлекаем ID и СОРТИРУЕМ ИХ для предотвращения Deadlock!
+        project_ids = sorted([item['project_id'] for item in items])
         
-        description = f"Покупка {shares_to_buy} долей в проекте '{project.title}'"
-        
-        # Вызываем наш надежный сервис из billing. 
-        # Он сам заблокирует кошелек и проверит баланс. Если денег нет - выкинет InsufficientFunds,
-        # и ВСЯ эта транзакция (включая блокировку проекта) автоматически откатится.
-        tx = WalletService.process_purchase(wallet.id, total_price, description)
-
-        # 4. ОБНОВЛЯЕМ ПРОЕКТ (Списываем доступные доли)
-        project.available_shares -= shares_to_buy
-        
-        # Автоматическое закрытие пресейла, если всё раскупили
-        if project.available_shares == 0:
-            project.status = Project.Status.ACTIVE 
+        # 2. Блокируем проекты в строгом порядке
+        projects = list(Project.objects.select_for_update().filter(id__in=project_ids))
+        if len(projects) != len(set(project_ids)):
+            raise ValidationError("Один или несколько проектов не найдены.")
             
-        project.save(update_fields=['available_shares', 'status'])
+        project_map = {str(p.id): p for p in projects}
+        
+        total_price = Decimal('0.00')
+        cart_details = []
+        
+        # 3. Валидируем корзину и считаем общую сумму
+        for item in items:
+            proj_id = str(item['project_id'])
+            shares = item['shares_amount']
+            proj = project_map[proj_id]
+            
+            if proj.status not in [Project.Status.PRESALE, Project.Status.ACTIVE]:
+                raise ValidationError(f"Проект {proj.title} недоступен для покупки.")
+            if proj.available_shares < shares:
+                raise NotEnoughShares(f"Недостаточно долей в {proj.title}. Доступно: {proj.available_shares}")
+                
+            cost = proj.price_per_share * Decimal(shares)
+            total_price += cost
+            
+            cart_details.append({
+                "project_id": proj_id,
+                "shares": shares,
+                "price_per_share": str(proj.price_per_share),
+                "cost": str(cost)
+            })
 
-        # 5. ОБНОВЛЯЕМ ПОРТФЕЛЬ ПОЛЬЗОВАТЕЛЯ (Ownership)
-        ownership, created = Ownership.objects.get_or_create(
-            user=user,
-            project=project,
-            defaults={
-                'shares_amount': 0,
-                'average_buy_price': Decimal('0.00')
+        # 4. Маршрутизация оплаты
+        if payment_method == 'BALANCE':
+            return cls._process_balance_checkout(user, project_map, cart_details, total_price)
+        elif payment_method == 'STRIPE':
+            return cls._process_stripe_checkout(user, cart_details, total_price)
+        else:
+            raise ValidationError("Неизвестный метод оплаты.")
+
+    @classmethod
+    def _process_balance_checkout(cls, user, project_map, cart_details, total_price):
+        """Мгновенное списание средств и начисление долей"""
+        
+        # Списываем общую сумму с баланса (WalletService сам проверит нехватку средств)
+        tx = WalletService.process_purchase(
+            wallet_id=user.wallet.id,
+            amount=total_price,
+            description=f"Оплата корзины ({len(cart_details)} позиций)"
+        )
+        # Сохраняем состав корзины для истории
+        tx.metadata = {"cart": cart_details}
+        tx.save(update_fields=['metadata'])
+
+        ownership_ids = []
+
+        # Обновляем проекты и портфель юзера
+        for item in cart_details:
+            proj = project_map[item['project_id']]
+            shares = item['shares']
+            
+            proj.available_shares -= shares
+            if proj.available_shares == 0:
+                proj.status = Project.Status.SOLD
+            proj.save(update_fields=['available_shares', 'status', 'updated_at'])
+
+            ownership, _ = Ownership.objects.get_or_create(
+                user=user, 
+                project=proj,
+                defaults={'shares_amount': 0, 'average_buy_price': Decimal('0.00')}
+            )
+
+            old_total_value = Decimal(ownership.shares_amount) * ownership.average_buy_price
+            new_total_value = Decimal(shares) * proj.price_per_share
+            
+            ownership.shares_amount += shares
+            ownership.average_buy_price = (old_total_value + new_total_value) / Decimal(ownership.shares_amount)
+            ownership.save(update_fields=['shares_amount', 'average_buy_price', 'updated_at'])
+            
+            ownership_ids.append(str(ownership.id))
+
+        # Начисляем реферальный бонус с общей суммы корзины
+        ReferralService.process_purchase_bonus(user=user, amount_spent=total_price)
+
+        return {
+            "status": "success",
+            "message": "Корзина успешно оплачена",
+            "ownership_ids": ownership_ids
+        }
+
+    @classmethod
+    def _process_stripe_checkout(cls, user, cart_details, total_price):
+        """Формирование PENDING транзакции для Stripe"""
+        import stripe
+        from django.conf import settings
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        # Создаем транзакцию. Сохраняем корзину в metadata, чтобы прочитать её при вебхуке!
+        pending_tx = Transaction.objects.create(
+            wallet=user.wallet,
+            amount=total_price,
+            type=Transaction.Type.PURCHASE,
+            status=Transaction.Status.PENDING,
+            description=f"Stripe Checkout ({len(cart_details)} позиций)",
+            metadata={"cart": cart_details}
+        )
+
+        amount_in_cents = int(total_price * 100)
+
+        intent = stripe.PaymentIntent.create(
+            amount=amount_in_cents,
+            currency='usd',
+            metadata={
+                'transaction_id': str(pending_tx.id),
+                'user_id': str(user.id),
             }
         )
 
-        # Пересчитываем среднюю цену покупки (Average Buy Price)
-        # Формула: (Текущая_стоимость_портфеля + Стоимость_новой_покупки) / Новое_количество_долей
-        current_total_value = Decimal(ownership.shares_amount) * ownership.average_buy_price
-        new_total_value = current_total_value + total_price
-        
-        ownership.shares_amount += shares_to_buy
-        ownership.average_buy_price = new_total_value / Decimal(ownership.shares_amount)
-        
-        ownership.save(update_fields=['shares_amount', 'average_buy_price'])
-
-        # TODO: Интеграция с referrals. Вызов начисления % пригласившему юзеру.
-        # ReferralService.process_purchase_bonus(user, total_price)
-
-        ReferralService.process_purchase_bonus(
-            user=user, 
-            purchase_amount=total_price, 
-            project_title=project.title
-        )
-
-        return ownership, tx
+        return {
+            "status": "pending_payment",
+            "transaction_id": str(pending_tx.id),
+            "client_secret": intent.client_secret,
+            "message": "Ожидается оплата картой"
+        }

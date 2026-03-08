@@ -10,6 +10,11 @@ class Category(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, db_index=True)
     image = models.ImageField(upload_to='categories/', null=True, blank=True)
+    is_hidden = models.BooleanField(
+        default=False, 
+        verbose_name="Скрыть из каталога",
+        help_text="Если включено, категория не будет выводиться в общем списке на фронтенде."
+    )
     
     # Если используешь modeltranslation, поля name_ru, name_en добавятся автоматически
     
@@ -35,6 +40,16 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, db_index=True)
     description = models.TextField()
+    is_hidden = models.BooleanField(
+        default=False, 
+        verbose_name="Скрыть из каталога",
+        help_text="Если включено, проект не будет виден в общем каталоге, но будет доступен по прямой ссылке (например, для токена BMK)."
+    )
+    is_new = models.BooleanField(
+        default=True, 
+        verbose_name="Новинка",
+        help_text="Показывать проект в специальном блоке новинок на фронтенде."
+    )
     
     # Финансовая математика проекта
     price_per_share = models.DecimalField(

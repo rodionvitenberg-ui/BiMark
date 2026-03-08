@@ -5,11 +5,12 @@ import { useTranslations } from "next-intl";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { usePathname, useRouter, routing } from "../../i18n/routing";
-import { Globe, Search, Wallet, User, LogOut, ChevronDown } from "lucide-react";
+import { Globe, Wallet, User, LogOut, ChevronDown, ShoppingCart } from "lucide-react"; // Добавили ShoppingCart
 import { Link } from "../../i18n/routing";
 import { useUser, useLogout } from "@/hooks/use-auth";
 import { AnimatePresence, motion } from "framer-motion";
 import MegaMenu from "./mega-menu";
+import { useCart } from "@/hooks/use-cart"; // Подключили Zustand стор
 
 // Вспомогательная функция для отображения названия языка
 const getLanguageName = (code: string) => {
@@ -37,6 +38,10 @@ export function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   
+  // Состояния корзины
+  const [isMounted, setIsMounted] = useState(false);
+  const cartItemsCount = useCart((state) => state.items.reduce((total, item) => total + item.shares_amount, 0));
+
   const profileRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
 
@@ -44,6 +49,11 @@ export function Header() {
   const logoutMutation = useLogout();
 
   const isLight = activeMenu !== "";
+
+  // Предотвращаем Hydration Mismatch: рендерим данные localStorage только на клиенте
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // "Умное" закрытие мегаменю при уводе курсора с шапки
   const handleHeaderMouseLeave = () => {
@@ -82,6 +92,14 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // НОВЫЙ ХУК: Закрываем профиль и языки при открытии мегаменю
+  useEffect(() => {
+    if (activeMenu !== "") {
+      setIsProfileOpen(false);
+      setIsLangOpen(false);
+    }
+  }, [activeMenu]);
+
   return (
     <header 
       onMouseLeave={handleHeaderMouseLeave}
@@ -110,7 +128,7 @@ export function Header() {
 
           <nav className="hidden md:flex items-center gap-6">
             {/* КНОПКА ПОИСКА: Сдвинута влево, только иконка, открывает мегаменю */}
-            <button 
+            {/* <button 
               onMouseEnter={() => setActiveMenu("search")}
               className={`flex items-center justify-center transition-colors cursor-pointer ${
                 isLight ? "text-brand-black hover:text-brand-blue" : "text-gray-300 hover:text-white"
@@ -118,7 +136,7 @@ export function Header() {
               aria-label={t("search")}
             >
               <Search className="w-7 h-7" />
-            </button>
+            </button> */}
 
             <button 
               onMouseEnter={() => setActiveMenu("investors")}
@@ -142,11 +160,11 @@ export function Header() {
 
         {/* ПРАВАЯ ЧАСТЬ: Локализация и Профиль */}
         <div className="flex items-center gap-4 ml-auto">
-          
+
           <div className="relative" ref={langRef}>
             <button 
-              onClick={() => setIsLangOpen(!isLangOpen)}
-              className={`flex items-center gap-1.5 transition-colors hover:opacity-80 ${isLight ? "text-brand-black" : "text-white"}`}
+              onClick={() => {setIsLangOpen(!isLangOpen); setActiveMenu("");}}
+              className={`z-60 flex items-center gap-1.5 transition-colors hover:opacity-80 ${isLight ? "text-brand-black" : "text-white"}`}
             >
               <Globe className={`w-7 h-7 ${isLight ? "text-gray-500" : "text-gray-300"}`} />
               <span className="text-md font-medium uppercase">{currentLocale}</span>
@@ -180,6 +198,25 @@ export function Header() {
             </AnimatePresence>
           </div>
 
+          {/* ИНТЕГРАЦИЯ КОРЗИНЫ: Аккуратная вставка без изменения соседей */}
+          <Link 
+            href="/checkout" 
+            className={`relative flex items-center justify-center transition-colors hover:opacity-80 ${isLight ? "text-brand-black hover:text-brand-blue" : "text-white hover:text-gray-300"}`}
+            aria-label="Cart"
+          >
+            {/* Размер иконки подогнан под твои w-7 h-7 у Globe и Wallet */}
+            <ShoppingCart className="w-7 h-7" />
+            {isMounted && cartItemsCount > 0 && (
+              <motion.span 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand-blue text-[11px] font-bold text-white shadow-sm"
+              >
+                {cartItemsCount}
+              </motion.span>
+            )}
+          </Link>
+
           <div className={`w-px h-6 hidden md:block transition-colors ${isLight ? "bg-gray-300" : "bg-gray-600/50"}`}></div>
 
           <div className="flex items-center gap-4">
@@ -194,7 +231,7 @@ export function Header() {
                 
                 <div className="relative" ref={profileRef}>
                   <button 
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    onClick={() => {setIsProfileOpen(!isLangOpen); setActiveMenu("");}}
                     className={`flex items-center gap-2 text-md font-medium transition-colors ${
                       isLight ? "hover:text-brand-blue" : "hover:text-gray-300"
                     }`}

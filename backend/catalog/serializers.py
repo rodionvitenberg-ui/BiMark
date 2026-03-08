@@ -50,3 +50,18 @@ class OwnershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ownership
         fields = ['id', 'project', 'shares_amount', 'average_buy_price', 'created_at']
+
+class BuySharesSerializer(serializers.Serializer):
+    shares_to_buy = serializers.IntegerField(min_value=1)
+    payment_method = serializers.ChoiceField(
+        choices=['BALANCE', 'STRIPE'], 
+        default='BALANCE'
+    )
+
+class CartItemSerializer(serializers.Serializer):
+    project_id = serializers.UUIDField()
+    shares_amount = serializers.IntegerField(min_value=1)
+
+class CheckoutSerializer(serializers.Serializer):
+    items = CartItemSerializer(many=True, allow_empty=False)
+    payment_method = serializers.ChoiceField(choices=['BALANCE', 'STRIPE'])

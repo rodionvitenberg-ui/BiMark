@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react';
+import { motion, useMotionValue } from 'motion/react';
 import React, { JSX } from 'react';
+import { Link } from "../../i18n/routing"; 
 
 // replace icons with your own if needed
 import { FiCircle, FiCode, FiFileText, FiLayers, FiLayout } from 'react-icons/fi';
+
 export interface CarouselItem {
   title: string;
   description: string;
   id: number;
   icon: React.ReactNode;
+  href?: string;
 }
 
 export interface CarouselProps {
@@ -54,8 +57,6 @@ const DEFAULT_ITEMS: CarouselItem[] = [
   }
 ];
 
-const DRAG_BUFFER = 0;
-const VELOCITY_THRESHOLD = 500;
 const GAP = 16;
 const SPRING_OPTIONS = { type: 'spring' as const, stiffness: 300, damping: 30 };
 
@@ -70,27 +71,10 @@ interface CarouselItemProps {
 }
 
 function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, transition }: CarouselItemProps) {
-  const range = [-(index + 1) * trackItemOffset, -index * trackItemOffset, -(index - 1) * trackItemOffset];
-  const outputRange = [90, 0, -90];
-  const rotateY = useTransform(x, range, outputRange, { clamp: false });
+  // УДАЛЕНО: Математика для расчета rotateY (range, outputRange, useTransform)
 
-  return (
-    <motion.div
-      key={`${item?.id ?? index}-${index}`}
-      className={`relative shrink-0 flex flex-col ${
-        round
-          ? 'items-center justify-center text-center bg-[#060010] border-0'
-          : 'items-start justify-between bg-[#222] border border-[#222] rounded-[12px]'
-      } overflow-hidden cursor-grab active:cursor-grabbing`}
-      style={{
-        width: itemWidth,
-        height: round ? itemWidth : '100%',
-        rotateY: rotateY,
-        ...(round && { borderRadius: '50%' })
-      }}
-      transition={transition}
-    >
-      {/* ИЗМЕНЕНИЕ ЗДЕСЬ: Растягиваем аватарку на весь круг */}
+  const CardContent = (
+    <>
       <div className={`${round ? 'absolute inset-0 z-0' : 'mb-4 p-5 z-0'}`}>
         <span className={`flex items-center justify-center rounded-full bg-[#060010] overflow-hidden ${
           round 
@@ -101,11 +85,38 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
         </span>
       </div>
       
-      {/* ИЗМЕНЕНИЕ ЗДЕСЬ: Оставили текст на месте, просто добавили z-10, чтобы он был поверх картинки */}
       <div className="pt-90 pb-5 px-5 relative z-10 pointer-events-none">
         <div className="mb-1 font-black text-lg text-white drop-shadow-lg">{item.title}</div>
         <p className="text-md text-white drop-shadow-lg">{item.description}</p>
       </div>
+    </>
+  );
+
+  return (
+    <motion.div
+      key={`${item?.id ?? index}-${index}`}
+      className={`relative shrink-0 flex flex-col ${
+        round
+          ? 'items-center justify-center text-center bg-[#060010] border-0 hover:scale-105 transition-transform duration-300'
+          : 'items-start justify-between bg-[#222] border border-[#222] rounded-[12px]'
+      } overflow-hidden`}
+      style={{
+        width: itemWidth,
+        height: round ? itemWidth : '100%',
+        // УДАЛЕНО: свойство rotateY из стилей
+        ...(round && { borderRadius: '50%' })
+      }}
+      transition={transition}
+    >
+      {item.href ? (
+        <Link href={item.href as any} className="w-full h-full block cursor-pointer">
+          {CardContent}
+        </Link>
+      ) : (
+        <div className="w-full h-full">
+          {CardContent}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -135,6 +146,7 @@ export default function Carousel({
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
     if (pauseOnHover && containerRef.current) {
       const container = containerRef.current;
@@ -174,9 +186,7 @@ export default function Carousel({
 
   const effectiveTransition = isJumping ? { duration: 0 } : SPRING_OPTIONS;
 
-  const handleAnimationStart = () => {
-    setIsAnimating(true);
-  };
+  const handleAnimationStart = () => setIsAnimating(true);
 
   const handleAnimationComplete = () => {
     if (!loop || itemsForRender.length <= 1) {
@@ -208,39 +218,8 @@ export default function Carousel({
       });
       return;
     }
-
     setIsAnimating(false);
   };
-
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo): void => {
-    const { offset, velocity } = info;
-    const direction =
-      offset.x < -DRAG_BUFFER || velocity.x < -VELOCITY_THRESHOLD
-        ? 1
-        : offset.x > DRAG_BUFFER || velocity.x > VELOCITY_THRESHOLD
-          ? -1
-          : 0;
-
-    if (direction === 0) return;
-
-    setPosition(prev => {
-      const next = prev + direction;
-      const max = itemsForRender.length - 1;
-      return Math.max(0, Math.min(next, max));
-    });
-  };
-
-  const dragProps = loop
-    ? {}
-    : {
-        dragConstraints: {
-          left: -trackItemOffset * Math.max(itemsForRender.length - 1, 0),
-          right: 0
-        }
-      };
-
-  const activeIndex =
-    items.length === 0 ? 0 : loop ? (position - 1 + items.length) % items.length : Math.min(position, items.length - 1);
 
   return (
     <div
@@ -255,16 +234,13 @@ export default function Carousel({
     >
       <motion.div
         className="flex"
-        drag={isAnimating ? false : 'x'}
-        {...dragProps}
+        drag={false} 
         style={{
           width: itemWidth,
           gap: `${GAP}px`,
-          perspective: 1000,
-          perspectiveOrigin: `${position * trackItemOffset + itemWidth / 2}px 50%`,
+          // УДАЛЕНО: perspective и perspectiveOrigin, так как 3D-вращения больше нет
           x
         }}
-        onDragEnd={handleDragEnd}
         animate={{ x: -(position * trackItemOffset) }}
         transition={effectiveTransition}
         onAnimationStart={handleAnimationStart}
@@ -283,29 +259,6 @@ export default function Carousel({
           />
         ))}
       </motion.div>
-      <div className={`flex w-full justify-center ${round ? 'absolute z-20 bottom-12 left-1/2 -translate-x-1/2' : ''}`}>
-        <div className="mt-4 flex w-[150px] justify-between px-8">
-          {items.map((_, index) => (
-            <motion.div
-              key={index}
-              className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
-                activeIndex === index
-                  ? round
-                    ? 'bg-white'
-                    : 'bg-[#333333]'
-                  : round
-                    ? 'bg-[#555]'
-                    : 'bg-[rgba(51,51,51,0.4)]'
-              }`}
-              animate={{
-                scale: activeIndex === index ? 1.2 : 1
-              }}
-              onClick={() => setPosition(loop ? index + 1 : index)}
-              transition={{ duration: 0.15 }}
-            />
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

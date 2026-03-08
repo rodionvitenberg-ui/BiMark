@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ValidationError
 
 from catalog.models import Project, Ownership, Category
-from catalog.serializers import ProjectSerializer, OwnershipSerializer, CategorySerializer
+from catalog.serializers import ProjectSerializer, OwnershipSerializer, CategorySerializer, BuySharesSerializer
 from catalog.services import PurchaseService, NotEnoughShares
 from billing.exceptions import InsufficientFunds
 
@@ -29,66 +29,76 @@ class PortfolioView(views.APIView):
         serializer = OwnershipSerializer(portfolio, many=True)
         return Response(serializer.data)
 
-class BuySharesView(views.APIView):
+class CheckoutView(views.APIView):
     """
-    Эндпоинт для покупки долей.
-    Ожидает JSON: {"shares_to_buy": 5}
+    Эндпоинт для оплаты корзины.
+    Ожидает JSON: 
+    {
+        "payment_method": "BALANCE", 
+        "items": [
+            {"project_id": "uuid-1", "shares_amount": 5},
+            {"project_id": "uuid-2", "shares_amount": 10}
+        ]
+    }
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, project_id):
-        shares_to_buy = request.data.get('shares_to_buy')
-        
-        if not shares_to_buy or not isinstance(shares_to_buy, int) or shares_to_buy <= 0:
-            return Response(
-                {"detail": "Укажите корректное количество долей (целое число > 0)."}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def post(self, request):
+        serializer = CheckoutSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        items = serializer.validated_data['items']
+        payment_method = serializer.validated_data['payment_method']
 
         try:
-            # Вызываем наш пуленепробиваемый сервис
-            ownership, tx = PurchaseService.buy_shares(
+            result = PurchaseService.process_checkout(
                 user=request.user,
-                project_id=project_id,
-                shares_to_buy=shares_to_buy
+                items=items,
+                payment_method=payment_method
             )
-            
-            return Response({
-                "detail": "Покупка успешно завершена.",
-                "transaction_id": tx.id,
-                "new_shares_amount": ownership.shares_amount,
-                "average_buy_price": ownership.average_buy_price
-            }, status=status.HTTP_200_OK)
+            return Response(result, status=status.HTTP_200_OK)
 
-        except InsufficientFunds as e:
-            return Response({"detail": str(e), "code": "INSUFFICIENT_FUNDS"}, status=status.HTTP_400_BAD_REQUEST)
         except NotEnoughShares as e:
             return Response({"detail": str(e), "code": "NOT_ENOUGH_SHARES"}, status=status.HTTP_400_BAD_REQUEST)
         except ValidationError as e:
-            return Response({"detail": list(e)[0]}, status=status.HTTP_400_BAD_REQUEST)
-        except Project.DoesNotExist:
-            return Response({"detail": "Проект не найден."}, status=status.HTTP_404_NOT_FOUND)
+            error_msg = list(e)[0] if hasattr(e, '__iter__') else str(e)
+            return Response({"detail": error_msg}, status=status.HTTP_400_BAD_REQUEST)
+        except InsufficientFunds as e:
+            return Response({"detail": str(e)}, status=status.HTTP_402_PAYMENT_REQUIRED)
+        except Exception as e:
+            # Для отладки можно временно вывести str(e)
+            return Response({"detail": "Внутренняя ошибка сервера."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    """Список всех категорий"""
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [AllowAny]
-    lookup_field = 'slug'
-
-class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
-    """Каталог проектов: список и деталка"""
-    serializer_class = ProjectSerializer
-    permission_classes = [AllowAny]
     lookup_field = 'slug'
 
     def get_queryset(self):
-        # Базовый QuerySet
-        qs = Project.objects.filter(status__in=[Project.Status.PRESALE, Project.Status.ACTIVE])
+        qs = Category.objects.all() # Или .filter(is_active=True), если у тебя есть такой статус
         
-        # Фильтрация по категории через GET-параметр (?category=slug)
-        category_slug = self.request.query_params.get('category')
-        if category_slug:
-            qs = qs.filter(category__slug=category_slug)
+        # Если это запрос списка (каталог) - прячем скрытые
+        if self.action == 'list':
+            return qs.filter(is_hidden=False)
+        
+        # Если запрос конкретной категории по слагу - отдаем как есть
+        return qs
+
+class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ProjectSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        qs = Project.objects.select_related('category').all()
+        
+        if self.action == 'list':
+            # Сначала убираем скрытые
+            qs = qs.filter(is_hidden=False)
             
-        return qs.select_related('category')
+            # Ловим параметр из URL (например: /api/projects/?is_new=true)
+            is_new_param = self.request.query_params.get('is_new')
+            if is_new_param == 'true':
+                qs = qs.filter(is_new=True)
+                
+            return qs
+            
+        return qs
