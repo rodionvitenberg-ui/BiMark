@@ -8,7 +8,7 @@ from billing.webhooks import StripeWebhookView, PayPalCaptureView
 # Импорты из наших приложений
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet
 from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView # Добавили WithdrawView
-from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView
+from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView, PasswordResetRequestView, PasswordResetConfirmView
 
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
@@ -40,6 +40,10 @@ urlpatterns = [
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
     path('api/webhooks/paypal/capture/', PayPalCaptureView.as_view(), name='paypal-capture'),
+
+    # Маршруты для восстановления пароля
+    path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
+    path('api/users/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 
     path('api/cms/', include('cms.urls')),
 ]

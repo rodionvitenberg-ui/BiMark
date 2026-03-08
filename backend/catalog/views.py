@@ -4,25 +4,63 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ValidationError
 
 from catalog.models import Project, Ownership, Category
-from catalog.serializers import ProjectSerializer, OwnershipSerializer, CategorySerializer, BuySharesSerializer
+# Если у вас CheckoutSerializer не импортирован, убедитесь, что он есть в catalog.serializers
+from catalog.serializers import ProjectSerializer, OwnershipSerializer, CategorySerializer, CheckoutSerializer
 from catalog.services import PurchaseService, NotEnoughShares
 from billing.exceptions import InsufficientFunds
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Категории проектов.
+    Открыт для всех (AllowAny), чтобы рендерить каталог без авторизации.
+    """
+    serializer_class = CategorySerializer
+    permission_classes = [AllowAny] # <--- РАЗРЕШАЕМ ДОСТУП ВСЕМ
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        qs = Category.objects.all()
+        
+        # Если это запрос списка (каталог) - прячем скрытые
+        if self.action == 'list':
+            return qs.filter(is_hidden=False)
+        
+        # Если запрос конкретной категории по слагу - отдаем как есть
+        return qs
 
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Каталог проектов: список и деталка.
-    Доступен всем (даже неавторизованным, чтобы Next.js мог рендерить лендинг).
+    Открыт для всех (AllowAny).
     """
-    queryset = Project.objects.filter(status__in=[Project.Status.PRESALE, Project.Status.ACTIVE])
     serializer_class = ProjectSerializer
-    permission_classes = [AllowAny]
-    lookup_field = 'slug' # Искать будем по slug (например, /api/projects/youtube-channel/)
+    permission_classes = [AllowAny] # <--- РАЗРЕШАЕМ ДОСТУП ВСЕМ
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        # Базовый QuerySet: показываем только активные или на пресейле, подтягиваем категорию
+        qs = Project.objects.select_related('category').filter(
+            status__in=[Project.Status.PRESALE, Project.Status.ACTIVE]
+        )
+        
+        if self.action == 'list':
+            # Сначала убираем скрытые
+            qs = qs.filter(is_hidden=False)
+            
+            # Ловим параметр из URL (например: /api/projects/?is_new=true)
+            is_new_param = self.request.query_params.get('is_new')
+            if is_new_param == 'true':
+                qs = qs.filter(is_new=True)
+                
+            return qs
+            
+        return qs
 
 class PortfolioView(views.APIView):
     """
     Портфель пользователя.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # <--- ЗДЕСЬ АВТОРИЗАЦИЯ ОБЯЗАТЕЛЬНА
 
     def get(self, request):
         portfolio = Ownership.objects.filter(user=request.user).select_related('project')
@@ -31,17 +69,9 @@ class PortfolioView(views.APIView):
 
 class CheckoutView(views.APIView):
     """
-    Эндпоинт для оплаты корзины.
-    Ожидает JSON: 
-    {
-        "payment_method": "BALANCE", 
-        "items": [
-            {"project_id": "uuid-1", "shares_amount": 5},
-            {"project_id": "uuid-2", "shares_amount": 10}
-        ]
-    }
+    Эндпоинт для оплаты корзины/покупки доли.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated] # <--- ЗДЕСЬ АВТОРИЗАЦИЯ ОБЯЗАТЕЛЬНА
 
     def post(self, request):
         serializer = CheckoutSerializer(data=request.data)
@@ -66,39 +96,4 @@ class CheckoutView(views.APIView):
         except InsufficientFunds as e:
             return Response({"detail": str(e)}, status=status.HTTP_402_PAYMENT_REQUIRED)
         except Exception as e:
-            # Для отладки можно временно вывести str(e)
             return Response({"detail": "Внутренняя ошибка сервера."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = CategorySerializer
-    lookup_field = 'slug'
-
-    def get_queryset(self):
-        qs = Category.objects.all() # Или .filter(is_active=True), если у тебя есть такой статус
-        
-        # Если это запрос списка (каталог) - прячем скрытые
-        if self.action == 'list':
-            return qs.filter(is_hidden=False)
-        
-        # Если запрос конкретной категории по слагу - отдаем как есть
-        return qs
-
-class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = ProjectSerializer
-    lookup_field = 'slug'
-
-    def get_queryset(self):
-        qs = Project.objects.select_related('category').all()
-        
-        if self.action == 'list':
-            # Сначала убираем скрытые
-            qs = qs.filter(is_hidden=False)
-            
-            # Ловим параметр из URL (например: /api/projects/?is_new=true)
-            is_new_param = self.request.query_params.get('is_new')
-            if is_new_param == 'true':
-                qs = qs.filter(is_new=True)
-                
-            return qs
-            
-        return qs

@@ -2,6 +2,7 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from django.conf import settings
+from rest_framework.views import APIView
 from rest_framework import views, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -106,3 +107,61 @@ class RegisterWithOTPView(views.APIView):
         set_jwt_cookies(response, access_token, refresh_token)
 
         return response
+
+class PasswordResetRequestView(views.APIView):
+    """Шаг 1: Запрос на сброс пароля (отправка OTP)"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({"detail": "Email обязателен"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверяем, существует ли юзер (ради безопасности не выдаем ошибку, если нет)
+        if User.objects.filter(email=email).exists():
+            otp = OTPCode.generate_for_email(email)
+            send_mail(
+                subject='Восстановление пароля Bimark',
+                message=f'Ваш код для восстановления пароля: {otp.code}\nКод действителен 10 минут.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        
+        # Всегда возвращаем ОК, чтобы предотвратить перебор email-ов злоумышленниками
+        return Response({"detail": "Если email зарегистрирован, мы отправили на него код."}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(views.APIView):
+    """Шаг 2 и 3: Проверка OTP и установка нового пароля"""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email')
+        code = request.data.get('code')
+        password = request.data.get('password')
+
+        if not all([email, code, password]):
+            return Response({"detail": "Заполните все поля"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Ищем самый свежий неиспользованный код
+            otp = OTPCode.objects.filter(email=email, code=code, is_used=False).latest('created_at')
+        except OTPCode.DoesNotExist:
+            return Response({"detail": "Неверный код"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp.is_valid():
+            return Response({"detail": "Срок действия кода истек"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(password) # Хэшируем и сохраняем новый пароль
+            user.save()
+
+            # Сжигаем код
+            otp.is_used = True
+            otp.save()
+
+            return Response({"detail": "Пароль успешно изменен"}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"detail": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
