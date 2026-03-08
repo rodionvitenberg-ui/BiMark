@@ -3,7 +3,7 @@
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "../../i18n/routing";
 import { apiClient } from "../../lib/api/client";
 import { Category } from "../../types/project";
@@ -44,7 +44,7 @@ export function CategoriesPreview() {
             className="w-full md:w-auto px-8 py-4 bg-brand-blue hover:bg-[#007cbd] text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 group shrink-0"
           >
             {t("viewAll")}
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
@@ -91,7 +91,7 @@ export function CategoriesPreview() {
                           {categoryName}
                         </h3>
                         <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-                          <ArrowRight className="w-5 h-5" />
+                          <ArrowRightIcon className="w-5 h-5" />
                         </div>
                       </div>
                     </div>

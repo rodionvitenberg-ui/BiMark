@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, ArrowLeft, CreditCard, Wallet, CheckCircle2, Loader2 } from "lucide-react";
+import { Trash2, ArrowLeft, CreditCard, Wallet, CheckCircle2, Loader2, Bitcoin } from "lucide-react"; // <-- Добавили Bitcoin
 import { useMutation } from "@tanstack/react-query";
 import { Link, useRouter } from "../../../i18n/routing";
 import { apiClient } from "../../../lib/api/client";
@@ -11,41 +11,33 @@ import { useCart } from "../../../hooks/use-cart";
 import PaymentModal from "../../../components/modules/payment-modal";
 import { useUser } from "../../../hooks/use-auth";
 
-// Импортируем компоненты PayPal
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-// Добавляем PAYPAL в типы
-type PaymentMethod = "BALANCE" | "STRIPE" | "PAYPAL";
+// <-- Добавили TRIPLEA
+type PaymentMethod = "BALANCE" | "STRIPE" | "PAYPAL" | "TRIPLEA"; 
 
 export default function CheckoutPage() {
   const t = useTranslations("Checkout");
   const router = useRouter();
   
-  // Zustand store
   const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCart();
   
-  // Локальные состояния
   const [isMounted, setIsMounted] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("BALANCE");
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
-  // Состояния для Stripe
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
 
-  // Реф для хранения transaction_id между запросами PayPal
   const txIdRef = useRef<string | null>(null);
 
-  // Получаем юзера
   const { data: user, isLoading: isUserLoading } = useUser();
 
-  // Защита от Hydration Mismatch
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Стандартная мутация для BALANCE и STRIPE
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -59,7 +51,12 @@ export default function CheckoutPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      if (data.status === "pending_payment" && data.client_secret) {
+      // <-- НОВАЯ ЛОГИКА ДЛЯ TRIPLE-A (Редирект на крипто-шлюз)
+      if (data.payment_gateway === "triplea" && data.hosted_url) {
+        window.location.href = data.hosted_url;
+      } 
+      // Старая логика для Stripe и Баланса
+      else if (data.status === "pending_payment" && data.client_secret) {
         setClientSecret(data.client_secret);
         setIsStripeModalOpen(true);
       } else if (data.status === "success") {
@@ -205,13 +202,19 @@ export default function CheckoutPage() {
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithStripe")}</p>
                 </label>
 
-                {/* НОВАЯ КНОПКА PAYPAL */}
                 <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "PAYPAL" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
                   <input type="radio" name="payment" value="PAYPAL" checked={paymentMethod === "PAYPAL"} onChange={() => setPaymentMethod("PAYPAL")} className="hidden" />
                   <div className={`w-6 h-6 flex items-center justify-center font-black italic rounded bg-gray-100 dark:bg-gray-800 ${paymentMethod === "PAYPAL" ? "text-[#003087]" : "text-gray-400"}`}>
                     P
                   </div>
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithPayPal") || "PayPal"}</p>
+                </label>
+
+                {/* НОВАЯ КНОПКА TRIPLE-A */}
+                <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "TRIPLEA" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
+                  <input type="radio" name="payment" value="TRIPLEA" checked={paymentMethod === "TRIPLEA"} onChange={() => setPaymentMethod("TRIPLEA")} className="hidden" />
+                  <Bitcoin className={`w-6 h-6 ${paymentMethod === "TRIPLEA" ? "text-brand-blue" : "text-gray-400"}`} />
+                  <p className="font-bold text-gray-900 dark:text-white">{t("payWithCrypto") || "Оплатить криптовалютой"}</p>
                 </label>
               </div>
 
@@ -244,10 +247,7 @@ export default function CheckoutPage() {
                             shares_amount: item.shares_amount
                           }))
                         };
-                        // Запрашиваем order_id у нашего бэкенда
                         const response = await apiClient.post("/catalog/checkout/", payload);
-                        
-                        // Сохраняем transaction_id в реф, чтобы использовать его при подтверждении
                         txIdRef.current = response.data.transaction_id;
                         return response.data.order_id;
                       } catch (error: any) {
@@ -257,7 +257,6 @@ export default function CheckoutPage() {
                     }}
                     onApprove={async (data) => {
                       try {
-                        // Стучимся на бэкенд для подтверждения (Capture)
                         await apiClient.post("/webhooks/paypal/capture/", {
                           orderID: data.orderID,
                           transaction_id: txIdRef.current
@@ -273,7 +272,7 @@ export default function CheckoutPage() {
                   />
                 </PayPalScriptProvider>
               ) : (
-                /* ОБЫЧНАЯ КНОПКА (Баланс / Stripe) */
+                /* ОБЫЧНАЯ КНОПКА (Баланс / Stripe / Triple-A) */
                 <button
                   onClick={() => checkoutMutation.mutate()}
                   disabled={checkoutMutation.isPending}

@@ -72,7 +72,8 @@
     "title": "Finalizar compra",
     "total": "Total",
     "totalAmount": "Total a pagar",
-    "payWithPayPal": "Pagar con PayPal"
+    "payWithPayPal": "Pagar con PayPal",
+    "payWithCrypto": "Pagar con criptomonedas"
   },
   "Contacts": {
     "address": "Callejón de la Policía 4, Tbilisi, Georgia",

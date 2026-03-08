@@ -6,7 +6,7 @@ import { Project } from "../../types/project";
 import { ProjectCard } from "../ui/project-card";
 import { apiClient } from "../../lib/api/client";
 import { Link } from "../../i18n/routing";
-import { ArrowRight } from "lucide-react";
+import { ArrowRightIcon } from "@phosphor-icons/react";
 
 export function ProjectsGrid() {
   const t = useTranslations("Projects");
@@ -40,7 +40,7 @@ export function ProjectsGrid() {
             className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-200 text-brand-black hover:border-brand-blue hover:text-brand-blue rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 group shrink-0"
           >
             Смотреть все проекты
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 

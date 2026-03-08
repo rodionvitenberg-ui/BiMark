@@ -2,22 +2,22 @@
 
 import { useTranslations } from "next-intl";
 import { motion, Variants } from "framer-motion";
-import { Globe, Layers, TrendingUp } from "lucide-react";
+import { GlobeHemisphereEastIcon, KanbanIcon, TrendUpIcon } from "@phosphor-icons/react";
 
 export function HowItWorks() {
   const t = useTranslations("HowItWorks");
 
   const goals = [
     {
-      icon: <Globe className="w-6 h-6 text-brand-blue" />,
+      icon: <GlobeHemisphereEastIcon className="w-6 h-6 text-brand-blue" />,
       text: t("goal1"),
     },
     {
-      icon: <Layers className="w-6 h-6 text-brand-blue" />,
+      icon: <KanbanIcon className="w-6 h-6 text-brand-blue" />,
       text: t("goal2"),
     },
     {
-      icon: <TrendingUp className="w-6 h-6 text-brand-blue" />,
+      icon: <TrendUpIcon className="w-6 h-6 text-brand-blue" />,
       text: t("goal3"),
     },
   ];

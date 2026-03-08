@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { ArrowRight, Coins, Gift, TrendingUp } from "lucide-react";
+import { ArrowBendDownRightIcon, CoinsIcon, GiftIcon, TrendUpIcon } from "@phosphor-icons/react";
 import { Link } from "../../i18n/routing";
 
 export default function TokenTeaser() {
@@ -49,7 +49,7 @@ export default function TokenTeaser() {
                 className="w-full sm:w-auto px-8 py-4 bg-brand-blue hover:bg-[#007cbd] text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 group"
               >
                 {t("participateBtn")}
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowBendDownRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
               {/* НОВАЯ КНОПКА: Ссылка на страницу рефералки */}
@@ -66,7 +66,7 @@ export default function TokenTeaser() {
           <div className="w-full lg:w-auto bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl shrink-0 shadow-2xl relative">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
-                <Gift className="w-7 h-7" />
+                <GiftIcon className="w-7 h-7" />
               </div>
               <div>
                 <h3 className="font-bold text-2xl text-white">{t("referEarn")}</h3>
@@ -78,10 +78,10 @@ export default function TokenTeaser() {
             </p>
             <ul className="space-y-3 text-md font-medium text-gray-400">
               <li className="flex items-center gap-3">
-                <Coins className="w-5 h-5 text-yellow-400" /> {t("payoutInBMK")}
+                <CoinsIcon className="w-5 h-5 text-yellow-400" /> {t("payoutInBMK")}
               </li>
               <li className="flex items-center gap-3">
-                <TrendingUp className="w-5 h-5 text-green-400" /> {t("instantAccrual")}
+                <TrendUpIcon className="w-5 h-5 text-green-400" /> {t("instantAccrual")}
               </li>
             </ul>
           </div>

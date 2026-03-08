@@ -72,7 +72,8 @@
     "title": "Checkout",
     "total": "Total",
     "totalAmount": "Total amount",
-    "payWithPayPal": "Pay via PayPal"
+    "payWithPayPal": "Pay via PayPal",
+    "payWithCrypto": "Pay with Crypto"
   },
   "Contacts": {
     "address": "Georgia, Tbilisi. Police lane 4",

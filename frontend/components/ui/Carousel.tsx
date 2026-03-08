@@ -85,9 +85,8 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
         </span>
       </div>
       
-      <div className="pt-90 pb-5 px-5 relative z-10 pointer-events-none">
+      <div className="pt-110 pb-5 px-5 relative z-10 pointer-events-none">
         <div className="mb-1 font-black text-lg text-white drop-shadow-lg">{item.title}</div>
-        <p className="text-md text-white drop-shadow-lg">{item.description}</p>
       </div>
     </>
   );

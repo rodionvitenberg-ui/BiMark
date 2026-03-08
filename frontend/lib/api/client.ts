@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // В идеале тянем из process.env.NEXT_PUBLIC_API_URL
-const API_URL = "http://localhost:8000/api"; 
+const API_URL = "https://bimark.org/api"; 
 
 export const apiClient = axios.create({
   baseURL: API_URL,

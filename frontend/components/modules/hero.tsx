@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowRight, PlayCircle, Layers } from "lucide-react";
+import { Layers } from "lucide-react";
+import { ArrowRightIcon, ArrowUDownRightIcon } from "@phosphor-icons/react";
 import { Link } from "../../i18n/routing";
 import { motion, Variants } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
@@ -101,7 +102,7 @@ export function Hero() {
                 className="w-full sm:w-auto flex-1 md:flex-none bg-brand-blue text-white px-4 py-3 md:px-8 md:py-4 rounded-xl font-bold text-sm md:text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 text-center"
               >
                 {t("primaryCta")}
-                <ArrowRight className="w-5 h-5 hidden md:block" />
+                <ArrowRightIcon className="w-5 h-5 hidden md:block" />
               </Link>
               
               {/* Вторая CTA ведет к полным проектам */}
@@ -109,7 +110,7 @@ export function Hero() {
                 href="/project"
                 className="w-full sm:w-auto flex-1 md:flex-none px-4 py-3 md:px-8 md:py-4 rounded-xl font-bold text-sm md:text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center"
               >
-                <PlayCircle className="w-5 h-5 hidden md:block" />
+                <ArrowUDownRightIcon className="w-5 h-5 hidden md:block" />
                 {t("secondaryCta")}
               </Link>
             </motion.div>

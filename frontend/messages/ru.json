@@ -69,7 +69,8 @@
     "title": "Оформление заказа",
     "total": "Сумма",
     "totalAmount": "К оплате",
-    "payWithPayPal": "Оплатить через PayPal"
+    "payWithPayPal": "Оплатить через PayPal",
+    "payWithCrypto": "Оплатить криптовалютой"
   },
   "Contacts": {
     "address": "Georgia, Tbilisi. Police lane 4",
