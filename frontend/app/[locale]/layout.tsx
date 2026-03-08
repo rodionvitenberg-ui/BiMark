@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Manrope, Golos_Text } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -11,7 +11,17 @@ import "./globals.css";
 import { Footer } from "../../components/modules/footer";
 import { CookieConsent } from "../../components/ui/cookie-consent";
 
-const inter = Inter({ subsets: ["latin", "cyrillic"] });
+const manrope = Manrope({ 
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-manrope", // Создаем CSS-переменную для заголовков
+  display: 'swap',
+});
+
+const golos = Golos_Text({ 
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-golos", // Создаем CSS-переменную для основного текста
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: "Инвестиционная платформа",
@@ -35,7 +45,8 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.className} min-h-[100dvh] flex flex-col`}>
+      {/* ИСПРАВЛЕНО: Подключили переменные шрифтов и добавили font-sans как базовый */}
+      <body className={`${golos.variable} ${manrope.variable} font-sans min-h-[100dvh] flex flex-col antialiased bg-brand-light`}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <GoogleProvider>

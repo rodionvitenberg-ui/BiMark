@@ -5,28 +5,29 @@ import { useQuery } from "@tanstack/react-query";
 import { Project } from "../../types/project";
 import { ProjectCard } from "../ui/project-card";
 import { apiClient } from "../../lib/api/client";
+import { Link } from "../../i18n/routing";
+import { ArrowRight } from "lucide-react";
 
 export function ProjectsGrid() {
   const t = useTranslations("Projects");
 
-  // Запрашиваем данные с бэкенда через Axios + React Query
   const { data: projects, isLoading, isError } = useQuery<Project[]>({
     queryKey: ["projects"],
     queryFn: async () => {
       const response = await apiClient.get("/projects/");
-      // Если в Django включена пагинация, данные лежат в response.data.results. 
-      // Если пагинации нет — в response.data. Проверяем оба варианта.
       return response.data.results || response.data; 
     },
   });
 
   return (
-    <section className="w-full py-24 bg-white border-t border-gray-100">
-      <div className="container mx-auto px-4">
+    <section className="relative w-full py-24 bg-brand-light border-t border-gray-200">
+      
+      {/* Выравнивание сетки как в token-teaser */}
+      <div className="container mx-auto px-4 relative z-10">
         
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-4 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-brand-black mb-4 tracking-tight">
               {t("sectionTitle")}
             </h2>
             <p className="text-lg text-gray-500">
@@ -34,36 +35,35 @@ export function ProjectsGrid() {
             </p>
           </div>
           
-          <button className="text-brand-blue font-semibold hover:text-[#007cbd] transition-colors flex items-center gap-1">
+          <Link 
+            href="/project"
+            className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-200 text-brand-black hover:border-brand-blue hover:text-brand-blue rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 group shrink-0"
+          >
             Смотреть все проекты
-            <span aria-hidden="true">&rarr;</span>
-          </button>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
-        {/* Состояние: Загрузка */}
         {isLoading && (
           <div className="flex justify-center items-center py-20">
             <div className="w-8 h-8 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
 
-        {/* Состояние: Ошибка сети или бэкенд недоступен */}
         {isError && (
           <div className="text-center py-20 text-red-500 font-medium bg-red-50 rounded-xl">
             Ошибка соединения с сервером. Проверьте, запущен ли бэкенд на порту 8000.
           </div>
         )}
 
-        {/* Состояние: Успех, есть данные */}
         {!isLoading && !isError && projects && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {projects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         )}
 
-        {/* Состояние: Успех, но база пустая */}
         {!isLoading && !isError && projects?.length === 0 && (
           <div className="text-center py-20 text-gray-500 font-medium">
             Проекты пока не добавлены. Зайдите в админку Django и создайте первый актив.

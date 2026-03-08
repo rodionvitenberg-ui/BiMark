@@ -42,6 +42,7 @@ export default function TokenTeaser() {
               {t("teaserDesc")}
             </p>
 
+            {/* Блок с кнопками в token-teaser.tsx */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <Link 
                 href="/token"
@@ -49,6 +50,14 @@ export default function TokenTeaser() {
               >
                 {t("participateBtn")}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
+              {/* НОВАЯ КНОПКА: Ссылка на страницу рефералки */}
+              <Link 
+                href="/referral"
+                className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2"
+              >
+                {t("learnMoreRef")}
               </Link>
             </div>
           </div>

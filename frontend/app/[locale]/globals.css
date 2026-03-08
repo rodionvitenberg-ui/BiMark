@@ -11,6 +11,22 @@
   --color-brand-black: #000000;
 }
 
+@theme {
+  /* Переопределяем стандартный sans на Golos */
+  --font-sans: var(--font-golos), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  /* Создаем новую переменную для заголовков (Manrope) */
+  --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  /* Автоматически применяем Manrope ко всем заголовкам в проекте */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.025em; /* Делает заголовки чуть более сбитыми и стильными (аналог tracking-tight) */
+  }
+}
+
 @layer base {
   :root {
     --background: var(--color-brand-light);

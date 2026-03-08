@@ -12,7 +12,6 @@ export function CategoriesPreview() {
   const t = useTranslations("CategoriesPreview");
   const locale = useLocale() as "ru" | "en" | "es";
 
-  // Запрашиваем категории с бэкенда
   const { data: categories, isLoading, isError } = useQuery<Category[]>({
     queryKey: ["categories_preview"],
     queryFn: async () => {
@@ -22,27 +21,33 @@ export function CategoriesPreview() {
   });
 
   return (
-    <section className="w-full py-20 bg-white border-t border-gray-100">
-      <div className="container mx-auto px-4">
+    <section className="relative w-full py-24 bg-[#0a0f1c] text-white overflow-hidden border-b border-gray-800">
+      
+      <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[500px] h-[500px] bg-brand-blue/20 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+      {/* Выравнивание сетки как в token-teaser */}
+      <div className="container mx-auto px-4 relative z-10">
         
-        {/* Шапка секции */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-4xl font-extrabold text-brand-black mb-4 tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4 tracking-tight">
               {t("title")}
             </h2>
-            <p className="text-lg text-gray-500">
+            <p className="text-lg text-gray-400">
               {t("subtitle")}
             </p>
           </div>
           
-          <Link href="/category" className="text-brand-blue font-semibold hover:text-[#007cbd] transition-colors flex items-center gap-2 group">
+          <Link 
+            href="/category" 
+            className="w-full md:w-auto px-8 py-4 bg-brand-blue hover:bg-[#007cbd] text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 group shrink-0"
+          >
             {t("viewAll")}
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
 
-        {/* Состояния загрузки и ошибки */}
         {isLoading && (
           <div className="flex justify-center items-center py-10">
             <div className="w-8 h-8 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
@@ -50,12 +55,11 @@ export function CategoriesPreview() {
         )}
 
         {isError && (
-          <div className="text-center py-10 text-red-500 bg-red-50 rounded-xl font-medium">
+          <div className="text-center py-10 text-red-400 bg-red-900/20 border border-red-900/50 rounded-xl font-medium">
             Не удалось загрузить категории.
           </div>
         )}
 
-        {/* Сетка категорий (показываем только первые 3 для красоты на главной) */}
         {!isLoading && !isError && categories && categories.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {categories.slice(0, 3).map((category) => {
@@ -66,9 +70,8 @@ export function CategoriesPreview() {
                   <motion.div 
                     whileHover={{ y: -5, scale: 1.02 }}
                     transition={{ duration: 0.2 }}
-                    className="group relative h-64 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl cursor-pointer"
+                    className="group relative h-64 rounded-3xl overflow-hidden border border-white/10 shadow-lg cursor-pointer"
                   >
-                    {/* Фон */}
                     {category.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img 
@@ -80,10 +83,8 @@ export function CategoriesPreview() {
                       <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-brand-blue/80 to-brand-black transition-transform duration-700 group-hover:scale-110" />
                     )}
 
-                    {/* Затемнение */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-                    {/* Контент */}
                     <div className="absolute inset-0 p-6 flex flex-col justify-end">
                       <div className="flex items-center justify-between">
                         <h3 className="text-2xl font-bold text-white group-hover:text-brand-blue transition-colors">

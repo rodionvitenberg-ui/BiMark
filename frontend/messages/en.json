@@ -71,7 +71,8 @@
     "summary": "Order Summary",
     "title": "Checkout",
     "total": "Total",
-    "totalAmount": "Total amount"
+    "totalAmount": "Total amount",
+    "payWithPayPal": "Pay via PayPal"
   },
   "Contacts": {
     "address": "Georgia, Tbilisi. Police lane 4",
@@ -272,7 +273,8 @@
     "teaserDesc": "Invest in the Bimark ecosystem early. BMK tokens unlock exclusive pools, higher yields, and voting rights.",
     "teaserTitle": "BMK Token Presale",
     "toPay": "Total (USD):",
-    "tokenomics": "Tokenomics & Details"
+    "tokenomics": "Tokenomics & Details",
+    "learnMoreRef": "Learn more about the referral program"
   },
   "NewProjects": {
     "title": "New Assets",
@@ -281,5 +283,17 @@
     "available": "Available:",
     "viewDetails": "View Details",
     "pcs": "pcs."
+  },
+  "ReferralPage": {
+    "title": "Affiliate Program",
+    "subtitle": "Invite investors to the Bimark ecosystem. Earn generous percentages from their transactions instantly to your balance.",
+    "howItWorks": "How it works",
+    "step1Title": "Get your link",
+    "step1Desc": "Complete a quick registration and copy your unique link from your Personal Account.",
+    "step2Title": "Invite your audience",
+    "step2Desc": "Share the link on your social media, blogs, or send it directly to your friends.",
+    "step3Title": "Start earning",
+    "step3Desc": "Receive BMK tokens and fiat bonuses from every successful investment made by your referrals.",
+    "cta": "Get referral link"
   }
 }

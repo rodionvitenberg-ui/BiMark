@@ -71,7 +71,8 @@
     "summary": "Resumen del pedido",
     "title": "Finalizar compra",
     "total": "Total",
-    "totalAmount": "Total a pagar"
+    "totalAmount": "Total a pagar",
+    "payWithPayPal": "Pagar con PayPal"
   },
   "Contacts": {
     "address": "Callejón de la Policía 4, Tbilisi, Georgia",
@@ -272,7 +273,8 @@
     "teaserDesc": "Invierte temprano en el ecosistema Bimark. Los tokens BMK ofrecen acceso a pools exclusivos, mayores rendimientos y derechos de voto.",
     "teaserTitle": "Preventa del Token BMK",
     "toPay": "Total a pagar (USD):",
-    "tokenomics": "Tokenomics y detalles"
+    "tokenomics": "Tokenomics y detalles",
+    "learnMoreRef": "Más información sobre el programa de referidos"
   },
   "NewProjects": {
     "title": "Nuevos activos",
@@ -281,5 +283,17 @@
     "available": "Disponible:",
     "viewDetails": "Ver detalles",
     "pcs": "uds."
+  },
+  "ReferralPage": {
+    "title": "Programa de afiliados",
+    "subtitle": "Invita a inversores al ecosistema Bimark. Recibe generosas comisiones de sus transacciones al instante en tu saldo.",
+    "howItWorks": "Cómo funciona",
+    "step1Title": "Obtén tu enlace",
+    "step1Desc": "Regístrate rápidamente и copia tu enlace único en tu Área Personal.",
+    "step2Title": "Invita a tu audiencia",
+    "step2Desc": "Comparte el enlace en tus redes sociales, blogs o envíalo directamente a tus amigos.",
+    "step3Title": "Empieza a ganar",
+    "step3Desc": "Recibe tokens BMK и bonos en fiat por cada inversión exitosa de tus referidos.",
+    "cta": "Obtener enlace de referido"
   }
 }

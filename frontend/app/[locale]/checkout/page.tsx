@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, ArrowLeft, CreditCard, Wallet, CheckCircle2, Loader2 } from "lucide-react";
@@ -11,7 +11,11 @@ import { useCart } from "../../../hooks/use-cart";
 import PaymentModal from "../../../components/modules/payment-modal";
 import { useUser } from "../../../hooks/use-auth";
 
-type PaymentMethod = "BALANCE" | "STRIPE";
+// Импортируем компоненты PayPal
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+
+// Добавляем PAYPAL в типы
+type PaymentMethod = "BALANCE" | "STRIPE" | "PAYPAL";
 
 export default function CheckoutPage() {
   const t = useTranslations("Checkout");
@@ -30,7 +34,10 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
 
-  // Получаем юзера (чтобы проверить авторизацию)
+  // Реф для хранения transaction_id между запросами PayPal
+  const txIdRef = useRef<string | null>(null);
+
+  // Получаем юзера
   const { data: user, isLoading: isUserLoading } = useUser();
 
   // Защита от Hydration Mismatch
@@ -38,7 +45,7 @@ export default function CheckoutPage() {
     setIsMounted(true);
   }, []);
 
-  // Мутация оформления заказа
+  // Стандартная мутация для BALANCE и STRIPE
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       const payload = {
@@ -53,11 +60,9 @@ export default function CheckoutPage() {
     },
     onSuccess: (data) => {
       if (data.status === "pending_payment" && data.client_secret) {
-        // Если выбрали Stripe — открываем модалку
         setClientSecret(data.client_secret);
         setIsStripeModalOpen(true);
       } else if (data.status === "success") {
-        // Если выбрали Баланс — успешно
         handleSuccessFinalize();
       }
     },
@@ -68,12 +73,10 @@ export default function CheckoutPage() {
     }
   });
 
-  // Успешное завершение оплаты
   const handleSuccessFinalize = () => {
     setIsStripeModalOpen(false);
     clearCart();
     setIsSuccess(true);
-    // Через 3 секунды уводим в дашборд
     setTimeout(() => {
       router.push("/dashboard");
     }, 3000);
@@ -81,7 +84,6 @@ export default function CheckoutPage() {
 
   if (!isMounted || isUserLoading) return null;
 
-  // Если корзина пуста (и мы не находимся на экране успеха)
   if (items.length === 0 && !isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black px-4">
@@ -94,7 +96,6 @@ export default function CheckoutPage() {
     );
   }
 
-  // Экран успешной оплаты
   if (isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-black px-4">
@@ -120,7 +121,6 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
-          {/* ЛЕВАЯ ЧАСТЬ: СПИСОК ТОВАРОВ */}
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence>
               {items.map((item) => (
@@ -175,13 +175,11 @@ export default function CheckoutPage() {
             </AnimatePresence>
           </div>
 
-          {/* ПРАВАЯ ЧАСТЬ: ИТОГИ И ОПЛАТА */}
           <div className="relative">
             <div className="sticky top-32 bg-white dark:bg-[#111827] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 p-8">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">{t("summary")}</h3>
               
               <div className="space-y-4 mb-8">
-                {/* Убрали "Позиций в корзине", оставили только "К оплате" */}
                 <div className="flex justify-between items-center pt-4 border-gray-100 dark:border-gray-800">
                   <span className="font-semibold text-gray-700 dark:text-gray-300">{t("totalAmount")}:</span>
                   <span className="text-3xl font-black text-brand-blue">${getTotalPrice().toFixed(2)}</span>
@@ -206,6 +204,15 @@ export default function CheckoutPage() {
                   <CreditCard className={`w-6 h-6 ${paymentMethod === "STRIPE" ? "text-brand-blue" : "text-gray-400"}`} />
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithStripe")}</p>
                 </label>
+
+                {/* НОВАЯ КНОПКА PAYPAL */}
+                <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "PAYPAL" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
+                  <input type="radio" name="payment" value="PAYPAL" checked={paymentMethod === "PAYPAL"} onChange={() => setPaymentMethod("PAYPAL")} className="hidden" />
+                  <div className={`w-6 h-6 flex items-center justify-center font-black italic rounded bg-gray-100 dark:bg-gray-800 ${paymentMethod === "PAYPAL" ? "text-[#003087]" : "text-gray-400"}`}>
+                    P
+                  </div>
+                  <p className="font-bold text-gray-900 dark:text-white">{t("payWithPayPal") || "PayPal"}</p>
+                </label>
               </div>
 
               {errorMsg && (
@@ -214,6 +221,7 @@ export default function CheckoutPage() {
                 </div>
               )}
 
+              {/* БЛОК КНОПОК */}
               {!user ? (
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <p className="text-sm text-gray-500 mb-3">{t("loginRequired")}</p>
@@ -221,7 +229,51 @@ export default function CheckoutPage() {
                     {t("loginBtn")}
                   </Link>
                 </div>
+              ) : paymentMethod === "PAYPAL" ? (
+                /* КНОПКА PAYPAL */
+                <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "USD" }}>
+                  <PayPalButtons 
+                    style={{ layout: "vertical", shape: "rect", color: "blue" }}
+                    createOrder={async () => {
+                      setErrorMsg(null);
+                      try {
+                        const payload = {
+                          payment_method: "PAYPAL",
+                          items: items.map(item => ({
+                            project_id: item.project_id,
+                            shares_amount: item.shares_amount
+                          }))
+                        };
+                        // Запрашиваем order_id у нашего бэкенда
+                        const response = await apiClient.post("/catalog/checkout/", payload);
+                        
+                        // Сохраняем transaction_id в реф, чтобы использовать его при подтверждении
+                        txIdRef.current = response.data.transaction_id;
+                        return response.data.order_id;
+                      } catch (error: any) {
+                        setErrorMsg(error.response?.data?.detail || "Ошибка инициализации PayPal");
+                        throw error;
+                      }
+                    }}
+                    onApprove={async (data) => {
+                      try {
+                        // Стучимся на бэкенд для подтверждения (Capture)
+                        await apiClient.post("/webhooks/paypal/capture/", {
+                          orderID: data.orderID,
+                          transaction_id: txIdRef.current
+                        });
+                        handleSuccessFinalize();
+                      } catch (error: any) {
+                        setErrorMsg(error.response?.data?.detail || "Ошибка при подтверждении платежа");
+                      }
+                    }}
+                    onError={() => {
+                      setErrorMsg("Платеж PayPal отменен или произошла ошибка.");
+                    }}
+                  />
+                </PayPalScriptProvider>
               ) : (
+                /* ОБЫЧНАЯ КНОПКА (Баланс / Stripe) */
                 <button
                   onClick={() => checkoutMutation.mutate()}
                   disabled={checkoutMutation.isPending}
@@ -241,7 +293,6 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* МОДАЛКА STRIPE */}
       <PaymentModal 
         isOpen={isStripeModalOpen}
         onClose={() => setIsStripeModalOpen(false)}
@@ -253,7 +304,6 @@ export default function CheckoutPage() {
   );
 }
 
-// Заглушка для иконки пустой корзины
 function ShoppingCartIcon(props: any) {
   return (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
