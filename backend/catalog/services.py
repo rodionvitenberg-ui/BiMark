@@ -9,6 +9,7 @@ from billing.services import WalletService
 from billing.exceptions import InsufficientFunds
 from referrals.services import ReferralService
 from billing.paypal import create_paypal_order
+from billing.triplea import create_triplea_payment
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -70,6 +71,8 @@ class PurchaseService:
             return cls._process_stripe_checkout(user, cart_details, total_price)
         elif payment_method == 'PAYPAL': # --- НОВОЕ УСЛОВИЕ ---
             return cls._process_paypal_checkout(user, cart_details, total_price)
+        elif payment_method == 'TRIPLEA': # <-- ДОБАВЛЯЕМ ВЕТВЛЕНИЕ
+            return cls._process_triplea_checkout(user, cart_details, total_price)
         else:
             raise ValidationError("Неизвестный метод оплаты.")
 
@@ -191,4 +194,31 @@ class PurchaseService:
             pending_tx.description = "Ошибка при создании заказа в API PayPal"
             pending_tx.save(update_fields=['status', 'description'])
             raise ValidationError(f"Ошибка шлюза PayPal: {str(e)}")
+    
+    @classmethod
+    def _process_triplea_checkout(cls, user, cart_details, total_price):
+        pending_tx = Transaction.objects.create(
+            wallet=user.wallet,
+            amount=total_price,
+            type=Transaction.Type.PURCHASE,
+            status=Transaction.Status.PENDING,
+            description=f"Crypto Checkout ({len(cart_details)} позиций)",
+            metadata={"cart": cart_details}
+        )
+
+        try:
+            payment_data = create_triplea_payment(amount=total_price, reference_id=pending_tx.id)
+            
+            return {
+                "status": "pending_payment",
+                "transaction_id": str(pending_tx.id),
+                "hosted_url": payment_data.get("hosted_url"), # <-- Ссылка на оплату Triple-A
+                "payment_gateway": "triplea",
+                "message": "Ожидается оплата криптовалютой"
+            }
+        except Exception as e:
+            pending_tx.status = Transaction.Status.FAILED
+            pending_tx.description = "Ошибка Triple-A API"
+            pending_tx.save(update_fields=['status', 'description'])
+            raise ValidationError("Сервис оплаты криптовалютой временно недоступен.")
     

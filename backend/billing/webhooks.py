@@ -14,6 +14,7 @@ from billing.models import Transaction
 from catalog.models import Project, Ownership
 from referrals.services import ReferralService
 from billing.paypal import capture_paypal_order # Импортируем наш новый сервис
+from rest_framework import status
 
 # --- ОБЩАЯ ФУНКЦИЯ ДЛЯ НАЧИСЛЕНИЯ ДОЛЕЙ (Используется и Stripe, и PayPal) ---
 @transaction.atomic
@@ -142,3 +143,23 @@ class PayPalCaptureView(APIView):
                 
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class TripleAWebhookView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        # Защита: проверяем, что хук пришел именно от Triple-A
+        notify_secret = request.data.get('notify_secret')
+        if notify_secret != settings.TRIPLEA_WEBHOOK_SECRET:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+            
+        webhook_status = request.data.get('status')
+        tx_id = request.data.get('payment_reference')
+
+        # 'good' означает, что крипта зачислена в полном объеме
+        if webhook_status == 'good' and tx_id:
+            success = fulfill_order(tx_id)
+            # Если success == False (например, доли уже раскупили), 
+            # деньги упадут на аккаунт мерчанта TripleA, и менеджер вернет их вручную.
+
+        return Response({"status": "ok"})

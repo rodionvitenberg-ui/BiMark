@@ -97,6 +97,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -179,7 +180,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 LANGUAGES = (
     ('ru', _('Russian')),
@@ -237,7 +238,7 @@ JAZZMIN_SETTINGS = {
 }
 
 JAZZMIN_UI_TWEAKS = {
-    "theme": "darkly", # Приятная темная тема по умолчанию
+    "theme": "flatly", # Приятная темная тема по умолчанию
 }
 
 STATIC_URL = 'static/'
@@ -269,3 +270,9 @@ STRIPE_WEBHOOK_SECRET = 'whsec_...'
 PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='твой_тестовый_client_id')
 PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='твой_тестовый_secret')
 PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox') # 'sandbox' или 'live'
+
+TRIPLEA_CLIENT_ID = env('TRIPLEA_CLIENT_ID', default='')
+TRIPLEA_CLIENT_SECRET = env('TRIPLEA_CLIENT_SECRET', default='')
+TRIPLEA_MERCHANT_KEY = env('TRIPLEA_MERCHANT_KEY', default='')
+TRIPLEA_WEBHOOK_SECRET = env('TRIPLEA_WEBHOOK_SECRET', default='secret')
+TRIPLEA_MODE = env('TRIPLEA_MODE', default='sandbox')
