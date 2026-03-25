@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-from billing.webhooks import StripeWebhookView, PayPalCaptureView
+from billing.webhooks import StripeWebhookView, PayPalCaptureView, TripleAWebhookView
 
 # ИЗМЕНЕНИЕ 1: Добавляем TokenViewSet в импорт из catalog.views
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
