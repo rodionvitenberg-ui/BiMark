@@ -102,23 +102,24 @@ export function ProjectCard({ project }: ProjectCardProps) {
       </CardContent>
 
       {/* ФУТЕР: Цена за долю и Кнопка */}
-      <CardFooter className="p-3 pt-0 flex items-center justify-between mt-auto border-t border-gray-50/50 mt-0">
-        <div className="flex flex-col">
-          <span className="text-xl font-black text-brand-black leading-none">
-            {formatCurrency(project.price_per_share)}
-          </span>
-          <span className="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-            {t("pricePerShare")}
-          </span>
-        </div>
-        
-        <Link 
-          href={projectUrl} 
-          className="shrink-0 px-5 py-2.5 bg-brand-black hover:bg-brand-blue text-white rounded-lg font-bold text-sm transition-colors shadow-sm mt-0"
-        >
-          Купить
-        </Link>
-      </CardFooter>
+        <CardFooter className="p-3 pt-0 flex items-center justify-between mt-auto border-t border-gray-50/50 mt-0">
+          <div className="flex flex-col">
+            <span className="text-xl font-black text-brand-black leading-none">
+              {formatCurrency(project.price_per_share)}
+            </span>
+            <span className="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+              {t("pricePerShare")}
+            </span>
+          </div>
+          
+          <Link 
+            href={projectUrl} 
+            className="shrink-0 px-5 py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-[#007cbd] transition-colors"
+          >
+            {/* Вот здесь используем наш новый ключ перевода */}
+            {t("buyBtn")} 
+          </Link>
+        </CardFooter>
 
     </Card>
   );

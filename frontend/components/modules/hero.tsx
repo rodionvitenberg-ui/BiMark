@@ -2,50 +2,62 @@
 
 import { useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Layers } from "lucide-react";
-import { ArrowRightIcon, ArrowUDownRightIcon } from "@phosphor-icons/react";
+import { ArrowRight, PlayCircle, Layers3 } from "lucide-react";
 import { Link } from "../../i18n/routing";
 import { motion, Variants } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
 import { apiClient } from "../../lib/api/client";
 import { Project } from "../../types/project";
-import Carousel, { CarouselItem } from "../ui/Carousel"; 
+import { Card } from "../ui/card"; 
+
+// EMBLA CAROUSEL
+import useEmblaCarousel from "embla-carousel-react";
+import Fade from "embla-carousel-fade";
+import Autoplay from "embla-carousel-autoplay";
 
 export function Hero() {
   const t = useTranslations("Hero");
   const locale = useLocale() as "ru" | "en" | "es";
 
-  // 1. Запрашиваем все проекты с бэкенда
+  const [emblaRef] = useEmblaCarousel(
+    { loop: true, duration: 40 },
+    [
+      Fade(), 
+      Autoplay({ delay: 5000, stopOnInteraction: true })
+    ]
+  );
+
   const { data: projects, isLoading } = useQuery<Project[]>({
     queryKey: ["projects", "hero-random"],
     queryFn: async () => {
       const response = await apiClient.get("/projects/");
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       return response.data.results || response.data;
     },
   });
 
-  // 2. Выбираем случайные проекты и мапим их под формат карусели
-  const carouselItems: CarouselItem[] = useMemo(() => {
+  const stackItems = useMemo(() => {
     if (!projects || projects.length === 0) return [];
     
     const shuffled = [...projects].sort(() => 0.5 - Math.random()).slice(0, 5);
     
-    return shuffled.map((p) => ({
-      id: p.id as any,
-      href: `/project/${p.slug}`,
-      title: p.title?.[locale] || p.title?.en || p.title?.ru || "Project",
-      description: p.description?.[locale] || p.description?.en || p.description?.ru || "",
-      icon: p.image ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={p.image} alt="icon" className="w-full h-full object-cover rounded-full" />
-      ) : (
-        <Layers className="w-5 h-5 text-white" />
-      )
-    }));
+    return shuffled.map((p) => {
+      const title = p.title?.[locale] || p.title?.en || p.title?.ru || "Project";
+      const shortDesc = p.short_description?.[locale] || p.short_description?.en || p.short_description?.ru;
+      const fallbackDesc = p.description?.[locale] || p.description?.en || p.description?.ru || "";
+
+      return {
+        id: p.id,
+        href: `/project/${p.slug}`,
+        title,
+        description: shortDesc || (fallbackDesc.substring(0, 150) + "..."),
+        image: p.image,
+      };
+    });
   }, [projects, locale]);
 
-  // Настройки анимации
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -62,86 +74,106 @@ export function Hero() {
   return (
     <section className="relative w-full pt-20 pb-16 md:pt-32 md:pb-32 overflow-hidden bg-[#0a0f1c] text-white border-b border-gray-800">
       
-      {/* Декоративный фоновый элемент */}
       <div className="absolute top-[-10%] left-[-0%] w-[100%] h-[100%] bg-brand-blue/20 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
           
-          {/* ЛЕВАЯ ЧАСТЬ: Текст и кнопки */}
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate="show"
-            className="max-w-2xl"
-          >
-            {/* Бейдж */}
+          {/* ЛЕВАЯ ЧАСТЬ */}
+          <motion.div variants={containerVariants} initial="hidden" animate="show" className="max-w-2xl">
             <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-brand-blue text-xs md:text-sm font-semibold mb-6">
               <span className="flex w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               {t("badge")}
             </motion.div>
             
-            {/* Заголовок */}
             <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-6 tracking-tight text-white">
               {t("title")} <span className="text-brand-blue">Bimark</span>
             </motion.h1>
             
-            {/* Подзаголовок */}
             <motion.p variants={itemVariants} className="text-base md:text-xl text-gray-400 mb-8 max-w-lg leading-relaxed">
               {t("subtitle")}
             </motion.p>
             
-            {/* Кнопки */}
-            <motion.div 
-              variants={itemVariants} 
-              className="flex flex-row items-center justify-start gap-2 md:gap-4 flex-wrap md:flex-nowrap"
-            >
-              {/* Первая CTA ведет в каталог долей */}
-              <Link 
-                href="/category" 
-                className="w-full sm:w-auto flex-1 md:flex-none bg-brand-blue text-white px-4 py-3 md:px-8 md:py-4 rounded-xl font-bold text-sm md:text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 text-center"
-              >
+            <motion.div variants={itemVariants} className="flex flex-row items-center justify-start gap-4 flex-wrap md:flex-nowrap">
+              <Link href="/category" className="w-full sm:w-auto bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#007cbd] transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 text-center">
                 {t("primaryCta")}
-                <ArrowRightIcon className="w-5 h-5 hidden md:block" />
+                <ArrowRight className="w-5 h-5 hidden md:block" />
               </Link>
-              
-              {/* Вторая CTA ведет к полным проектам */}
-              <Link 
-                href="/project"
-                className="w-full sm:w-auto flex-1 md:flex-none px-4 py-3 md:px-8 md:py-4 rounded-xl font-bold text-sm md:text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center"
-              >
-                <ArrowUDownRightIcon className="w-5 h-5 hidden md:block" />
+              <Link href="/project" className="w-full sm:w-auto px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center">
+                <PlayCircle className="w-5 h-5 hidden md:block" />
                 {t("secondaryCta")}
               </Link>
             </motion.div>
           </motion.div>
 
-          {/* ПРАВАЯ ЧАСТЬ: Динамическая Карусель */}
-          {/* ДОБАВЛЯЕМ ОБЕРТКУ СДЕСЬ: */}
-          <div className="hidden md:block w-full">
+          {/* ПРАВАЯ ЧАСТЬ: EMBLA CAROUSEL */}
+          <div className="hidden lg:block w-full h-[640px] relative">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-              className="relative lg:h-[500px] flex flex-col items-center justify-center"
+              className="relative w-full h-full flex justify-end items-center"
             >
-
               {isLoading ? (
-                 <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
-              ) : carouselItems.length > 0 ? (
-                 <div className="w-full max-w-[280px] sm:max-w-sm md:max-w-md relative z-20 scale-90 sm:scale-100 origin-center">
-                   <Carousel 
-                     items={carouselItems} 
-                     loop={true} 
-                     autoplay={true} 
-                     autoplayDelay={3000} 
-                     round={true} 
-                   />
+                 <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
                  </div>
+              ) : stackItems.length > 0 ? (
+                 
+                 <div className="overflow-hidden w-full max-w-2xl h-full rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)]" ref={emblaRef}>
+                   <div className="flex touch-pan-y flex-row h-full">
+                     {stackItems.map((item) => (
+                       <div key={item.id} className="min-w-0 flex-[0_0_100%] h-full relative">
+                         
+                         <Card className="bg-[#121827]/80 backdrop-blur-2xl border-0 p-0 flex flex-col items-start h-full relative group overflow-hidden">
+                           
+                           {/* === ЖЕЛЕЗОБЕТОННЫЙ БЛОК ИЗОБРАЖЕНИЯ === */}
+                           {/* Добавил min-h-[320px] и убрал transform-gpu с родителя, чтобы браузер не сплющивал блок */}
+                           <div className="w-full h-80 min-h-[320px] relative flex-shrink-0 bg-[#0a0f1c] overflow-hidden">
+                             {item.image ? (
+                               <img 
+                                 src={item.image} 
+                                 alt={item.title} 
+                                 /* absolute inset-0 и z-10 гарантируют, что картинка растянется на весь контейнер поверх фона */
+                                 className="absolute inset-0 w-full h-full object-cover z-10 group-hover:scale-105 transition-transform duration-700" 
+                               />
+                             ) : (
+                               <div className="absolute inset-0 flex items-center justify-center z-10">
+                                 <Layers3 className="w-24 h-24 text-brand-blue opacity-30" />
+                               </div>
+                             )}
+                             {/* Градиент поверх картинки (z-20) */}
+                             <div className="absolute inset-0 bg-gradient-to-t from-[#121827] via-transparent to-transparent z-20 pointer-events-none" />
+                           </div>
+                           {/* ======================================= */}
+                           
+                           {/* ТЕКСТОВЫЙ БЛОК */}
+                           {/* Добавил z-30, чтобы текст точно был поверх всего */}
+                           <div className="flex flex-col flex-1 p-8 lg:p-10 w-full gap-5 relative z-30">
+                             <h3 className="text-3xl lg:text-4xl font-black text-white leading-tight break-words line-clamp-2 group-hover:text-brand-blue transition-colors">
+                               {item.title}
+                             </h3>
+
+                             <p className="text-lg text-gray-300 leading-relaxed font-medium line-clamp-4">
+                               {item.description}
+                             </p>
+                           </div>
+                           
+                           {/* Оверлей-ссылка (z-40) */}
+                           <Link href={item.href as any} className="absolute inset-0 z-40" aria-label={item.title}></Link>
+                         </Card>
+
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+
               ) : (
-                 <div className="w-full max-w-[280px] sm:max-w-sm h-48 md:h-64 border border-white/10 rounded-3xl flex flex-col items-center justify-center bg-white/5 backdrop-blur-md">
-                   <Layers className="w-8 h-8 text-gray-500 mb-4" />
-                   <p className="text-gray-400 font-medium text-sm md:text-base">Loading projects...</p>
+                 <div className="absolute inset-0 flex items-center justify-end">
+                    <div className="w-full max-w-2xl h-[640px] border-0 rounded-[2rem] flex flex-col items-center justify-center bg-white/5 backdrop-blur-md">
+                        <Layers3 className="w-12 h-12 text-gray-500 mb-4" />
+                        <p className="text-gray-400 font-medium text-lg">Проектов пока нет</p>
+                    </div>
                  </div>
               )}
             </motion.div>

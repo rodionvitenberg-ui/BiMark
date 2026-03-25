@@ -207,7 +207,7 @@
     "goToDashboard": "Go to Portfolio",
     "loginToBuy": "Log in to invest",
     "noImage": "No image",
-    "pricePerShare": "por acción",
+    "pricePerShare": "Per share",
     "projectNotFound": "Project not found",
     "returnToCatalog": "Return to catalog",
     "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
@@ -223,7 +223,12 @@
     "total": "Total:",
     "totalCost": "Total cost:",
     "totalShares": "Total",
-    "uncategorized": "Sin categoría"
+    "uncategorized": "Sin categoría",
+    "viewAll": "View all projects",
+  "serverError": "Server connection error. Please check if the backend is running on port 8000.",
+  "noProjects": "No projects added yet. Log in to the Django admin panel to create your first asset.",
+  "buyAllShares": "Buy all remaining ({count})",
+  "buyBtn": "Buy"
   },
   "ProjectsPage": {
     "available": "",

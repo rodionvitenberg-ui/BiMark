@@ -19,14 +19,15 @@ class ProjectSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     title = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
+    short_description = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         # ДОБАВЛЕНО: 'image', 'category'
         fields = [
-            'id', 'slug', 'title', 'description', 'category', 'image',
+            'id', 'slug', 'title', 'short_description', 'description', 'category', 'image',
             'price_per_share', 'total_shares', 'available_shares', 
-            'status', 'created_at'
+            'status', 'created_at', 'is_token'
         ]
         read_only_fields = fields
 
@@ -42,6 +43,13 @@ class ProjectSerializer(serializers.ModelSerializer):
             'ru': getattr(obj, 'description_ru', obj.description),
             'en': getattr(obj, 'description_en', obj.description),
             'es': getattr(obj, 'description_es', obj.description),
+        }
+    
+    def get_short_description(self, obj):
+        return {
+            'ru': getattr(obj, 'short_description_ru', obj.short_description),
+            'en': getattr(obj, 'short_description_en', obj.short_description),
+            'es': getattr(obj, 'short_description_es', obj.short_description),
         }
 
 class OwnershipSerializer(serializers.ModelSerializer):

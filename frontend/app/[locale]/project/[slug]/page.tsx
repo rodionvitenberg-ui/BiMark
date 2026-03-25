@@ -190,12 +190,21 @@ export default function ProjectDetail() {
                         {t("addToCartBtn")}
                       </button>
 
+                      {project.available_shares > 1 && (
+                        <button 
+                          onClick={() => setSharesToBuy(project.available_shares)}
+                          className="w-full py-3 rounded-xl font-bold text-brand-blue bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 transition-all"
+                        >
+                          {t("buyAllShares", { count: project.available_shares })}
+                        </button>
+                      )}
+
                    </div>
                 )}
               </div>
 
               <p className="text-xs text-center text-gray-400 mt-4">
-                {t("termsAgreement")} <Link href="#" className="underline">{t("termsLink")}</Link>.
+                {t("termsAgreement")} <Link href="/terms" className="underline">{t("termsLink")}</Link>.
               </p>
 
             </div>

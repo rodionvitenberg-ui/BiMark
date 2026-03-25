@@ -5,14 +5,17 @@ from django.conf import settings
 from django.conf.urls.static import static
 from billing.webhooks import StripeWebhookView, PayPalCaptureView
 
-# Импорты из наших приложений
-from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet
-from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView # Добавили WithdrawView
+# ИЗМЕНЕНИЕ 1: Добавляем TokenViewSet в импорт из catalog.views
+from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
+from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView 
 from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView, PasswordResetRequestView, PasswordResetConfirmView
 
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'categories', CategoryViewSet, basename='category')
+
+# ИЗМЕНЕНИЕ 2: Регистрируем новый маршрут для токенов
+router.register(r'tokens', TokenViewSet, basename='token')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,7 +38,7 @@ urlpatterns = [
     path('api/wallet/', WalletView.as_view(), name='wallet'),
     path('api/wallet/transactions/', TransactionHistoryView.as_view(), name='transactions'),
     path('api/wallet/deposit/', DepositView.as_view(), name='deposit'),
-    path('api/wallet/withdraw/', WithdrawView.as_view(), name='withdraw'), # Новый эндпоинт вывода
+    path('api/wallet/withdraw/', WithdrawView.as_view(), name='withdraw'), 
     
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
@@ -44,8 +47,6 @@ urlpatterns = [
     # Маршруты для восстановления пароля
     path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('api/users/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
-
-    path('api/cms/', include('cms.urls')),
 ]
 
 if settings.DEBUG:

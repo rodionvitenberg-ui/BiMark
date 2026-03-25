@@ -34,26 +34,31 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     Открыт для всех (AllowAny).
     """
     serializer_class = ProjectSerializer
-    permission_classes = [AllowAny] # <--- РАЗРЕШАЕМ ДОСТУП ВСЕМ
+    permission_classes = [AllowAny]
     lookup_field = 'slug'
 
     def get_queryset(self):
-        # Базовый QuerySet: показываем только активные или на пресейле, подтягиваем категорию
-        qs = Project.objects.select_related('category').filter(
-            status__in=[Project.Status.PRESALE, Project.Status.ACTIVE]
-        )
+        # ИСКЛЮЧАЕМ ТОКЕНЫ ИЗ ОБЫЧНОГО КАТАЛОГА
+        qs = Project.objects.select_related('category').filter(is_token=False)
         
         if self.action == 'list':
-            # Сначала убираем скрытые
-            qs = qs.filter(is_hidden=False)
-            
-            # Ловим параметр из URL (например: /api/projects/?is_new=true)
-            is_new_param = self.request.query_params.get('is_new')
-            if is_new_param == 'true':
-                qs = qs.filter(is_new=True)
-                
-            return qs
-            
+            return qs.filter(is_hidden=False)
+        return qs
+
+class TokenViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Эндпоинт исключительно для токенов.
+    """
+    serializer_class = ProjectSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        # ОТДАЕМ ТОЛЬКО ТОКЕНЫ
+        qs = Project.objects.select_related('category').filter(is_token=True)
+        
+        if self.action == 'list':
+            return qs.filter(is_hidden=False)
         return qs
 
 class PortfolioView(views.APIView):

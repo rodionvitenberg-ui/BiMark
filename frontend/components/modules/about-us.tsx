@@ -26,10 +26,15 @@ export function AboutUs() {
           
           <div className="lg:col-span-5">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight">
-                {t("title")}
-              </h2>
-              <div className="w-20 h-2 bg-brand-blue rounded-full mb-8" />
+              
+              {/* МАГИЯ ЗДЕСЬ: inline-block заставляет контейнер облегать текст, а w-full тянет линию на всю длину слова */}
+              <div className="inline-block">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 tracking-tight">
+                  {t("title")}
+                </h2>
+                <div className="w-full h-2 bg-brand-blue rounded-full mb-8" />
+              </div>
+
             </motion.div>
           </div>
 

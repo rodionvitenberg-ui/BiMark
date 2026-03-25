@@ -223,7 +223,12 @@
     "total": "Total:",
     "totalCost": "Costo total:",
     "totalShares": "Total",
-    "uncategorized": "Sin categoría"
+    "uncategorized": "Sin categoría",
+    "viewAll": "Ver todos los proyectos",
+  "serverError": "Error de conexión con el servidor. Comprueba si el backend está ejecutándose en el puerto 8000.",
+  "noProjects": "Aún no se han añadido proyectos. Accede al panel de administración de Django para crear tu primer activo.",
+  "buyAllShares": "Comprar el resto ({count})",
+  "buyBtn": "Comprar"
   },
   "ProjectsPage": {
     "available": "Disponible",

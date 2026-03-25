@@ -6,7 +6,7 @@ import { Project } from "../../types/project";
 import { ProjectCard } from "../ui/project-card";
 import { apiClient } from "../../lib/api/client";
 import { Link } from "../../i18n/routing";
-import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react";
 
 export function ProjectsGrid() {
   const t = useTranslations("Projects");
@@ -39,8 +39,8 @@ export function ProjectsGrid() {
             href="/project"
             className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-200 text-brand-black hover:border-brand-blue hover:text-brand-blue rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 group shrink-0"
           >
-            Смотреть все проекты
-            <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            {t("viewAll")}
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" weight="bold" />
           </Link>
         </div>
 
@@ -52,7 +52,7 @@ export function ProjectsGrid() {
 
         {isError && (
           <div className="text-center py-20 text-red-500 font-medium bg-red-50 rounded-xl">
-            Ошибка соединения с сервером. Проверьте, запущен ли бэкенд на порту 8000.
+            {t("serverError")}
           </div>
         )}
 
@@ -66,7 +66,7 @@ export function ProjectsGrid() {
 
         {!isLoading && !isError && projects?.length === 0 && (
           <div className="text-center py-20 text-gray-500 font-medium">
-            Проекты пока не добавлены. Зайдите в админку Django и создайте первый актив.
+            {t("noProjects")}
           </div>
         )}
 

@@ -17,12 +17,14 @@ export interface Project {
   id: string;
   slug: string;
   title: LocalizedString;
+  short_description?: LocalizedString;
   description: LocalizedString;
   category: Category | null;
   image: string | null;
-  price_per_share: string | number; // DRF DecimalField часто приходит как строка
+  price_per_share: string | number;
   total_shares: number;
   available_shares: number;
   status: ProjectStatus;
   created_at: string;
+  is_token: boolean;
 }

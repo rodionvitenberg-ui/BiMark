@@ -1,5 +1,5 @@
 from modeltranslation.translator import register, TranslationOptions
-from catalog.models import Project, Category
+from catalog.models import Project, Category, Token
 
 @register(Category)
 class CategoryTranslationOptions(TranslationOptions):
@@ -7,4 +7,9 @@ class CategoryTranslationOptions(TranslationOptions):
 
 @register(Project)
 class ProjectTranslationOptions(TranslationOptions):
-    fields = ('title', 'description') # Убрали 'category', так как переводим саму категорию выше
+    fields = ('title', 'description', 'short_description')
+
+@register(Token)
+class TokenTranslationOptions(TranslationOptions):
+    # Указываем строго те же поля, что и у оригинальной модели Project
+    fields = ('title', 'description', 'short_description')

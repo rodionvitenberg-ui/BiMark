@@ -40,6 +40,12 @@ class Project(models.Model):
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, db_index=True)
     description = models.TextField()
+    short_description = models.TextField(
+        max_length=500, 
+        blank=True, 
+        verbose_name="Краткое описание",
+        help_text="Выводится на карточках в карусели на главной странице"
+    )
     is_hidden = models.BooleanField(
         default=False, 
         verbose_name="Скрыть из каталога",
@@ -49,6 +55,11 @@ class Project(models.Model):
         default=True, 
         verbose_name="Новинка",
         help_text="Показывать проект в специальном блоке новинок на фронтенде."
+    )
+    is_token = models.BooleanField(
+        default=False,
+        verbose_name="Это токен",
+        help_text="Если включено, актив будет считаться токеном и управляться в отдельном разделе админки."
     )
     
     # Финансовая математика проекта
@@ -128,3 +139,18 @@ class Ownership(models.Model):
 
     def __str__(self):
         return f"{self.user.email} -> {self.project.title} ({self.shares_amount} шт.)"
+    pass
+
+class Token(Project):
+    """Прокси-модель для вывода токенов в отдельный раздел админки"""
+    class Meta:
+        proxy = True # Важно! Новая таблица в БД создана НЕ БУДЕТ
+        verbose_name = 'Токен'
+        verbose_name_plural = 'Токены'
+
+class TokenOwnership(Ownership):
+    """Прокси-модель для разделения портфелей юзеров"""
+    class Meta:
+        proxy = True
+        verbose_name = 'Владение токеном'
+        verbose_name_plural = 'Владения токенами'
