@@ -140,6 +140,8 @@ CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://www.bimark.org",
+    "https://bimark.org",
 ]
 
 # (Опционально) Если позже понадобятся куки для авторизации:
