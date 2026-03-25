@@ -404,5 +404,14 @@
     "step4Desc": "Submit a withdrawal request in your personal account. Our managers will process it promptly and send the funds to your details.",
     "ctaBtn": "Go to Catalog",
     "ctaDesc": "Ready to start? Explore available projects right now."
-  }
+  },
+  "Payment": {
+  "successTitle": "Payment Received!",
+  "successMessage": "Transaction confirmed. Your purchased shares have been added to your portfolio and are now working for you.",
+  "goToPortfolio": "Go to Portfolio",
+  "failedTitle": "Payment Not Completed",
+  "failedMessage": "The transaction was canceled or the invoice has expired. No funds were deducted.",
+  "tryAgain": "Try Again",
+  "backToCatalog": "Back to Catalog"
+}
 }

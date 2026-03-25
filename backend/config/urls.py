@@ -43,6 +43,7 @@ urlpatterns = [
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
     path('api/webhooks/paypal/capture/', PayPalCaptureView.as_view(), name='paypal-capture'),
+    path('api/webhooks/triplea/', TripleAWebhookView.as_view(), name='triplea-webhook'),
 
     # Маршруты для восстановления пароля
     path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),

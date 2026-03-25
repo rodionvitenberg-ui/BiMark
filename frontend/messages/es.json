@@ -404,5 +404,14 @@
     "step4Desc": "Solicita un retiro en tu área personal. Nuestros gestores procesarán la solicitud rápidamente y enviarán los fondos a tus datos de pago.",
     "ctaBtn": "Ir al catálogo",
     "ctaDesc": "¿Listo para empezar? Explora los proyectos disponibles ahora mismo."
-  }
+  },
+  "Payment": {
+  "successTitle": "¡Pago recibido con éxito!",
+  "successMessage": "Transacción confirmada. Las participaciones adquiridas ya han sido acreditadas en tu portafolio y han comenzado a trabajar para ti.",
+  "goToPortfolio": "Ir al Portafolio",
+  "failedTitle": "Pago no completado",
+  "failedMessage": "Has cancelado la transacción o el tiempo de espera de la factura ha expirado. No se han deducido fondos.",
+  "tryAgain": "Intentar de nuevo",
+  "backToCatalog": "Volver al catálogo"
+}
 }
