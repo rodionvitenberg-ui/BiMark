@@ -7,7 +7,7 @@ class CategoryTranslationOptions(TranslationOptions):
 
 @register(Project)
 class ProjectTranslationOptions(TranslationOptions):
-    fields = ('title', 'description', 'short_description')
+    fields = ('title', 'description', 'short_description', 'image')
 
 @register(Token)
 class TokenTranslationOptions(TranslationOptions):

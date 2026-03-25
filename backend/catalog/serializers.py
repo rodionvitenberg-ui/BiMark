@@ -20,10 +20,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     title = serializers.SerializerMethodField()
     description = serializers.SerializerMethodField()
     short_description = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-        # ДОБАВЛЕНО: 'image', 'category'
         fields = [
             'id', 'slug', 'title', 'short_description', 'description', 'category', 'image',
             'price_per_share', 'total_shares', 'available_shares', 
@@ -50,6 +50,32 @@ class ProjectSerializer(serializers.ModelSerializer):
             'ru': getattr(obj, 'short_description_ru', obj.short_description),
             'en': getattr(obj, 'short_description_en', obj.short_description),
             'es': getattr(obj, 'short_description_es', obj.short_description),
+        }
+    # 2. Добавляем метод получения и проверки картинок
+    def get_image(self, obj):
+        request = self.context.get('request')
+
+        # Вспомогательная функция для извлечения абсолютного URL
+        def get_img_url(img_field):
+            if img_field and getattr(img_field, 'name', None):
+                url = img_field.url
+                return request.build_absolute_uri(url) if request else url
+            return None
+
+        # Достаем все возможные варианты загруженных картинок
+        img_ru = get_img_url(getattr(obj, 'image_ru', None))
+        img_en = get_img_url(getattr(obj, 'image_en', None))
+        img_es = get_img_url(getattr(obj, 'image_es', None))
+        img_default = get_img_url(obj.image)
+
+        # ЖЕЛЕЗОБЕТОННЫЙ ФОЛЛБЕК: 
+        # Приоритет: Английский -> Дефолтный -> Русский -> Испанский
+        fallback = img_en or img_default or img_ru or img_es
+
+        return {
+            'ru': img_ru or fallback,
+            'en': img_en or fallback,
+            'es': img_es or fallback,
         }
 
 class OwnershipSerializer(serializers.ModelSerializer):
