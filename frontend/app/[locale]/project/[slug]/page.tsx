@@ -31,6 +31,12 @@ export default function ProjectDetail() {
     staleTime: 60 * 1000, 
   });
 
+  const currentImage = project?.image 
+    ? (typeof project.image === 'object' && project.image !== null 
+        ? (project.image[locale]) 
+        : project.image)
+    : null;
+
   const handleAddToCart = () => {
     if (!project) return;
 
@@ -44,7 +50,7 @@ export default function ProjectDetail() {
       price_per_share: Number(project.price_per_share),
       shares_amount: sharesToBuy,
       available_shares: project.available_shares,
-      image: project.image,
+      image: currentImage,
     });
 
     setIsAdded(true);
@@ -83,8 +89,8 @@ export default function ProjectDetail() {
           
           <div className="lg:col-span-2 space-y-8">
             <div className="aspect-video w-full bg-gray-200 dark:bg-zinc-900 rounded-3xl overflow-hidden relative">
-              {project.image ? (
-                <img src={project.image} alt={project.title[locale] || "Project"} className="w-full h-full object-cover" />
+              {currentImage ? (
+                <img src={currentImage} alt={typeof project.title === 'string' ? project.title : project.title[locale] || "Project"} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">{t("noImage")}</div>
               )}

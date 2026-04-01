@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.conf import settings
 from django.conf.urls.static import static
-from billing.webhooks import StripeWebhookView, PayPalCaptureView, TripleAWebhookView
+from billing.webhooks import StripeWebhookView, PayPalCaptureView, PassimPayWebhookView
 
 # ИЗМЕНЕНИЕ 1: Добавляем TokenViewSet в импорт из catalog.views
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
@@ -43,7 +43,7 @@ urlpatterns = [
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
     path('api/webhooks/paypal/capture/', PayPalCaptureView.as_view(), name='paypal-capture'),
-    path('api/webhooks/triplea/', TripleAWebhookView.as_view(), name='triplea-webhook'),
+    path('api/webhooks/passimpay/', PassimPayWebhookView.as_view(), name='passimpay-webhook'),
 
     # Маршруты для восстановления пароля
     path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),

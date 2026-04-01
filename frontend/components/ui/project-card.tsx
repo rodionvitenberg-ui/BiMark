@@ -46,7 +46,11 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   const currentStatus = statusConfig[project.status] || statusConfig.DRAFT;
   const projectUrl = `/project/${project.slug}`;
-  const imageSrc = project.image || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
+  const currentImage = typeof project.image === 'object' && project.image !== null
+    ? (project.image[locale])
+    : project.image;
+
+  const imageSrc = currentImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
 
   return (
     <Card className="group flex flex-col h-full bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden gap-0">

@@ -264,6 +264,9 @@ SIMPLE_JWT = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+PASSIMPAY_PLATFORM_ID = env('PASSIMPAY_PLATFORM_ID', default='')
+PASSIMPAY_API_KEY = env('PASSIMPAY_API_KEY', default='') # Тот самый "Secret Key"
+
 STRIPE_PUBLIC_KEY = 'pk_test_...'
 STRIPE_SECRET_KEY = 'sk_test_...'
 STRIPE_WEBHOOK_SECRET = 'whsec_...'

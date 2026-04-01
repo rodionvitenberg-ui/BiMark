@@ -144,22 +144,35 @@ class PayPalCaptureView(APIView):
         except Exception as e:
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-class TripleAWebhookView(APIView):
-    permission_classes = [AllowAny]
+class PassimPayWebhookView(APIView):
+    permission_classes = [AllowAny] # Webhook должен быть открыт для серверов PassimPay
 
     def post(self, request):
-        # Защита: проверяем, что хук пришел именно от Triple-A
-        notify_secret = request.data.get('notify_secret')
-        if notify_secret != settings.TRIPLEA_WEBHOOK_SECRET:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+        # PassimPay присылает данные в формате form-data
+        data = request.data
+        
+        platform_id = data.get('platform_id')
+        transaction_id = data.get('order_id') # Это наш ID транзакции
+        amount = data.get('amount')
+        txhash = data.get('txhash')
+        received_hash = data.get('hash')
+
+        # TODO: Добавить проверку HMAC-хэша с помощью PASSIMPAY_API_KEY для защиты от фейковых запросов,
+        # как только убедимся в формате их подписи (обычно это sha256 от склеенных параметров).
+
+        if transaction_id:
+            # Твоя родная функция сделает всю магию!
+            success = fulfill_order(transaction_id)
             
-        webhook_status = request.data.get('status')
-        tx_id = request.data.get('payment_reference')
-
-        # 'good' означает, что крипта зачислена в полном объеме
-        if webhook_status == 'good' and tx_id:
-            success = fulfill_order(tx_id)
-            # Если success == False (например, доли уже раскупили), 
-            # деньги упадут на аккаунт мерчанта TripleA, и менеджер вернет их вручную.
-
-        return Response({"status": "ok"})
+            if success:
+                # Опционально: сохраняем хэш транзакции в блокчейне для истории
+                tx = Transaction.objects.filter(id=transaction_id).first()
+                if tx:
+                    tx.reference_id = txhash
+                    tx.save(update_fields=['reference_id'])
+                    
+                return Response({"status": "success"}, status=200)
+            else:
+                return Response({"detail": "Корзина недействительна (доли раскуплены)"}, status=400)
+                
+        return Response({"error": "Invalid data"}, status=400)
