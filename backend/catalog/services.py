@@ -4,7 +4,8 @@ from decimal import Decimal
 from django.db import transaction
 from django.core.exceptions import ValidationError
 from catalog.models import Project, Ownership
-from billing.models import Wallet, Transaction # Добавили Transaction
+from catalog_assets.models import Asset, AssetOwnership # <--- ИМПОРТ НОВЫХ МОДЕЛЕЙ
+from billing.models import Wallet, Transaction
 from billing.services import WalletService
 from billing.exceptions import InsufficientFunds
 from referrals.services import ReferralService
@@ -14,11 +15,9 @@ from billing.triplea import create_triplea_payment
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 class CatalogError(Exception):
-    """Базовый класс ошибок каталога"""
     pass
 
 class NotEnoughShares(CatalogError):
-    """Недостаточно долей для покупки"""
     pass
 
 class PurchaseService:
@@ -27,26 +26,39 @@ class PurchaseService:
     @transaction.atomic
     def process_checkout(cls, user, items: list, payment_method: str):
         """
-        Обработка корзины покупок.
-        items: [{"project_id": "uuid", "shares_amount": 5}, ...]
+        Обработка смешанной корзины покупок.
+        items: [{"item_type": "share", "item_id": "uuid", "quantity": 5},
+                {"item_type": "asset", "item_id": "uuid", "quantity": 1}]
         """
-        # 1. Извлекаем ID и СОРТИРУЕМ ИХ для предотвращения Deadlock!
-        project_ids = sorted([item['project_id'] for item in items])
-        
-        # 2. Блокируем проекты в строгом порядке
-        projects = list(Project.objects.select_for_update().filter(id__in=project_ids))
-        if len(projects) != len(set(project_ids)):
-            raise ValidationError("Один или несколько проектов не найдены.")
-            
-        project_map = {str(p.id): p for p in projects}
-        
+        # 1. Разделяем товары на две группы
+        share_items = [i for i in items if i.get('item_type') == 'share']
+        asset_items = [i for i in items if i.get('item_type') == 'asset']
+
+        # 2. Блокируем проекты (Доли) от двойных списаний
+        project_map = {}
+        if share_items:
+            project_ids = sorted([str(i['item_id']) for i in share_items])
+            projects = list(Project.objects.select_for_update().filter(id__in=project_ids))
+            if len(projects) != len(set(project_ids)):
+                raise ValidationError("Один или несколько проектов (долей) не найдены.")
+            project_map = {str(p.id): p for p in projects}
+
+        # 3. Блокируем Активы (Проекты целиком)
+        asset_map = {}
+        if asset_items:
+            asset_ids = sorted([str(i['item_id']) for i in asset_items])
+            assets = list(Asset.objects.select_for_update().filter(id__in=asset_ids))
+            if len(assets) != len(set(asset_ids)):
+                raise ValidationError("Один или несколько активов не найдены.")
+            asset_map = {str(a.id): a for a in assets}
+
         total_price = Decimal('0.00')
         cart_details = []
-        
-        # 3. Валидируем корзину и считаем общую сумму
-        for item in items:
-            proj_id = str(item['project_id'])
-            shares = item['shares_amount']
+
+        # 4. Валидация ДОЛЕЙ
+        for item in share_items:
+            proj_id = str(item['item_id'])
+            shares = item['quantity']
             proj = project_map[proj_id]
             
             if proj.status not in [Project.Status.PRESALE, Project.Status.ACTIVE]:
@@ -58,64 +70,107 @@ class PurchaseService:
             total_price += cost
             
             cart_details.append({
-                "project_id": proj_id,
-                "shares": shares,
+                "item_type": "share",
+                "item_id": proj_id,
+                "quantity": shares,
                 "price_per_share": str(proj.price_per_share),
                 "cost": str(cost)
             })
 
-        # 4. Маршрутизация оплаты
+        # 5. Валидация АКТИВОВ ЦЕЛИКОМ
+        for item in asset_items:
+            a_id = str(item['item_id'])
+            qty = item['quantity']
+            asset = asset_map[a_id]
+            
+            if asset.status != Asset.Status.ACTIVE:
+                raise ValidationError(f"Актив {asset.title} недоступен (статус: {asset.get_status_display()}).")
+            if asset.is_unique and qty > 1:
+                raise ValidationError(f"Актив {asset.title} уникален, можно купить только 1 шт.")
+
+            cost = asset.price * Decimal(qty)
+            total_price += cost
+            
+            cart_details.append({
+                "item_type": "asset",
+                "item_id": a_id,
+                "quantity": qty,
+                "price": str(asset.price),
+                "cost": str(cost),
+                "is_unique": asset.is_unique
+            })
+
+        # 6. Маршрутизация оплаты
         if payment_method == 'BALANCE':
-            return cls._process_balance_checkout(user, project_map, cart_details, total_price)
+            return cls._process_balance_checkout(user, project_map, asset_map, cart_details, total_price)
         elif payment_method == 'STRIPE':
             return cls._process_stripe_checkout(user, cart_details, total_price)
-        elif payment_method == 'PAYPAL': # --- НОВОЕ УСЛОВИЕ ---
+        elif payment_method == 'PAYPAL':
             return cls._process_paypal_checkout(user, cart_details, total_price)
-        elif payment_method == 'TRIPLEA': # <-- ДОБАВЛЯЕМ ВЕТВЛЕНИЕ
+        elif payment_method == 'TRIPLEA':
             return cls._process_triplea_checkout(user, cart_details, total_price)
         else:
             raise ValidationError("Неизвестный метод оплаты.")
 
     @classmethod
-    def _process_balance_checkout(cls, user, project_map, cart_details, total_price):
-        """Мгновенное списание средств и начисление долей"""
+    def _process_balance_checkout(cls, user, project_map, asset_map, cart_details, total_price):
+        """Мгновенное списание средств и начисление долей/активов"""
         
-        # Списываем общую сумму с баланса (WalletService сам проверит нехватку средств)
         tx = WalletService.process_purchase(
             wallet_id=user.wallet.id,
             amount=total_price,
             description=f"Оплата корзины ({len(cart_details)} позиций)"
         )
-        # Сохраняем состав корзины для истории
         tx.metadata = {"cart": cart_details}
         tx.save(update_fields=['metadata'])
 
         ownership_ids = []
 
-        # Обновляем проекты и портфель юзера
+        # Обновляем БД: выдаем купленное
         for item in cart_details:
-            proj = project_map[item['project_id']]
-            shares = item['shares']
             
-            proj.available_shares -= shares
-            if proj.available_shares == 0:
-                proj.status = Project.Status.SOLD
-            proj.save(update_fields=['available_shares', 'status', 'updated_at'])
+            if item['item_type'] == 'share':
+                # Выдача долей
+                proj = project_map[item['item_id']]
+                shares = item['quantity']
+                
+                proj.available_shares -= shares
+                if proj.available_shares == 0:
+                    proj.status = Project.Status.SOLD
+                proj.save(update_fields=['available_shares', 'status', 'updated_at'])
 
-            ownership, _ = Ownership.objects.get_or_create(
-                user=user, 
-                project=proj,
-                defaults={'shares_amount': 0, 'average_buy_price': Decimal('0.00')}
-            )
+                ownership, _ = Ownership.objects.get_or_create(
+                    user=user, 
+                    project=proj,
+                    defaults={'shares_amount': 0, 'average_buy_price': Decimal('0.00')}
+                )
+                old_total_value = Decimal(ownership.shares_amount) * ownership.average_buy_price
+                new_total_value = Decimal(shares) * proj.price_per_share
+                
+                ownership.shares_amount += shares
+                ownership.average_buy_price = (old_total_value + new_total_value) / Decimal(ownership.shares_amount)
+                ownership.save(update_fields=['shares_amount', 'average_buy_price', 'updated_at'])
+                
+                ownership_ids.append(f"share_{ownership.id}")
+                
+            elif item['item_type'] == 'asset':
+                # Выдача активов целиком
+                asset = asset_map[item['item_id']]
+                qty = item['quantity']
 
-            old_total_value = Decimal(ownership.shares_amount) * ownership.average_buy_price
-            new_total_value = Decimal(shares) * proj.price_per_share
-            
-            ownership.shares_amount += shares
-            ownership.average_buy_price = (old_total_value + new_total_value) / Decimal(ownership.shares_amount)
-            ownership.save(update_fields=['shares_amount', 'average_buy_price', 'updated_at'])
-            
-            ownership_ids.append(str(ownership.id))
+                # Если актив уникальный - снимаем с продажи
+                if asset.is_unique:
+                    asset.status = Asset.Status.SOLD
+                    asset.save(update_fields=['status', 'updated_at'])
+
+                # Создаем записи о владении активом (по одной на каждую единицу)
+                for _ in range(qty):
+                    asset_ownership = AssetOwnership.objects.create(
+                        user=user,
+                        asset=asset,
+                        purchase_price=Decimal(item['price'])
+                    )
+                    ownership_ids.append(f"asset_{asset_ownership.id}")
 
         # Начисляем реферальный бонус с общей суммы корзины
         ReferralService.process_purchase_bonus(user=user, amount_spent=total_price)
@@ -126,14 +181,16 @@ class PurchaseService:
             "ownership_ids": ownership_ids
         }
 
+    # ... ниже остаются без изменений методы _process_stripe_checkout, 
+    # _process_paypal_checkout и _process_triplea_checkout ...
+    
     @classmethod
     def _process_stripe_checkout(cls, user, cart_details, total_price):
-        """Формирование PENDING транзакции для Stripe"""
+        # (Оставляешь свой старый код из этого метода)
         import stripe
         from django.conf import settings
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-        # Создаем транзакцию. Сохраняем корзину в metadata, чтобы прочитать её при вебхуке!
         pending_tx = Transaction.objects.create(
             wallet=user.wallet,
             amount=total_price,
@@ -163,9 +220,7 @@ class PurchaseService:
     
     @classmethod
     def _process_paypal_checkout(cls, user, cart_details, total_price):
-        """Формирование PENDING транзакции и заказа для PayPal"""
-        
-        # 1. Создаем PENDING транзакцию, как в Stripe
+        # (Оставляешь свой старый код из этого метода)
         pending_tx = Transaction.objects.create(
             wallet=user.wallet,
             amount=total_price,
@@ -175,21 +230,18 @@ class PurchaseService:
             metadata={"cart": cart_details}
         )
 
-        # 2. Делаем API запрос к PayPal для создания заказа
         try:
-            # Отправляем сумму в PayPal
             paypal_order = create_paypal_order(amount=total_price)
             order_id = paypal_order.get("id")
             
             return {
                 "status": "pending_payment",
                 "transaction_id": str(pending_tx.id),
-                "order_id": order_id, # Отдаем фронту ID заказа PayPal
+                "order_id": order_id, 
                 "payment_gateway": "paypal",
                 "message": "Ожидается оплата через PayPal"
             }
         except Exception as e:
-            # Если серверы PayPal лежат или упали, помечаем транзакцию как Failed
             pending_tx.status = Transaction.Status.FAILED
             pending_tx.description = "Ошибка при создании заказа в API PayPal"
             pending_tx.save(update_fields=['status', 'description'])
@@ -197,6 +249,7 @@ class PurchaseService:
     
     @classmethod
     def _process_triplea_checkout(cls, user, cart_details, total_price):
+        # (Оставляешь свой старый код из этого метода)
         pending_tx = Transaction.objects.create(
             wallet=user.wallet,
             amount=total_price,
@@ -212,7 +265,7 @@ class PurchaseService:
             return {
                 "status": "pending_payment",
                 "transaction_id": str(pending_tx.id),
-                "hosted_url": payment_data.get("hosted_url"), # <-- Ссылка на оплату Triple-A
+                "hosted_url": payment_data.get("hosted_url"), 
                 "payment_gateway": "triplea",
                 "message": "Ожидается оплата криптовалютой"
             }
@@ -221,4 +274,3 @@ class PurchaseService:
             pending_tx.description = "Ошибка Triple-A API"
             pending_tx.save(update_fields=['status', 'description'])
             raise ValidationError("Сервис оплаты криптовалютой временно недоступен.")
-    

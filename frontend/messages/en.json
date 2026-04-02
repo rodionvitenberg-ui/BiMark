@@ -413,5 +413,12 @@
   "failedMessage": "The transaction was canceled or the invoice has expired. No funds were deducted.",
   "tryAgain": "Try Again",
   "backToCatalog": "Back to Catalog"
+},
+"Assets": {
+  "sectionTitle": "Exclusive Assets",
+  "sectionSubtitle": "Turnkey businesses and projects. Available for purchase by a single buyer only.",
+  "viewAll": "All projects",
+  "serverError": "Error loading assets. Please refresh the page.",
+  "noAssets": "There are no projects available at the moment."
 }
 }

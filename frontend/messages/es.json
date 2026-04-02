@@ -413,5 +413,12 @@
   "failedMessage": "Has cancelado la transacción o el tiempo de espera de la factura ha expirado. No se han deducido fondos.",
   "tryAgain": "Intentar de nuevo",
   "backToCatalog": "Volver al catálogo"
+},
+"Assets": {
+  "sectionTitle": "Activos exclusivos",
+  "sectionSubtitle": "Negocios y proyectos llave en mano. Disponibles para la compra por un solo dueño.",
+  "viewAll": "Todos los proyectos",
+  "serverError": "Error al cargar los activos. Por favor, actualiza la página.",
+  "noAssets": "No hay proyectos disponibles en este momento."
 }
 }

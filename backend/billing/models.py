@@ -8,7 +8,7 @@ class Wallet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, 
-        on_delete=models.PROTECT, # Запрещаем удалять юзера, если есть кошелек
+        on_delete=models.PROTECT, 
         related_name='wallet'
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -21,21 +21,16 @@ class Wallet(models.Model):
 
     @property
     def balance(self) -> Decimal:
-        """
-        Вычисление баланса на лету. 
-        В будущем, при высоких нагрузках, можно будет добавить кэширование в Redis 
-        с инвалидацией при каждой новой COMPLETED транзакции.
-        """
-        # Считаем приходы (Пополнения + Реферальные бонусы)
+        # Считаем приходы
         deposits = self.transactions.filter(
             status=Transaction.Status.COMPLETED,
             type__in=[Transaction.Type.DEPOSIT, Transaction.Type.REFERRAL]
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
-        # Считаем расходы (Покупки + Выводы)
+        # Считаем расходы (Добавили PURCHASE_ASSET)
         withdrawals = self.transactions.filter(
             status=Transaction.Status.COMPLETED,
-            type__in=[Transaction.Type.WITHDRAW, Transaction.Type.PURCHASE]
+            type__in=[Transaction.Type.WITHDRAW, Transaction.Type.PURCHASE, Transaction.Type.PURCHASE_ASSET]
         ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
 
         return deposits - withdrawals
@@ -48,7 +43,8 @@ class Transaction(models.Model):
     class Type(models.TextChoices):
         DEPOSIT = 'DEPOSIT', 'Пополнение'
         WITHDRAW = 'WITHDRAW', 'Вывод'
-        PURCHASE = 'PURCHASE', 'Покупка актива'
+        PURCHASE = 'PURCHASE', 'Покупка долей'
+        PURCHASE_ASSET = 'PURCHASE_ASSET', 'Покупка проекта целиком' # <-- Новый тип
         REFERRAL = 'REFERRAL', 'Реферальный бонус'
 
     class Status(models.TextChoices):
@@ -59,19 +55,13 @@ class Transaction(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     wallet = models.ForeignKey(
         Wallet, 
-        on_delete=models.PROTECT, # Транзакции удалять категорически нельзя
+        on_delete=models.PROTECT, 
         related_name='transactions'
     )
-    amount = models.DecimalField(
-        max_digits=12, 
-        decimal_places=2, 
-        help_text="Сумма всегда положительная. Тип транзакции определяет, плюс это или минус."
-    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
     type = models.CharField(max_length=20, choices=Type.choices, db_index=True)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True)
-    
-    # Для аудита: кто создал транзакцию, внешние ID от платежек (Stripe/Crypto) и т.д.
-    reference_id = models.CharField(max_length=255, blank=True, null=True, unique=True, help_text="ID во внешней системе")
+    reference_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     description = models.TextField(blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     

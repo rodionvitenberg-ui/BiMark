@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'catalog',
     'referrals',
     'cms',
+    'catalog_assets',
 ]
 
 SITE_ID = 1

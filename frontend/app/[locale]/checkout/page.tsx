@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, ArrowLeft, CreditCard, Wallet, CheckCircle2, Loader2, Bitcoin } from "lucide-react"; // <-- Добавили Bitcoin
+import { Trash2, ArrowLeft, CreditCard, Wallet, CheckCircle2, Loader2, Bitcoin } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useRouter } from "../../../i18n/routing";
 import { apiClient } from "../../../lib/api/client";
@@ -13,7 +13,6 @@ import { useUser } from "../../../hooks/use-auth";
 
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-// <-- Добавили TRIPLEA
 type PaymentMethod = "BALANCE" | "STRIPE" | "PAYPAL" | "TRIPLEA"; 
 
 export default function CheckoutPage() {
@@ -38,24 +37,28 @@ export default function CheckoutPage() {
     setIsMounted(true);
   }, []);
 
+  // --- УНИВЕРСАЛЬНЫЙ ФОРМАТЕР ДАННЫХ ДЛЯ БЭКЕНДА ---
+  const formatItemsForBackend = () => {
+    return items.map((item: any) => ({
+      item_type: item.item_type || "share", // По умолчанию считаем долей (для старых записей в кэше)
+      item_id: item.item_id || item.project_id, 
+      quantity: item.quantity || item.shares_amount || 1
+    }));
+  };
+
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       const payload = {
         payment_method: paymentMethod,
-        items: items.map(item => ({
-          project_id: item.project_id,
-          shares_amount: item.shares_amount
-        }))
+        items: formatItemsForBackend() // Используем новый форматер
       };
       const response = await apiClient.post("/catalog/checkout/", payload);
       return response.data;
     },
     onSuccess: (data) => {
-      // <-- НОВАЯ ЛОГИКА ДЛЯ TRIPLE-A (Редирект на крипто-шлюз)
       if (data.payment_gateway === "triplea" && data.hosted_url) {
         window.location.href = data.hosted_url;
       } 
-      // Старая логика для Stripe и Баланса
       else if (data.status === "pending_payment" && data.client_secret) {
         setClientSecret(data.client_secret);
         setIsStripeModalOpen(true);
@@ -120,55 +123,69 @@ export default function CheckoutPage() {
           
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence>
-              {items.map((item) => (
-                <motion.div 
-                  key={item.project_id}
-                  layout
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -50 }}
-                  className="flex flex-col sm:flex-row items-center gap-6 p-4 sm:p-6 bg-white dark:bg-[#111827] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800"
-                >
-                  <div className="w-full sm:w-32 h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden shrink-0">
-                    {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover" />}
-                  </div>
-                  
-                  <div className="flex-1 flex flex-col w-full">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{item.title}</h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                      <span>{t("price")}: ${item.price_per_share}</span>
-                      <span>{t("available")}: {item.available_shares} {t("pcs")}</span>
-                    </div>
+              {items.map((item: any) => {
+                // Универсальные переменные для рендера
+                const id = item.item_id || item.project_id;
+                const qty = item.quantity || item.shares_amount || 1;
+                const maxQty = item.available_shares || 1; // Уникальные активы имеют max = 1
+                const itemPrice = item.price_per_share || item.price;
+                const isAsset = item.item_type === 'asset';
 
-                    <div className="flex items-center justify-between mt-auto">
-                      <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-xl border border-gray-100 dark:border-gray-800">
-                        <input 
-                          type="number" 
-                          min="1" 
-                          max={item.available_shares}
-                          value={item.shares_amount}
-                          onChange={(e) => updateQuantity(item.project_id, parseInt(e.target.value) || 1)}
-                          className="w-16 text-center bg-transparent border-none outline-none font-bold text-gray-900 dark:text-white"
-                        />
-                        <span className="pr-3 text-xs font-medium text-gray-500 uppercase">{t("pcs")}</span>
+                return (
+                  <motion.div 
+                    key={id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                    className="flex flex-col sm:flex-row items-center gap-6 p-4 sm:p-6 bg-white dark:bg-[#111827] rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800"
+                  >
+                    <div className="w-full sm:w-32 h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl overflow-hidden shrink-0">
+                      {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover" />}
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col w-full">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{item.title}</h3>
+                        {isAsset && <span className="text-[10px] uppercase font-bold bg-brand-blue/10 text-brand-blue px-2 py-1 rounded-md ml-2">ASSET</span>}
                       </div>
-                      
-                      <div className="flex items-center gap-6">
-                        <span className="text-xl font-black text-gray-900 dark:text-white">
-                          ${(item.price_per_share * item.shares_amount).toFixed(2)}
-                        </span>
-                        <button 
-                          onClick={() => removeItem(item.project_id)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2"
-                          title={t("remove")}
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+
+                      <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                        <span>{t("price")}: ${itemPrice}</span>
+                        {!isAsset && <span>{t("available")}: {item.available_shares} {t("pcs")}</span>}
+                      </div>
+
+                      <div className="flex items-center justify-between mt-auto">
+                        <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                          <input 
+                            type="number" 
+                            min="1" 
+                            max={maxQty}
+                            value={qty}
+                            disabled={isAsset && item.is_unique} // Уникальный актив нельзя купить > 1
+                            onChange={(e) => updateQuantity(id, parseInt(e.target.value) || 1)}
+                            className="w-16 text-center bg-transparent border-none outline-none font-bold text-gray-900 dark:text-white disabled:opacity-50"
+                          />
+                          <span className="pr-3 text-xs font-medium text-gray-500 uppercase">{isAsset ? "шт" : t("pcs")}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                          <span className="text-xl font-black text-gray-900 dark:text-white">
+                            ${(itemPrice * qty).toFixed(2)}
+                          </span>
+                          <button 
+                            onClick={() => removeItem(id)}
+                            className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                            title={t("remove")}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </AnimatePresence>
           </div>
 
@@ -210,7 +227,6 @@ export default function CheckoutPage() {
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithPayPal") || "PayPal"}</p>
                 </label>
 
-                {/* НОВАЯ КНОПКА TRIPLE-A */}
                 <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "TRIPLEA" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
                   <input type="radio" name="payment" value="TRIPLEA" checked={paymentMethod === "TRIPLEA"} onChange={() => setPaymentMethod("TRIPLEA")} className="hidden" />
                   <Bitcoin className={`w-6 h-6 ${paymentMethod === "TRIPLEA" ? "text-brand-blue" : "text-gray-400"}`} />
@@ -233,7 +249,6 @@ export default function CheckoutPage() {
                   </Link>
                 </div>
               ) : paymentMethod === "PAYPAL" ? (
-                /* КНОПКА PAYPAL */
                 <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "USD" }}>
                   <PayPalButtons 
                     style={{ layout: "vertical", shape: "rect", color: "blue" }}
@@ -242,10 +257,7 @@ export default function CheckoutPage() {
                       try {
                         const payload = {
                           payment_method: "PAYPAL",
-                          items: items.map(item => ({
-                            project_id: item.project_id,
-                            shares_amount: item.shares_amount
-                          }))
+                          items: formatItemsForBackend() // <-- ИСПОЛЬЗУЕМ ФОРМАТЕР
                         };
                         const response = await apiClient.post("/catalog/checkout/", payload);
                         txIdRef.current = response.data.transaction_id;
@@ -272,7 +284,6 @@ export default function CheckoutPage() {
                   />
                 </PayPalScriptProvider>
               ) : (
-                /* ОБЫЧНАЯ КНОПКА (Баланс / Stripe / Triple-A) */
                 <button
                   onClick={() => checkoutMutation.mutate()}
                   disabled={checkoutMutation.isPending}

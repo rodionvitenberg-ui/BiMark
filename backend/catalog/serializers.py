@@ -93,8 +93,9 @@ class BuySharesSerializer(serializers.Serializer):
     )
 
 class CartItemSerializer(serializers.Serializer):
-    project_id = serializers.UUIDField()
-    shares_amount = serializers.IntegerField(min_value=1)
+    item_type = serializers.ChoiceField(choices=['share', 'asset'], default='share')
+    item_id = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=1)
 
 class CheckoutSerializer(serializers.Serializer):
     items = CartItemSerializer(many=True, allow_empty=False)

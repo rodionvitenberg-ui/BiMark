@@ -9,10 +9,11 @@ from billing.webhooks import StripeWebhookView, PayPalCaptureView, PassimPayWebh
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
 from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView 
 from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView, PasswordResetRequestView, PasswordResetConfirmView
-
+from catalog_assets.views import AssetViewSet, AssetPortfolioView
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'categories', CategoryViewSet, basename='category')
+router.register(r'assets', AssetViewSet, basename='asset')
 
 # ИЗМЕНЕНИЕ 2: Регистрируем новый маршрут для токенов
 router.register(r'tokens', TokenViewSet, basename='token')
@@ -30,6 +31,7 @@ urlpatterns = [
     # --- Каталог и Портфель ---
     path('api/', include(router.urls)),
     path('api/portfolio/', PortfolioView.as_view(), name='portfolio'),
+    path('api/portfolio/assets/', AssetPortfolioView.as_view(), name='portfolio-assets'),
     
     # НОВЫЙ ЭНДПОИНТ КОРЗИНЫ:
     path('api/catalog/checkout/', CheckoutView.as_view(), name='checkout'),
