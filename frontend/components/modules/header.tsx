@@ -36,7 +36,7 @@ export function Header() {
   const [isLangOpen, setIsLangOpen] = useState(false);
   
   const [isMounted, setIsMounted] = useState(false);
-  const cartItemsCount = useCart((state) => state.items.reduce((total, item) => total + item.shares_amount, 0));
+  const cartItemsCount = useCart((state) => state.items.reduce((total, item) => total + item.quantity, 0));
 
   const profileRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
