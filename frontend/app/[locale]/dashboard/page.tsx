@@ -14,13 +14,15 @@ import {
   Briefcase,
   AlertCircle,
   Copy,
-  Users // <-- Добавили иконку Users
+  Users,
+  Gem // <-- Добавили иконку для активов
 } from "lucide-react";
 
 import { useUser } from "../../../hooks/use-auth";
 import { apiClient } from "../../../lib/api/client";
 import { Link } from "../../../i18n/routing";
-import { Wallet, Transaction, Ownership } from "../../../types/dashboard";
+// <-- Добавили AssetOwnership в импорт
+import { Wallet, Transaction, Ownership, AssetOwnership } from "../../../types/dashboard"; 
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardPage() {
@@ -46,10 +48,21 @@ export default function DashboardPage() {
     enabled: !!user,
   });
 
+  // Запрос долей (старый)
   const { data: portfolio } = useQuery<Ownership[]>({
     queryKey: ["portfolio"],
     queryFn: async () => {
       const { data } = await apiClient.get("/portfolio/");
+      return data.results || data; 
+    },
+    enabled: !!user,
+  });
+
+  // НОВЫЙ ЗАПРОС: Запрос целых активов
+  const { data: assetPortfolio } = useQuery<AssetOwnership[]>({
+    queryKey: ["assetPortfolio"],
+    queryFn: async () => {
+      const { data } = await apiClient.get("/portfolio/assets/");
       return data.results || data; 
     },
     enabled: !!user,
@@ -74,7 +87,7 @@ export default function DashboardPage() {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState<number | "">(100);
   const [depositSuccess, setDepositSuccess] = useState(false);
-  const COMPANY_CRYPTO_WALLET = "TXYZ...Ваш_TRC20_Кошелек...1234"; // ВАЖНО: Кошелек заказчика
+  const COMPANY_CRYPTO_WALLET = "TXYZ...Ваш_TRC20_Кошелек...1234";
 
   // === СТЕЙТЫ ВЫВОДА ===
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -85,7 +98,6 @@ export default function DashboardPage() {
 
   const [isCopied, setIsCopied] = useState(false);
 
-  // Генерируем ссылку (проверяем окно, чтобы избежать ошибки гидратации)
   const referralLink = typeof window !== "undefined" && user 
     ? `${window.location.origin}/register?ref=${user.id}` 
     : "";
@@ -97,7 +109,6 @@ export default function DashboardPage() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  // === МУТАЦИЯ ДЛЯ ПОПОЛНЕНИЯ ===
   const depositMutation = useMutation({
     mutationFn: async (amount: number) => {
       const response = await apiClient.post("/wallet/deposit/", { amount });
@@ -113,7 +124,6 @@ export default function DashboardPage() {
     },
   });
 
-  // === МУТАЦИЯ ДЛЯ ВЫВОДА ===
   const withdrawMutation = useMutation({
     mutationFn: async (payload: { amount: number, wallet_address: string }) => {
       const response = await apiClient.post("/wallet/withdraw/", payload);
@@ -228,31 +238,36 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {transactions.map((tx) => (
-                        <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                          <td className="px-6 py-4 font-medium text-brand-black flex items-center gap-2">
-                            {tx.transaction_type === "DEPOSIT" || tx.transaction_type === "REFERRAL" ? (
-                              <ArrowDownRight className="w-4 h-4 text-green-500" />
-                            ) : (
-                              <ArrowUpRight className="w-4 h-4 text-red-500" />
-                            )}
-                            {tx.transaction_type}
-                          </td>
-                          <td className={`px-6 py-4 font-bold ${
-                            tx.transaction_type === "DEPOSIT" || tx.transaction_type === "REFERRAL" ? "text-green-600" : "text-brand-black"
-                          }`}>
-                            {tx.transaction_type === "DEPOSIT" || tx.transaction_type === "REFERRAL" ? "+" : "-"}{formatCurrency(tx.amount)}
-                          </td>
-                          <td className="px-6 py-4">
-                            {tx.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" />Успешно</span>}
-                            {tx.status === "PENDING" && <span className="inline-flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-md text-xs font-semibold"><Clock className="w-3.5 h-3.5" />В обработке</span>}
-                            {tx.status === "FAILED" && <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-semibold"><XCircle className="w-3.5 h-3.5" />Отклонено</span>}
-                          </td>
-                          <td className="px-6 py-4 text-right text-gray-500">
-                            {formatDate(tx.created_at)}
-                          </td>
-                        </tr>
-                      ))}
+                      {transactions.map((tx) => {
+                        // Определяем, приход это или расход
+                        const isIncome = tx.transaction_type === "DEPOSIT" || tx.transaction_type === "REFERRAL";
+                        
+                        return (
+                          <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                            <td className="px-6 py-4 font-medium text-brand-black flex items-center gap-2">
+                              {isIncome ? (
+                                <ArrowDownRight className="w-4 h-4 text-green-500 shrink-0" />
+                              ) : (
+                                <ArrowUpRight className="w-4 h-4 text-red-500 shrink-0" />
+                              )}
+                              <span className="truncate">
+                                {tx.transaction_type === "PURCHASE_ASSET" ? "ASSET PURCHASE" : tx.transaction_type}
+                              </span>
+                            </td>
+                            <td className={`px-6 py-4 font-bold ${isIncome ? "text-green-600" : "text-brand-black"}`}>
+                              {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
+                            </td>
+                            <td className="px-6 py-4">
+                              {tx.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" />Успешно</span>}
+                              {tx.status === "PENDING" && <span className="inline-flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-md text-xs font-semibold"><Clock className="w-3.5 h-3.5" />В обработке</span>}
+                              {tx.status === "FAILED" && <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-semibold"><XCircle className="w-3.5 h-3.5" />Отклонено</span>}
+                            </td>
+                            <td className="px-6 py-4 text-right text-gray-500 whitespace-nowrap">
+                              {formatDate(tx.created_at)}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -264,10 +279,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ПРАВАЯ КОЛОНКА (Обернута в sticky container) */}
+          {/* ПРАВАЯ КОЛОНКА */}
           <div className="lg:col-span-1 space-y-8 sticky top-24 self-start">
             
-            {/* Виджет Портфеля */}
+            {/* Виджет 1: Портфель (Доли проектов) */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-brand-blue" />
@@ -310,7 +325,57 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* НОВЫЙ БЛОК: Реферальная программа */}
+            {/* НОВЫЙ Виджет 2: Купленные Активы (Целые проекты) */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
+                <Gem className="w-5 h-5 text-brand-blue" />
+                {t("myAssets", { fallback: "Мои активы" })}
+              </div>
+              
+              <div className="p-4 space-y-3">
+                {assetPortfolio && assetPortfolio.length > 0 ? (
+                  assetPortfolio.map((item) => {
+                    const title = item.asset.title?.[locale] || item.asset.title?.en || "Актив";
+                    
+                    return (
+                      <Link key={item.id} href={`/assets/${item.asset.id}`}>
+                        <div className="p-4 rounded-xl border border-gray-100 hover:border-brand-blue/30 hover:bg-brand-blue/5 transition-all group">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-brand-black group-hover:text-brand-blue transition-colors line-clamp-1 flex-1">
+                              {title}
+                            </h4>
+                            {item.asset.is_unique && (
+                              <span className="shrink-0 ml-2 text-[10px] uppercase font-bold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded">
+                                Эксклюзив
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500 font-medium text-xs">
+                              {formatDate(item.purchased_at)}
+                            </span>
+                            <span className="text-brand-black font-semibold">
+                              {formatCurrency(item.purchase_price)}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    )
+                  })
+                ) : (
+                  <div className="py-8 text-center text-gray-500 text-sm">
+                    {t("emptyAssets", { fallback: "У вас пока нет купленных активов." })}
+                    <div className="mt-4">
+                      <Link href="/assets" className="text-brand-blue font-semibold hover:underline">
+                        Смотреть эксклюзивы
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Виджет 3: Реферальная программа */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
                 <Users className="w-5 h-5 text-brand-blue" />

@@ -9,6 +9,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api/client"; 
 import { useGoogleLogin } from "@react-oauth/google"; 
 import { useToast } from "@/components/ui/toast";
+// ИМПОРТИРУЕМ НАШ НОВЫЙ КОМПОНЕНТ
+import { LegalConsent } from "./LegalConsent"; 
 
 export default function RegistrationFlow() {
   const t = useTranslations("Auth");
@@ -23,6 +25,9 @@ export default function RegistrationFlow() {
   const [email, setEmail] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // НОВОЕ СОСТОЯНИЕ ДЛЯ СОГЛАСИЙ
+  const [legalAgreed, setLegalAgreed] = useState(false);
 
   const schemas = getAuthSchemas(tToast);
 
@@ -150,11 +155,15 @@ export default function RegistrationFlow() {
             />
           </div>
           
-          {/* ОБНОВЛЕННАЯ КНОПКА: Продолжить */}
+          {/* НАШ НОВЫЙ БЛОК СОГЛАСИЙ */}
+          <LegalConsent onConsentChange={setLegalAgreed} />
+          
+          {/* КНОПКА ЗАБЛОКИРОВАНА, ЕСЛИ НЕТ ГАЛОЧЕК */}
+          {/* Добавлены классы disabled:cursor-not-allowed */}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 cursor-pointer"
+            disabled={isLoading || !legalAgreed}
+            className="w-full py-3 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none cursor-pointer"
           >
             {isLoading ? "..." : t("continue")}
           </button>
@@ -170,11 +179,12 @@ export default function RegistrationFlow() {
             </div>
           </div>
           
-          {/* ОБНОВЛЕННАЯ КНОПКА GOOGLE */}
+          {/* КНОПКА GOOGLE ТОЖЕ ЗАБЛОКИРОВАНА, ЕСЛИ НЕТ ГАЛОЧЕК */}
           <button
             type="button"
+            disabled={!legalAgreed}
             onClick={() => handleGoogleLogin()}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-zinc-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer font-medium text-zinc-700 dark:text-zinc-300 shadow-sm"
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-zinc-300 dark:border-zinc-700 rounded-xl bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:scale-[1.02] hover:shadow-lg transition-all duration-300 cursor-pointer font-medium text-zinc-700 dark:text-zinc-300 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none disabled:bg-gray-100 dark:disabled:bg-zinc-800"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -200,7 +210,6 @@ export default function RegistrationFlow() {
             />
           </div>
           
-          {/* ОБНОВЛЕННАЯ КНОПКА: Подтвердить */}
           <button
             type="submit"
             className="w-full py-3 px-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg cursor-pointer"
@@ -235,7 +244,6 @@ export default function RegistrationFlow() {
             />
           </div>
           
-          {/* ОБНОВЛЕННАЯ КНОПКА: Зарегистрироваться */}
           <button
             type="submit"
             disabled={isLoading}

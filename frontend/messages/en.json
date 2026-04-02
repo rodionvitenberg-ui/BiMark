@@ -31,7 +31,9 @@
     "confirmPasswordLabel": "Confirm Password",
     "confirmPasswordPlaceholder": "Repeat your password",
     "register": "Create Account",
-    "alreadyHaveAccount": "Already have an account? Log in"
+    "alreadyHaveAccount": "Already have an account? Log in",
+    "agreeTerms": "I accept the Terms of Service",
+  "agreeAml": "I agree to the AML / KYC Policy"
   },
   "CategoriesIndex": {
     "empty": "No categories created yet. Check back later!",
@@ -414,11 +416,39 @@
   "tryAgain": "Try Again",
   "backToCatalog": "Back to Catalog"
 },
-"Assets": {
-  "sectionTitle": "Exclusive Assets",
-  "sectionSubtitle": "Turnkey businesses and projects. Available for purchase by a single buyer only.",
-  "viewAll": "All projects",
-  "serverError": "Error loading assets. Please refresh the page.",
-  "noAssets": "There are no projects available at the moment."
-}
+"AssetsCatalog": {
+    "heroBadge": "Premium Segment",
+    "heroTitle": "Exclusive Assets and Businesses",
+    "heroSubtitle": "Invest in turnkey IT solutions, Telegram channels, and ready-made projects. Full transfer of rights and transparent transactions.",
+    "filterAll": "All Projects",
+    "filterUnique": "Exclusives (Single Buyer)",
+    "filterRegular": "Ready-made Business",
+    "sortBy": "Sort by:",
+    "sortNewest": "Newest first",
+    "sortPriceAsc": "Price: Low to High",
+    "sortPriceDesc": "Price: High to Low",
+    "errorLoading": "Error loading assets",
+    "emptyStateTitle": "Nothing found",
+    "emptyStateDesc": "There are no available projects in this category yet, but we are already preparing new assets for publication.",
+    "resetFilters": "Reset filters",
+    "ctaTitle": "Want to sell your IT project or business?",
+    "ctaSubtitle": "BiMark ensures a secure transaction and helps find buyers among our investor base.",
+    "ctaButton": "Contact Us"
+  },
+  "Assets": {
+    "assetNotFound": "Asset not found",
+    "returnToCatalog": "Return to Catalog",
+    "backToCatalog": "Back to Assets",
+    "noImage": "No image",
+    "total": "Total",
+    "addedToCartMsg": "Added to cart",
+    "goToCart": "Go to Checkout",
+    "termsAgreement": "By clicking the button, you agree to the",
+    "termsLink": "terms of service",
+    "sectionTitle": "Exclusive Assets",
+    "sectionSubtitle": "Turnkey businesses and projects. Available for purchase by a single buyer only.",
+    "viewAll": "All Projects",
+    "serverError": "Error loading assets. Please refresh the page.",
+    "noAssets": "There are no projects available at the moment."
+  }
 }

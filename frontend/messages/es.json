@@ -31,7 +31,9 @@
     "confirmPasswordLabel": "Confirmar contraseña",
     "confirmPasswordPlaceholder": "Repite tu contraseña",
     "register": "Crear cuenta",
-    "alreadyHaveAccount": "¿Ya tienes una cuenta? Iniciar sesión"
+    "alreadyHaveAccount": "¿Ya tienes una cuenta? Iniciar sesión",
+    "agreeTerms": "Acepto los Términos de Servicio",
+  "agreeAml": "Estoy de acuerdo con la Política AML / KYC"
   },
   "CategoriesIndex": {
     "empty": "Aún no se han creado categorías. ¡Vuelve más tarde!",
@@ -414,11 +416,39 @@
   "tryAgain": "Intentar de nuevo",
   "backToCatalog": "Volver al catálogo"
 },
-"Assets": {
-  "sectionTitle": "Activos exclusivos",
-  "sectionSubtitle": "Negocios y proyectos llave en mano. Disponibles para la compra por un solo dueño.",
-  "viewAll": "Todos los proyectos",
-  "serverError": "Error al cargar los activos. Por favor, actualiza la página.",
-  "noAssets": "No hay proyectos disponibles en este momento."
-}
+"AssetsCatalog": {
+    "heroBadge": "Segmento Premium",
+    "heroTitle": "Activos y Negocios Exclusivos",
+    "heroSubtitle": "Invierta en soluciones IT, canales de Telegram y proyectos llave en mano. Transferencia total de derechos y transacciones transparentes.",
+    "filterAll": "Todos los proyectos",
+    "filterUnique": "Exclusivos (Un solo dueño)",
+    "filterRegular": "Negocios listos",
+    "sortBy": "Ordenar por:",
+    "sortNewest": "Más recientes primero",
+    "sortPriceAsc": "Precio: menor a mayor",
+    "sortPriceDesc": "Precio: mayor a menor",
+    "errorLoading": "Error al cargar los activos",
+    "emptyStateTitle": "No se encontró nada",
+    "emptyStateDesc": "Aún no hay proyectos disponibles en esta categoría, pero ya estamos preparando nuevos activos para su publicación.",
+    "resetFilters": "Restablecer filtros",
+    "ctaTitle": "¿Quieres vender tu proyecto IT o negocio?",
+    "ctaSubtitle": "BiMark garantiza una transacción segura y ayuda a encontrar compradores entre nuestra base de inversores.",
+    "ctaButton": "Contactar con nosotros"
+  },
+  "Assets": {
+    "assetNotFound": "Activo no encontrado",
+    "returnToCatalog": "Volver al catálogo",
+    "backToCatalog": "Volver a los activos",
+    "noImage": "Sin imagen",
+    "total": "Total",
+    "addedToCartMsg": "Añadido al carrito",
+    "goToCart": "Ir a pagar",
+    "termsAgreement": "Al hacer clic en el botón, aceptas los",
+    "termsLink": "términos de servicio",
+    "sectionTitle": "Activos exclusivos",
+    "sectionSubtitle": "Negocios y proyectos llave en mano. Disponibles para la compra por un solo dueño.",
+    "viewAll": "Todos los proyectos",
+    "serverError": "Error al cargar los activos. Por favor, actualiza la página.",
+    "noAssets": "No hay proyectos disponibles en este momento."
+  }
 }

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Hero } from "../../components/modules/hero";
 import { ProjectsGrid } from "../../components/modules/projects-grid";
+import { AssetsGrid } from "../../components/modules/asset-grid";
 import { HowItWorks } from "../../components/modules/how-it-works";
 import { CategoriesPreview } from "../../components/modules/categories-preview";
 import { AboutUs } from "../../components/modules/about-us";
@@ -14,6 +15,7 @@ export default function Home() {
       <Hero />
       <HowItWorks />
       <TokenTeaser />
+      <AssetsGrid />
       <NewProjects />
       <CategoriesPreview />
       <ProjectsGrid />

@@ -35,11 +35,12 @@ export default function TokenPresalePage() {
     if (!project || sharesToBuy <= 0) return;
 
     addItem({
-      project_id: project.id,
+      item_type: 'share',                             // <-- Обязательно указываем тип
+      item_id: project.id,                            // Было project_id
       title: "BiMark Token (BMK)",
-      price_per_share: Number(project.price_per_share),
-      shares_amount: sharesToBuy,
-      available_shares: project.available_shares,
+      price: Number(project.price_per_share),         // Было price_per_share
+      quantity: sharesToBuy,                          // Было shares_amount
+      max_quantity: project.available_shares,         // Было available_shares
       image: project.image,
     });
 
