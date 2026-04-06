@@ -31,11 +31,14 @@ export interface Project {
 
 export interface Asset {
   id: string;
-  title: LocalizedString;
-  description: LocalizedString;
-  price: string | number;
-  image: string | null;
+  title: Record<string, string> | string;
+  description: Record<string, string> | string;
+  price: number | string;
+  image: Record<string, string> | string | null;
+  status: 'DRAFT' | 'ACTIVE' | 'SOLD';
   is_unique: boolean;
-  status: ProjectStatus; 
   created_at: string;
+  updated_at?: string;
+  is_new: boolean;
+  is_hidden: boolean;
 }

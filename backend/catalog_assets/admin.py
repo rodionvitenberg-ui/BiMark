@@ -3,8 +3,11 @@ from .models import Asset, SoldUniqueAsset, AssetOwnership
 
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'is_unique', 'status', 'created_at')
-    list_filter = ('status', 'is_unique')
+    # Добавили is_new и is_hidden в список столбцов
+    list_display = ('title', 'price', 'is_unique', 'is_new', 'is_hidden', 'status', 'created_at')
+    
+    # Добавили is_new и is_hidden в боковой фильтр
+    list_filter = ('status', 'is_unique', 'is_new', 'is_hidden')
     search_fields = ('title',)
     
     def get_queryset(self, request):

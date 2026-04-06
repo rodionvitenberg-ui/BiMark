@@ -169,7 +169,8 @@
     "goal3": "Reciba un ingreso mensual del 5-15% gracias a los pagos publicitarios estables de estos proyectos. Si su proyecto sufre una caída, el pago mínimo se compensa a través de otros proyectos.",
     "goalsTitle": "Objetivos del proyecto para cada uno de ustedes:",
     "subtitle": "Los activos mediáticos se revalorizan cada año. Obtenga ingresos del 5-15% mensual gracias a un flujo de beneficios estable para todos.",
-    "title": "La primera bolsa del mundo de participaciones en redes sociales y aplicaciones."
+    "title": "La primera bolsa del mundo de participaciones en redes sociales y aplicaciones.",
+    "learnMoreBtn": "Más información sobre el proyecto"
   },
   "Index": {
     "button": "Comprobar color de acento",
@@ -233,16 +234,21 @@
   "buyBtn": "Comprar"
   },
   "ProjectsPage": {
-    "available": "Disponible",
-    "empty": "No hay proyectos activos en este momento.",
-    "error": "No se pudieron cargar los proyectos. Inténtalo de nuevo más tarde.",
-    "loading": "Cargando proyectos...",
-    "loginBtn": "Iniciar sesión",
-    "loginRequired": "Debes iniciar sesión para realizar un pedido.",
-    "pcs": "uds.",
-    "redirecting": "Redirigiendo a tu cuenta...",
-    "subtitle": "Lista completa de proyectos disponibles. Adquiere participaciones para generar ingresos pasivos o compra el negocio completo.",
-    "title": "Catálogo de activos"
+    "heroBadge": "Catálogo de acciones",
+    "title": "Invierta en Activos Digitales",
+    "subtitle": "Compre acciones en rentables startups de TI, canales de Telegram y plataformas SaaS. Obtenga ingresos de negocios reales.",
+    "allCategories": "🔥 Todos los proyectos",
+    "filterAll": "Cualquier estado",
+    "filterStatusAll": "Cualquier estado",
+    "filterPresale": "Solo preventa (Financiación)",
+    "filterActive": "Negocios activos",
+    "sortBy": "Ordenar por:",
+    "sortNewest": "Más nuevos primero",
+    "sortPriceAsc": "Acciones baratas",
+    "sortPriceDesc": "Acciones caras",
+    "error": "Error al cargar los proyectos. Por favor, actualice la página.",
+    "empty": "Actualmente no hay proyectos en esta categoría.",
+    "resetFilters": "Restablecer todos los filtros"
   },
   "Search": {
     "noResults": "No se encontraron resultados. Intenta con otra búsqueda.",
@@ -350,16 +356,22 @@
   "TermsOfService": {
     "title": "Términos de Servicio",
     "lastUpdated": "Última actualización: 10 de marzo de 2026",
-    "introTitle": "1. Aceptación de los términos",
-    "introText": "Al utilizar la plataforma de inversión Bimark, usted confirma que ha leído, entendido и acepta cumplir con estos Términos de Servicio. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro servicio.",
-    "servicesTitle": "2. Servicios de la plataforma",
-    "servicesText": "Bimark proporciona una plataforma en línea que permite a los usuarios adquirir negocios digitales terminados (activos de medios), comprar participaciones en el derecho a recibir beneficios de dichos proyectos, así como participar en la adquisición de tokens internos del ecosistema (BMK).",
-    "risksTitle": "3. Riesgos de inversión",
-    "risksText": "La compra de participaciones, criptoactivos и negocios digitales conlleva altos riesgos. La plataforma Bimark no garantiza la obtención de beneficios ni la devolución de los fondos invertidos. Usted confirma que toma todas las decisiones de inversión de forma independiente и es consciente de la posibilidad de pérdida parcial o total de los fondos.",
-    "accountsTitle": "4. Cuenta y seguridad",
-    "accountsText": "Para realizar transacciones, debe crear una cuenta. Usted es el único responsable de mantener la confidencialidad de su contraseña и de todas las actividades que ocurran bajo su cuenta. En caso de acceso no autorizado, debe notificárnoslo de inmediato.",
-    "liabilityTitle": "5. Limitación de responsabilidad",
-    "liabilityText": "Bimark, sus directores, empleados и socios no serán responsables de ningún daño indirecto, incidental o punitivo, incluyendo la pérdida de beneficios, datos o reputación, resultantes de su acceso o uso de la plataforma."
+    "introTitle": "1. Términos y definiciones",
+    "introText": "Activo Digital/Media: Cuenta, canal, grupo o página en redes sociales (YouTube, Instagram, Telegram, etc.). Propiedad Fraccionada: El derecho a recibir una parte de los ingresos generados por un Activo proporcional a la participación adquirida. Transacción: El proceso de transferencia de derechos sobre un activo o su participación entre Usuarios.",
+    "subjectTitle": "2. Objeto del acuerdo",
+    "subjectText": "La Plataforma ofrece al Usuario acceso a las funciones de un mercado para publicar, comprar/vender activos digitales e invertir en participaciones fraccionadas. Bimark actúa exclusivamente como intermediario técnico (garante/escrow) y no es el propietario de los activos, a menos que se indique lo contrario.",
+    "registrationTitle": "3. Registro y verificación",
+    "registrationText": "Al registrarse, el Usuario confirma que tiene al menos 18 años. El Usuario debe proporcionar información veraz. La Plataforma se reserva el derecho de solicitar verificación de identidad (KYC) para operaciones financieras. El Usuario es el único responsable de la seguridad de sus credenciales de acceso.",
+    "rulesTitle": "4. Reglas de la plataforma",
+    "rulesText": "Obligaciones del Vendedor: Proporcionar estadísticas reales. Está prohibida la venta de activos obtenidos ilegalmente o que infrinjan las normas de las redes sociales. Obligaciones del Comprador: Realizar una auditoría del activo antes de finalizar la transacción. Evasión: Cualquier intento de realizar una transacción fuera de la Plataforma tras haber contactado a través de Bimark resultará en el bloqueo de la cuenta.",
+    "escrowTitle": "5. Condiciones financieras y escrow",
+    "escrowText": "La Plataforma cobra una comisión por cada transacción según las tarifas vigentes. Al comprar, los fondos del Comprador son retenidos (escrow) por la Plataforma hasta que se confirme la entrega de los derechos de acceso. Los reembolsos solo serán posibles si el Vendedor no cumple con sus obligaciones antes del cierre de la transacción.",
+    "risksTitle": "6. Riesgos de inversión",
+    "risksText": "El Usuario reconoce que las inversiones en activos digitales conllevan el riesgo de pérdida de capital. La Plataforma no garantiza la rentabilidad. Los resultados pasados no garantizan beneficios futuros. Los cambios en los algoritmos o el bloqueo de activos por parte de las redes sociales se consideran Fuerza Mayor, por lo cual la Plataforma no se hace responsable.",
+    "liabilityTitle": "7. Limitación de responsabilidad",
+    "liabilityText": "La Plataforma no se hace responsable de daños directos o indirectos derivados del uso o la imposibilidad de uso del servicio. La responsabilidad máxima de la Plataforma se limita al importe de la comisión recibida por la transacción específica en disputa.",
+    "disputesTitle": "8. Ley aplicable",
+    "disputesText": "Todas las disputas se resolverán mediante negociación a través del sistema de soporte de la Plataforma. En caso de no llegar a un acuerdo, las disputas estarán sujetas a las leyes de Georgia."
   },
   "AmlPolicy": {
     "title": "Política AML / KYC",
@@ -449,6 +461,102 @@
     "sectionSubtitle": "Negocios y proyectos llave en mano. Disponibles para la compra por un solo dueño.",
     "viewAll": "Todos los proyectos",
     "serverError": "Error al cargar los activos. Por favor, actualiza la página.",
-    "noAssets": "No hay proyectos disponibles en este momento."
+    "noAssets": "No hay proyectos disponibles en este momento.",
+    "uniqueAsset": "Activo exclusivo",
+"wholeAsset": "Activo completo",
+"readyBusiness": "Negocio llave en mano",
+"fullPrice": "Precio total",
+"buyBtn": "Comprar"
+  },
+  "CheckoutConsent": {
+    "iAgreeTo": "Confirmo que he leído y acepto los términos del ",
+    "termsLink": "Contrato de Adquisición de Derechos de Participación",
+    "modalTitle": "Contrato de Adquisición",
+    "closeModalBtn": "Cerrar y continuar",
+    "docTitle": "CONTRATO DE ADQUISICIÓN DE DERECHOS DE PARTICIPACIÓN EN BENEFICIOS",
+    "section1Title": "1. OBJETO Y ESTADO DE LA TRANSACCIÓN",
+    "clause1_1": "1.1. El presente Contrato regula la transferencia de los Derechos de Propiedad sobre la Participación en Beneficios (en adelante, \"Participación en Ganancias\") generados por los activos digitales bajo la gestión de Bimark.org.",
+    "clause1_2": "1.2. Las Partes confirman que el objeto de la transacción es un instrumento financiero (derecho a reclamar ingresos netos) y no la propiedad legal de equipos o cuentas de redes sociales.",
+    "clause1_3": "1.3. La gestión operativa y el desarrollo técnico de los Proyectos quedan bajo la competencia exclusiva de la Plataforma.",
+    "section2Title": "2. REGULACIÓN DE RENDIMIENTO Y OBJETIVOS",
+    "clause2_1": "2.1. La Plataforma establece un corredor de rendimiento mensual objetivo de entre el 5% (cinco por ciento) y el 15% (quince por ciento) sobre la inversión inicial.",
+    "clause2_2": "2.2. Mínimo Garantizado: La Plataforma asume la obligación incondicional de pagar un mínimo del 5% mensual, independientemente del rendimiento operativo real del Proyecto.",
+    "clause2_3": "2.3. Mecanismo de Subsidio Cruzado: En caso de que un Proyecto no alcance el 5%, la diferencia será cubierta por el Fondo de Reserva consolidado de la Red de Activos de Bimark.",
+    "clause2_4": "2.4. Límite Máximo: El pago mensual máximo está limitado al 15%. Los excedentes se destinarán al Fondo de Reserva para asegurar la estabilidad futura.",
+    "section3Title": "3. PREFERENCIAS Y BONOS MULTIPLATAFORMA",
+    "clause3_1": "3.1. Programa de Equity en Startups: El Inversor recibirá mensualmente derechos adicionales de participación en beneficios en startups externas promocionadas a través de la Red de Activos de Bimark.",
+    "clause3_2": "3.2. Bono Trimestral: Cada 90 días de permanencia, se acreditará un bono de lealtad basado en el crecimiento de la capitalización global de Bimark.",
+    "section4Title": "4. PERÍODO DE SOPORTE OBLIGATORIO (24 MESES)",
+    "clause4_1": "4.1. La Plataforma garantiza soporte técnico, legal y analítico integral por un período de 24 (veinticuatro) meses.",
+    "clause4_2": "4.2. El soporte incluye: monitoreo de seguridad 24/7, auditoría de rendimientos y reportes detallados.",
+    "section5Title": "5. PROTOCOLO DE PAGO",
+    "clause5_1": "5.1. El periodo de facturación es de 1 (un) mes natural. Los abonos se realizan antes del día 5 del mes siguiente.",
+    "clause5_2": "5.2. El Inversor podrá disponer del beneficio (retiro o reinversión) según los límites de la Plataforma.",
+    "section6Title": "6. LIMITACIÓN DE RESPONSABILIDAD Y FUERZA MAYOR",
+    "clause6_1": "6.1. La Plataforma no será responsable por cambios en las políticas o algoritmos de redes sociales externas (YouTube, Meta, X, Telegram).",
+    "clause6_2": "6.2. Cortes globales de Internet, prohibiciones estatales o conflictos armados se considerarán Fuerza Mayor.",
+    "clause6_3": "6.3. En tales circunstancias, la Plataforma se reserva el derecho de suspender temporalmente los pagos hasta la estabilización de las condiciones.",
+    "section7Title": "7. RESOLUCIÓN DE DISPUTAS",
+    "clause7_1": "7.1. Todas las disputas se resolverán mediante mediación obligatoria a través del Departamento de Arbitraje de la Plataforma.",
+    "clause7_2": "7.2. La ley aplicable es la legislación de Georgia."
+  },
+  "Landing": {
+    "Hero": {
+      "badge": "Un ecosistema con alcance de 1B+",
+      "titlePart1": "Invierta en el nuevo petróleo del siglo XXI: ",
+      "titleHighlight": "Atención Digital",
+      "subtitle": "Conviértase en copropietario de los canales de YouTube, proyectos de TI e imperios mediáticos más grandes con rendimientos del 5% al 15% mensual.",
+      "primaryCta": "Empezar a Invertir",
+      "secondaryCta": "Ver Catálogo de Proyectos"
+    },
+    "Shift": {
+      "title": "¿Por qué cambia el mundo, pero su cartera no?",
+      "problem": "Los mercados tradicionales están sobresaturados y los depósitos bancarios apenas cubren la inflación. Mientras tanto, los activos mediáticos se revalorizan cada año.",
+      "solutionTitle": "La audiencia es el nuevo capital",
+      "solutionText": "Estamos construyendo un ecosistema con un alcance de más de mil millones de personas, y hoy le abrimos el acceso a usted.",
+      "statNumber": "1.000.000.000+",
+      "statLabel": "Alcance del ecosistema",
+      "visionTitle": "Bimark es más que una inversión",
+      "visionText": "Es su participación en el futuro. No nos limitamos a revender activos. Aprovechamos el poder del marketing y de una audiencia multimillonaria para crear nuestras propias marcas, lanzar artistas globales y producir películas."
+    },
+    "Benefits": {
+      "title": "Lo que obtienes como inversor",
+      "card1Title": "Ingresos pasivos estables",
+      "card1Text": "Pagos mensuales del 5–15% provenientes de los ingresos publicitarios de proyectos activos.",
+      "card2Title": "Garantía incondicional del 5%",
+      "card2Text": "Gracias al mecanismo de subsidio cruzado y al Fondo de Reserva, estás protegido contra las caídas de proyectos específicos.",
+      "card3Title": "Efecto Bola de Nieve (Startup Equity)",
+      "card3Text": "Al poseer una participación, recibes acciones gratuitas mensuales en nuevas startups que integramos al ecosistema.",
+      "card4Title": "Token BMK",
+      "card4Text": "Acceso a pools exclusivos, derechos de voto y rendimientos aún mayores a través de nuestro token nativo."
+    },
+    "Security": {
+      "title": "Seguridad de nivel institucional",
+      "subtitle": "Entendemos los riesgos, por lo que protegemos sus intereses legal y técnicamente.",
+      "tab1Title": "24 meses de soporte total",
+      "tab1Text": "Asumimos la gestión, moderación y desarrollo de proyectos. Usted solo recibe ganancias.",
+      "tab2Title": "Transacciones transparentes",
+      "tab2Text": "La plataforma actúa como garante (escrow). Los fondos se depositan hasta que se confirme la transferencia de derechos.",
+      "tab3Title": "Transparencia legal",
+      "tab3Text": "Operaciones bajo la ley georgiana, verificación obligatoria KYC/AML y un claro acuerdo de compraventa de derechos de propiedad."
+    },
+    "Steps": {
+      "title": "Tres pasos para su primera ganancia",
+      "step1Title": "Registro",
+      "step1Text": "Cree una cuenta y recargue su billetera utilizando cualquier método conveniente (cripto o fiat).",
+      "step2Title": "Selección de activos",
+      "step2Text": "Explore nuestro catálogo: desde canales de Telegram hasta negocios de TI listos para usar.",
+      "step3Title": "Recepción de dividendos",
+      "step3Text": "Las acumulaciones se realizan automáticamente antes del día 5 de cada mes. Retire sus ganancias o reinvierta en nuevas acciones."
+    },
+    "Final": {
+      "partnerTitle": "Programa de Afiliados: Gana con nosotros",
+      "partnerText": "Invita a tus amigos y obtén un porcentaje de cada inversión que realicen al instante en tu saldo. Ayúdanos a construir el ecosistema y recibe bonificaciones en tokens BMK y dinero fiat.",
+      "title": "¿Listo para dictar tus propias reglas?",
+      "subtitle": "Pronto Bimark tendrá cientos de marcas en todo el mundo y su propia moneda. Quienes entran ahora se convierten en la base de este imperio.",
+      "primaryCta": "Empezar a Invertir",
+      "secondaryCta": "Catálogo de Proyectos",
+      "slogan": "Bimark. Tu participación en cada clic."
+    }
   }
 }

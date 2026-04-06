@@ -11,7 +11,7 @@ class AssetSerializer(serializers.ModelSerializer):
         model = Asset
         fields = [
             'id', 'title', 'description', 'price', 'image', 
-            'is_unique', 'status', 'created_at'
+            'is_unique', 'is_new', 'is_hidden', 'status', 'created_at' # <-- Добавили сюда
         ]
 
     def get_title(self, obj):

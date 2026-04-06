@@ -11,9 +11,11 @@ import { useCart } from "../../../hooks/use-cart";
 import PaymentModal from "../../../components/modules/payment-modal";
 import { useUser } from "../../../hooks/use-auth";
 
-import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+// ИМПОРТ НАШЕГО НОВОГО КОМПОНЕНТА
+import { CheckoutConsent } from "../../../components/modules/checkout-consent";
 
-type PaymentMethod = "BALANCE" | "STRIPE" | "PAYPAL" | "TRIPLEA"; 
+// Stripe и PayPal временно убраны из доступных типов, чтобы избежать ошибок типизации
+type PaymentMethod = "BALANCE" | "TRIPLEA"; // | "STRIPE" | "PAYPAL" 
 
 export default function CheckoutPage() {
   const t = useTranslations("Checkout");
@@ -26,6 +28,9 @@ export default function CheckoutPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
+  // Стейт для нашего чекбокса с правилами
+  const [legalAgreed, setLegalAgreed] = useState(false);
+
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
 
@@ -37,10 +42,9 @@ export default function CheckoutPage() {
     setIsMounted(true);
   }, []);
 
-  // --- УНИВЕРСАЛЬНЫЙ ФОРМАТЕР ДАННЫХ ДЛЯ БЭКЕНДА ---
   const formatItemsForBackend = () => {
     return items.map((item: any) => ({
-      item_type: item.item_type || "share", // По умолчанию считаем долей (для старых записей в кэше)
+      item_type: item.item_type || "share",
       item_id: item.item_id || item.project_id, 
       quantity: item.quantity || item.shares_amount || 1
     }));
@@ -50,7 +54,7 @@ export default function CheckoutPage() {
     mutationFn: async () => {
       const payload = {
         payment_method: paymentMethod,
-        items: formatItemsForBackend() // Используем новый форматер
+        items: formatItemsForBackend()
       };
       const response = await apiClient.post("/catalog/checkout/", payload);
       return response.data;
@@ -124,10 +128,9 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence>
               {items.map((item: any) => {
-                // Универсальные переменные для рендера
                 const id = item.item_id || item.project_id;
                 const qty = item.quantity || item.shares_amount || 1;
-                const maxQty = item.available_shares || 1; // Уникальные активы имеют max = 1
+                const maxQty = item.available_shares || 1;
                 const itemPrice = item.price_per_share || item.price;
                 const isAsset = item.item_type === 'asset';
 
@@ -162,7 +165,7 @@ export default function CheckoutPage() {
                             min="1" 
                             max={maxQty}
                             value={qty}
-                            disabled={isAsset && item.is_unique} // Уникальный актив нельзя купить > 1
+                            disabled={isAsset && item.is_unique} 
                             onChange={(e) => updateQuantity(id, parseInt(e.target.value) || 1)}
                             className="w-16 text-center bg-transparent border-none outline-none font-bold text-gray-900 dark:text-white disabled:opacity-50"
                           />
@@ -213,12 +216,15 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
+                {/* STRIPE ВРЕМЕННО СКРЫТ 
                 <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "STRIPE" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
                   <input type="radio" name="payment" value="STRIPE" checked={paymentMethod === "STRIPE"} onChange={() => setPaymentMethod("STRIPE")} className="hidden" />
                   <CreditCard className={`w-6 h-6 ${paymentMethod === "STRIPE" ? "text-brand-blue" : "text-gray-400"}`} />
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithStripe")}</p>
                 </label>
+                */}
 
+                {/* PAYPAL ВРЕМЕННО СКРЫТ 
                 <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "PAYPAL" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
                   <input type="radio" name="payment" value="PAYPAL" checked={paymentMethod === "PAYPAL"} onChange={() => setPaymentMethod("PAYPAL")} className="hidden" />
                   <div className={`w-6 h-6 flex items-center justify-center font-black italic rounded bg-gray-100 dark:bg-gray-800 ${paymentMethod === "PAYPAL" ? "text-[#003087]" : "text-gray-400"}`}>
@@ -226,6 +232,7 @@ export default function CheckoutPage() {
                   </div>
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithPayPal") || "PayPal"}</p>
                 </label>
+                */}
 
                 <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "TRIPLEA" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
                   <input type="radio" name="payment" value="TRIPLEA" checked={paymentMethod === "TRIPLEA"} onChange={() => setPaymentMethod("TRIPLEA")} className="hidden" />
@@ -233,6 +240,9 @@ export default function CheckoutPage() {
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithCrypto") || "Оплатить криптовалютой"}</p>
                 </label>
               </div>
+
+              {/* КОМПОНЕНТ ЮРИДИЧЕСКОГО СОГЛАСИЯ */}
+              <CheckoutConsent onConsentChange={setLegalAgreed} />
 
               {errorMsg && (
                 <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium rounded-xl border border-red-100 dark:border-red-900/50">
@@ -248,46 +258,11 @@ export default function CheckoutPage() {
                     {t("loginBtn")}
                   </Link>
                 </div>
-              ) : paymentMethod === "PAYPAL" ? (
-                <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "test", currency: "USD" }}>
-                  <PayPalButtons 
-                    style={{ layout: "vertical", shape: "rect", color: "blue" }}
-                    createOrder={async () => {
-                      setErrorMsg(null);
-                      try {
-                        const payload = {
-                          payment_method: "PAYPAL",
-                          items: formatItemsForBackend() // <-- ИСПОЛЬЗУЕМ ФОРМАТЕР
-                        };
-                        const response = await apiClient.post("/catalog/checkout/", payload);
-                        txIdRef.current = response.data.transaction_id;
-                        return response.data.order_id;
-                      } catch (error: any) {
-                        setErrorMsg(error.response?.data?.detail || "Ошибка инициализации PayPal");
-                        throw error;
-                      }
-                    }}
-                    onApprove={async (data) => {
-                      try {
-                        await apiClient.post("/webhooks/paypal/capture/", {
-                          orderID: data.orderID,
-                          transaction_id: txIdRef.current
-                        });
-                        handleSuccessFinalize();
-                      } catch (error: any) {
-                        setErrorMsg(error.response?.data?.detail || "Ошибка при подтверждении платежа");
-                      }
-                    }}
-                    onError={() => {
-                      setErrorMsg("Платеж PayPal отменен или произошла ошибка.");
-                    }}
-                  />
-                </PayPalScriptProvider>
               ) : (
                 <button
                   onClick={() => checkoutMutation.mutate()}
-                  disabled={checkoutMutation.isPending}
-                  className="w-full py-4 rounded-xl font-bold text-lg bg-brand-blue text-white hover:bg-[#007cbd] shadow-lg shadow-brand-blue/20 transition-all disabled:opacity-70 flex justify-center items-center"
+                  disabled={checkoutMutation.isPending || !legalAgreed} // <-- БЛОКИРУЕМ БЕЗ ГАЛОЧКИ
+                  className="w-full py-4 rounded-xl font-bold text-lg bg-brand-blue text-white hover:bg-[#007cbd] shadow-lg shadow-brand-blue/20 transition-all flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-brand-blue disabled:hover:scale-100"
                 >
                   {checkoutMutation.isPending ? (
                     <Loader2 className="w-6 h-6 animate-spin" />

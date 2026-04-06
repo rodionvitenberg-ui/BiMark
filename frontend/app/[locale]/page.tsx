@@ -15,9 +15,8 @@ export default function Home() {
       <Hero />
       <HowItWorks />
       <TokenTeaser />
-      <AssetsGrid />
       <NewProjects />
-      <CategoriesPreview />
+      <AssetsGrid />
       <ProjectsGrid />
       <AboutUs />
       <ContactUs />

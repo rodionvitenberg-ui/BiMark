@@ -75,7 +75,6 @@ export function LegalConsent({ onConsentChange }: LegalConsentProps) {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              {/* Внутренний скролл, чтобы не растягивать форму на весь экран */}
               <div className="px-4 pb-5 pt-1 max-h-60 overflow-y-auto custom-scrollbar">
                 {contentNode}
               </div>
@@ -86,7 +85,7 @@ export function LegalConsent({ onConsentChange }: LegalConsentProps) {
     );
   };
 
-  // Красиво собираем контент для Условий использования
+  // ОБНОВЛЕННЫЙ КОНТЕНТ: 8 секций Условий использования
   const termsContent = (
     <div className="space-y-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
       <p className="italic text-zinc-400 dark:text-zinc-500">{tTerms("lastUpdated")}</p>
@@ -96,25 +95,36 @@ export function LegalConsent({ onConsentChange }: LegalConsentProps) {
         <p>{tTerms("introText")}</p>
       </div>
       <div>
-        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("servicesTitle")}</h4>
-        <p>{tTerms("servicesText")}</p>
+        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("subjectTitle")}</h4>
+        <p>{tTerms("subjectText")}</p>
+      </div>
+      <div>
+        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("registrationTitle")}</h4>
+        <p>{tTerms("registrationText")}</p>
+      </div>
+      <div>
+        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("rulesTitle")}</h4>
+        <p>{tTerms("rulesText")}</p>
+      </div>
+      <div>
+        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("escrowTitle")}</h4>
+        <p>{tTerms("escrowText")}</p>
       </div>
       <div>
         <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("risksTitle")}</h4>
         <p>{tTerms("risksText")}</p>
       </div>
       <div>
-        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("accountsTitle")}</h4>
-        <p>{tTerms("accountsText")}</p>
-      </div>
-      <div>
         <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("liabilityTitle")}</h4>
         <p>{tTerms("liabilityText")}</p>
+      </div>
+      <div>
+        <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-1">{tTerms("disputesTitle")}</h4>
+        <p>{tTerms("disputesText")}</p>
       </div>
     </div>
   );
 
-  // Красиво собираем контент для Политики AML
   const amlContent = (
     <div className="space-y-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
       <p className="italic text-zinc-400 dark:text-zinc-500">{tAml("lastUpdated")}</p>

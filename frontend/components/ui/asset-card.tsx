@@ -19,7 +19,8 @@ interface AssetCardProps {
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
-  const t = useTranslations("Projects"); // Используем те же переводы, чтобы не плодить лишнего
+  // Переключили на пространство имен Assets для порядка
+  const t = useTranslations("Assets"); 
   const locale = useLocale() as "ru" | "en" | "es";
 
   // Локализация
@@ -30,7 +31,6 @@ export function AssetCard({ asset }: AssetCardProps) {
   const formatCurrency = (value: number | string) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value));
 
-  // У ассетов в нашей базе нет slug, они идентифицируются по UUID
   const assetUrl = `/assets/${asset.id}`; 
   
   const currentImage = typeof asset.image === 'object' && asset.image !== null
@@ -57,8 +57,8 @@ export function AssetCard({ asset }: AssetCardProps) {
       {/* КОНТЕНТ: Картинка и Информация */}
       <CardContent className="p-2 pt-0 flex-1 flex flex-col">
         
-        {/* Картинка (h-40) */}
-        <Link href={assetUrl} className="block w-full h-40 relative rounded-xl overflow-hidden shrink-0 mb-2 bg-gray-100">
+        {/* Увеличили отступ снизу (mb-4 вместо mb-2), так как убрали полоску */}
+        <Link href={assetUrl} className="block w-full h-40 relative rounded-xl overflow-hidden shrink-0 mb-4 bg-gray-100">
           <img 
             src={imageSrc} 
             alt={title} 
@@ -66,30 +66,24 @@ export function AssetCard({ asset }: AssetCardProps) {
           />
         </Link>
 
-        {/* Индикатор статуса (вместо HP бара долей) */}
-        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden mb-4">
-          <div 
-            className={`h-full ${asset.status === 'SOLD' ? 'bg-gray-400' : 'bg-brand-blue'}`} 
-            style={{ width: "100%" }} 
-          />
-        </div>
+        {/* Полоска статуса полностью удалена */}
 
         {/* Блок с информацией (Уникальность и Тип) */}
         <div className="flex flex-col gap-2.5 mt-auto">
-          {/* Уникальность */}
+          {/* Уникальность с переводами */}
           <div className="flex items-center text-sm text-gray-500 font-medium">
             <Gem className={`w-4 h-4 mr-2 shrink-0 ${asset.is_unique ? 'text-brand-blue' : 'text-gray-400'}`} />
             <span>
               {asset.is_unique 
-                ? <span className="text-brand-blue font-bold">Уникальный актив</span> 
-                : <span className="text-brand-black font-bold">Актив целиком</span>}
+                ? <span className="text-brand-blue font-bold">{t("uniqueAsset", { fallback: "Уникальный актив" })}</span> 
+                : <span className="text-brand-black font-bold">{t("wholeAsset", { fallback: "Актив целиком" })}</span>}
             </span>
           </div>
           
-          {/* Тип (вместо категории) */}
+          {/* Тип с переводами */}
           <div className="flex items-center text-sm text-gray-500 font-medium truncate">
             <Briefcase className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
-            <span className="truncate">Готовый бизнес</span>
+            <span className="truncate">{t("readyBusiness", { fallback: "Готовый бизнес" })}</span>
           </div>
         </div>
         
@@ -102,7 +96,7 @@ export function AssetCard({ asset }: AssetCardProps) {
             {formatCurrency(asset.price)}
           </span>
           <span className="text-[11px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-            Полная стоимость
+            {t("fullPrice", { fallback: "Полная стоимость" })}
           </span>
         </div>
         
@@ -110,7 +104,7 @@ export function AssetCard({ asset }: AssetCardProps) {
           href={assetUrl} 
           className="shrink-0 px-5 py-2.5 bg-brand-blue text-white text-sm font-bold rounded-xl hover:bg-[#007cbd] transition-colors"
         >
-          {t("buyBtn")} 
+          {t("buyBtn", { fallback: "Купить" })} 
         </Link>
       </CardFooter>
 

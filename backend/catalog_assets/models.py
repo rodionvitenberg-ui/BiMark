@@ -13,6 +13,16 @@ class Asset(models.Model):
     description = models.TextField(verbose_name="Описание")
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Цена ($)")
     image = models.ImageField(upload_to='assets_images/', blank=True, null=True, verbose_name="Изображение")
+    is_new = models.BooleanField(
+        default=True, 
+        verbose_name="Новый актив",
+        help_text="Если включено, актив отображается с пометкой 'Новый' на витрине."
+    )
+    is_hidden = models.BooleanField(
+        default=False, 
+        verbose_name="Скрыть из каталога",
+        help_text="Если включено, проект не будет виден в общем каталоге, но будет доступен по прямой ссылке (например, для токена BMK)."
+    )
     
     is_unique = models.BooleanField(
         default=False, 
