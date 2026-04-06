@@ -86,10 +86,9 @@ class ProjectTransactionAdmin(admin.ModelAdmin):
     search_fields = ('wallet__user__email', 'id')
 
     def get_queryset(self, request):
-        # Показываем только транзакции по проектам
-        return super().get_queryset(request).filter(transaction_type='PURCHASE')
+        # ИСПРАВЛЕНО: используем type вместо transaction_type
+        return super().get_queryset(request).filter(type='PURCHASE')
 
-# 2. Вкладка "Покупки активов"
 @admin.register(AssetTransaction)
 class AssetTransactionAdmin(admin.ModelAdmin):
     list_display = ('id', 'wallet', 'amount', 'status', 'created_at')
@@ -97,7 +96,5 @@ class AssetTransactionAdmin(admin.ModelAdmin):
     search_fields = ('wallet__user__email', 'id')
 
     def get_queryset(self, request):
-        # Показываем только транзакции по активам
-        return super().get_queryset(request).filter(transaction_type='PURCHASE_ASSET')
-
-# 3. Главная вкладка "Транзакции" (для пополнений, выводов, реферальных)
+        # ИСПРАВЛЕНО: используем type вместо transaction_type
+        return super().get_queryset(request).filter(type='PURCHASE_ASSET')
