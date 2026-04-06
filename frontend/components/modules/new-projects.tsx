@@ -72,10 +72,6 @@ export default function NewProjects() {
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-600 font-bold text-sm uppercase tracking-wider mb-4 border border-red-100">
-              <Flame className="w-4 h-4" />
-              {t("badge", { fallback: "Новинки" })}
-            </div>
             <h2 className="text-3xl md:text-4xl font-black text-brand-black mb-3">
               {t("title")}
             </h2>

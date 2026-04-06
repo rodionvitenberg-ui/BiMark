@@ -41,7 +41,7 @@ export function ContactUs() {
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-400 mb-0.5">{t("emailLabel")}</div>
-                    <a href="mailto:contact@bimark.shop" className="text-lg font-bold text-brand-black hover:text-brand-blue transition-colors">
+                    <a href="mailto:support@bimark.org" className="text-lg font-bold text-brand-black hover:text-brand-blue transition-colors">
                       support@bimark.org
                     </a>
                   </div>
@@ -64,7 +64,7 @@ export function ContactUs() {
             {/* Правая часть: Кнопки мессенджеров */}
             <div className="flex flex-col gap-4">
               <motion.a 
-                href="@bimark_shop" // Сюда потом вставишь реальную ссылку на Telegram
+                href="https://t.me/bimark_shop" 
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.02 }}
@@ -76,7 +76,7 @@ export function ContactUs() {
               </motion.a>
 
               <motion.a 
-                href="+995568822491" // Сюда потом вставишь реальную ссылку на WhatsApp
+                href="https://wa.me/995568822491" 
                 target="_blank"
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.02 }}

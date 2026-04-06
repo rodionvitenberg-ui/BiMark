@@ -1,32 +1,42 @@
 "use client";
 
+import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Asset } from "../../types/project";
-import { AssetCard } from "../ui/asset-card"; // <-- Импортируем нашу новую карточку
+import { AssetCard } from "../ui/asset-card";
 import { apiClient } from "../../lib/api/client";
 import { Link } from "../../i18n/routing";
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
 
 export function AssetsGrid() {
-  // Используем отдельный неймспейс для активов, чтобы тексты отличались от обычных проектов
   const t = useTranslations("Assets");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: assets, isLoading, isError } = useQuery<Asset[]>({
     queryKey: ["assets"],
     queryFn: async () => {
-      // Стучимся в наш новый эндпоинт, который мы написали на бэкенде
       const response = await apiClient.get("/assets/");
       return response.data.results || response.data; 
     },
   });
 
+  // Функция плавной прокрутки карусели
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const scrollAmount = scrollRef.current.clientWidth; // Прокручиваем на всю ширину видимой области
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <section className="relative w-full py-24 bg-brand-light border-t border-gray-200">
-      
+    <section className="relative w-full py-24 bg-brand-light border-t border-gray-200 overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         
-        {/* ШАПКА СЕТКИ */}
+        {/* ШАПКА СЕТКИ И КНОПКИ УПРАВЛЕНИЯ */}
         <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="max-w-2xl">
             <h2 className="text-3xl md:text-4xl font-black text-brand-black mb-4 tracking-tight">
@@ -37,13 +47,31 @@ export function AssetsGrid() {
             </p>
           </div>
           
-          <Link 
-            href="/assets" // <-- Ссылка на будущую страницу полного каталога активов
-            className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-200 text-brand-black hover:border-brand-blue hover:text-brand-blue rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 group shrink-0"
-          >
-            {t("viewAll")}
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" weight="bold" />
-          </Link>
+          <div className="flex items-center gap-4">
+            {/* Стрелочки (скрыты на мобилках, там юзеры просто свайпают пальцем) */}
+            <div className="hidden md:flex items-center gap-2">
+              <button 
+                onClick={() => scroll("left")}
+                className="p-4 rounded-xl border-2 border-gray-200 bg-transparent text-gray-500 hover:border-brand-blue hover:text-brand-blue transition-all"
+              >
+                <CaretLeft className="w-6 h-6" weight="bold" />
+              </button>
+              <button 
+                onClick={() => scroll("right")}
+                className="p-4 rounded-xl border-2 border-gray-200 bg-transparent text-gray-500 hover:border-brand-blue hover:text-brand-blue transition-all"
+              >
+                <CaretRight className="w-6 h-6" weight="bold" />
+              </button>
+            </div>
+
+            <Link 
+              href="/assets"
+              className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-200 text-brand-black hover:border-brand-blue hover:text-brand-blue rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 group shrink-0"
+            >
+              {t("viewAll")}
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" weight="bold" />
+            </Link>
+          </div>
         </div>
 
         {/* СОСТОЯНИЯ ЗАГРУЗКИ И ОШИБОК */}
@@ -59,12 +87,23 @@ export function AssetsGrid() {
           </div>
         )}
 
-        {/* ВЫВОД КАРТОЧЕК */}
+        {/* ВЫВОД КАРТОЧЕК (КАРУСЕЛЬ) */}
         {!isLoading && !isError && assets && assets.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {assets.map((asset) => (
-              <AssetCard key={asset.id} asset={asset} />
-            ))}
+          <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div 
+              ref={scrollRef}
+              className="flex gap-8 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-8"
+            >
+              {assets.map((asset) => (
+                <div 
+                  key={asset.id} 
+                  // Ширина высчитывается математически, чтобы помещалось ровно 1/2/3/4 карточки с учетом gap-8 (32px)
+                  className="w-full sm:w-[calc(50%-16px)] lg:w-[calc(33.333%-21.33px)] xl:w-[calc(25%-24px)] shrink-0 snap-start"
+                >
+                  <AssetCard asset={asset} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -76,6 +115,12 @@ export function AssetsGrid() {
         )}
 
       </div>
+
+      {/* Стили для скрытия системного скроллбара */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
     </section>
   );
 }

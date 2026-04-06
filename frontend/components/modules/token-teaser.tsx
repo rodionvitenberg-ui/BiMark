@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
-import { ArrowBendDownRightIcon, CoinsIcon, GiftIcon, TrendUpIcon } from "@phosphor-icons/react";
+import { CoinsIcon, GiftIcon, TrendUpIcon } from "@phosphor-icons/react";
+import { ArrowRight } from "lucide-react"; // <-- Добавили ту самую стрелочку из Hero
 import { Link } from "../../i18n/routing";
 
 export default function TokenTeaser() {
@@ -27,11 +28,10 @@ export default function TokenTeaser() {
           
           {/* Левая часть: Основной текст */}
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue font-bold text-sm uppercase tracking-wider mb-6">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-blue"></span>
-              </span>
+            
+            {/* === ОБНОВЛЕННЫЙ БЕЙДЖ (Как в Hero) === */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-brand-blue text-xs md:text-sm font-semibold mb-6">
+              <span className="flex w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               {t("livePresale")}
             </div>
             
@@ -42,17 +42,16 @@ export default function TokenTeaser() {
               {t("teaserDesc")}
             </p>
 
-            {/* Блок с кнопками в token-teaser.tsx */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
+              {/* Главная кнопка с анимированной стрелочкой */}
               <Link 
                 href="/token"
                 className="w-full sm:w-auto px-8 py-4 bg-brand-blue hover:bg-[#007cbd] text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 group"
               >
                 {t("participateBtn")}
-                <ArrowBendDownRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               
-              {/* НОВАЯ КНОПКА: Ссылка на страницу рефералки */}
               <Link 
                 href="/referral"
                 className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2"
@@ -62,7 +61,7 @@ export default function TokenTeaser() {
             </div>
           </div>
 
-          {/* Правая часть: Карточка реферальной системы (глассморфизм) */}
+          {/* Правая часть: Карточка реферальной системы */}
           <div className="w-full lg:w-auto bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-3xl shrink-0 shadow-2xl relative">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
