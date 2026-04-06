@@ -219,7 +219,7 @@ def send_beautiful_otp_email(user_email, otp_code, is_reset=False, locale='en'):
         'logo_url': 'https://bimark.org/logo-dark.png' # Твой логотип
     }
     
-    html_content = render_to_string('emails/otp_email.html', context)
+    html_content = render_to_string('emails/otp/otp_email.html', context)
     text_content = strip_tags(html_content)
     
     email = EmailMultiAlternatives(
