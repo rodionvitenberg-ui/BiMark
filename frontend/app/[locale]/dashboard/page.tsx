@@ -335,7 +335,10 @@ export default function DashboardPage() {
               <div className="p-4 space-y-3">
                 {assetPortfolio && assetPortfolio.length > 0 ? (
                   assetPortfolio.map((item) => {
-                    const title = item.asset.title?.[locale] || item.asset.title?.en || "Актив";
+                    // === ПРАВИЛЬНАЯ ПРОВЕРКА ДЛЯ TYPESCRIPT ===
+                    const title = typeof item.asset.title === 'object' && item.asset.title !== null
+                      ? (item.asset.title[locale] || item.asset.title.en || "Актив")
+                      : (item.asset.title || "Актив");
                     
                     return (
                       <Link key={item.id} href={`/assets/${item.asset.id}`}>
@@ -366,7 +369,7 @@ export default function DashboardPage() {
                   <div className="py-8 text-center text-gray-500 text-sm">
                     {t("emptyAssets", { fallback: "У вас пока нет купленных активов." })}
                     <div className="mt-4">
-                      <Link href="/assets" className="text-brand-blue font-semibold hover:underline">
+                      <Link href="/category" className="text-brand-blue font-semibold hover:underline">
                         Смотреть эксклюзивы
                       </Link>
                     </div>
