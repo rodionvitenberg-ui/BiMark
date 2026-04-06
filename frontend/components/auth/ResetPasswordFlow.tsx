@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getAuthSchemas, EmailFormValues, OtpFormValues, PasswordFormValues } from "@/lib/validations/auth";
@@ -11,7 +11,8 @@ import { useToast } from "@/components/ui/toast"; // <-- Импортируем 
 
 export default function ResetPasswordFlow() {
   const t = useTranslations("ResetPassword");
-  const tToast = useTranslations("Toast"); // Отдельно тянем тостерные тексты
+  const tToast = useTranslations("Toast");
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast(); // Инициализируем хук
   
@@ -45,7 +46,10 @@ export default function ResetPasswordFlow() {
   const onEmailSubmit = async (data: EmailFormValues) => {
     setIsLoading(true);
     try {
-      await apiClient.post("/users/password-reset/request/", { email: data.email });
+      await apiClient.post("/users/password-reset/request/", { 
+        email: data.email,
+        locale: locale 
+      });
       setEmail(data.email);
       setStep(2);
     } catch (err: any) {

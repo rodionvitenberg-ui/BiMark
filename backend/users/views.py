@@ -1,3 +1,7 @@
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.conf import settings
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
@@ -40,15 +44,8 @@ class RequestOTPView(views.APIView):
         
         email = serializer.validated_data['email']
         otp = OTPCode.generate_for_email(email)
+        send_beautiful_otp_email(email, otp.code, is_reset=False)
 
-        # Отправляем письмо
-        send_mail(
-            subject='Ваш код подтверждения регистрации',
-            message=f'Ваш 6-значный код: {otp.code}. Он действителен 10 минут.',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
 
         return Response({"detail": "Код отправлен на почту."}, status=status.HTTP_200_OK)
 
@@ -129,6 +126,7 @@ class PasswordResetRequestView(views.APIView):
             )
         
         # Всегда возвращаем ОК, чтобы предотвратить перебор email-ов злоумышленниками
+        send_beautiful_otp_email(email, otp.code, is_reset=True)
         return Response({"detail": "Если email зарегистрирован, мы отправили на него код."}, status=status.HTTP_200_OK)
 
 
@@ -165,3 +163,70 @@ class PasswordResetConfirmView(views.APIView):
             return Response({"detail": "Пароль успешно изменен"}, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"detail": "Пользователь не найден"}, status=status.HTTP_404_NOT_FOUND)
+        
+def send_beautiful_otp_email(user_email, otp_code, is_reset=False, locale='en'):
+    # Словари переводов
+    translations = {
+        'ru': {
+            'subject_reset': 'Восстановление пароля | Bimark',
+            'subject_otp': 'Код подтверждения | Bimark',
+            'title_reset': 'Восстановление пароля',
+            'title_otp': 'Добро пожаловать в Bimark!',
+            'msg_reset': 'Используйте этот код для сброса вашего пароля:',
+            'msg_otp': 'Используйте этот код для подтверждения вашего email адреса:',
+            'warning': 'Никому не сообщайте этот код. Наши сотрудники никогда не попросят вас его назвать.',
+            'ignore': 'Если вы не запрашивали этот код, просто проигнорируйте это письмо.',
+            'rights': '© 2026 Bimark. Все права защищены.'
+        },
+        'en': {
+            'subject_reset': 'Password Reset | Bimark',
+            'subject_otp': 'Verification Code | Bimark',
+            'title_reset': 'Password Reset',
+            'title_otp': 'Welcome to Bimark!',
+            'msg_reset': 'Use this code to reset your password:',
+            'msg_otp': 'Use this code to verify your email address:',
+            'warning': 'Do not share this code with anyone. Our employees will never ask you for it.',
+            'ignore': 'If you did not request this code, simply ignore this email.',
+            'rights': '© 2026 Bimark. All rights reserved.'
+        },
+        'es': {
+            'subject_reset': 'Restablecimiento de contraseña | Bimark',
+            'subject_otp': 'Código de verificación | Bimark',
+            'title_reset': 'Restablecimiento de contraseña',
+            'title_otp': '¡Bienvenido a Bimark!',
+            'msg_reset': 'Usa este código para restablecer tu contraseña:',
+            'msg_otp': 'Usa este código para verificar tu dirección de correo electrónico:',
+            'warning': 'No compartas este código con nadie. Nuestros empleados nunca te lo pedirán.',
+            'ignore': 'Si no solicitaste este código, simplemente ignora este correo electrónico.',
+            'rights': '© 2026 Bimark. Todos los derechos reservados.'
+        }
+    }
+
+    # Безопасный фоллбек на английский, если пришла непонятная локаль
+    if locale not in translations:
+        locale = 'en'
+        
+    t = translations[locale]
+    subject = t['subject_reset'] if is_reset else t['subject_otp']
+    
+    context = {
+        'title': t['title_reset'] if is_reset else t['title_otp'],
+        'message': t['msg_reset'] if is_reset else t['msg_otp'],
+        'warning': t['warning'],
+        'ignore': t['ignore'],
+        'rights': t['rights'],
+        'otp_code': otp_code,
+        'logo_url': 'https://bimark.org/logo-dark.png' # Твой логотип
+    }
+    
+    html_content = render_to_string('emails/otp_email.html', context)
+    text_content = strip_tags(html_content)
+    
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'no-reply@bimark.org'),
+        to=[user_email]
+    )
+    email.attach_alternative(html_content, "text/html")
+    email.send()

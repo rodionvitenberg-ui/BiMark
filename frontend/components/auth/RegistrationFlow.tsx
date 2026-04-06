@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getAuthSchemas, EmailFormValues, OtpFormValues, PasswordFormValues } from "@/lib/validations/auth";
@@ -15,6 +15,7 @@ import { LegalConsent } from "./LegalConsent";
 export default function RegistrationFlow() {
   const t = useTranslations("Auth");
   const tToast = useTranslations("Toast");
+  const locale = useLocale();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -61,7 +62,11 @@ export default function RegistrationFlow() {
   const onEmailSubmit = async (data: EmailFormValues) => {
     setIsLoading(true);
     try {
-      await apiClient.post("/users/register/request-otp/", { email: data.email });
+      await apiClient.post("/users/request-otp/", { 
+        email: data.email, 
+        is_registration: true,
+        locale: locale 
+      });
       setEmail(data.email);
       setStep(2);
     } catch (err: any) {
