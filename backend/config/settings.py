@@ -238,6 +238,9 @@ JAZZMIN_SETTINGS = {
         "billing.Wallet": "fas fa-money-bill-wave",
         "billing.Transaction": "fas fa-exchange-alt",
         "referrals.Referral": "fas fa-link",
+        "billing.Transaction": "fas fa-exchange-alt", # Общие транзакции
+        "billing.ProjectTransaction": "fas fa-chart-pie", # Покупки проектов (доли)
+        "billing.AssetTransaction": "fas fa-gem",
     },
 }
 

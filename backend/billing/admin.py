@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib import messages
 from .models import Wallet, Transaction
+from .models import Transaction, ProjectTransaction, AssetTransaction, PaymentSettings
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
@@ -64,3 +65,39 @@ class TransactionAdmin(admin.ModelAdmin):
             f'Отклонено заявок: {updated_count}. Средства снова доступны на балансах.', 
             messages.WARNING
         )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude(
+            type__in=['PURCHASE', 'PURCHASE_ASSET']
+        )
+
+@admin.register(PaymentSettings)
+class PaymentSettingsAdmin(admin.ModelAdmin):
+    # Убираем кнопку "Добавить", если настройка уже существует
+    def has_add_permission(self, request):
+        if self.model.objects.exists():
+            return False
+        return super().has_add_permission(request)
+    
+@admin.register(ProjectTransaction)
+class ProjectTransactionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wallet', 'amount', 'status', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('wallet__user__email', 'id')
+
+    def get_queryset(self, request):
+        # Показываем только транзакции по проектам
+        return super().get_queryset(request).filter(transaction_type='PURCHASE')
+
+# 2. Вкладка "Покупки активов"
+@admin.register(AssetTransaction)
+class AssetTransactionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'wallet', 'amount', 'status', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('wallet__user__email', 'id')
+
+    def get_queryset(self, request):
+        # Показываем только транзакции по активам
+        return super().get_queryset(request).filter(transaction_type='PURCHASE_ASSET')
+
+# 3. Главная вкладка "Транзакции" (для пополнений, выводов, реферальных)

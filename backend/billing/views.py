@@ -3,8 +3,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
 from django.db import transaction
+from rest_framework.views import APIView
 
-from billing.models import Wallet, Transaction
+from billing.models import Wallet, Transaction, PaymentSettings
 from billing.serializers import WalletSerializer, TransactionSerializer
 from billing.services import WalletService
 from billing.exceptions import InsufficientFunds
@@ -99,3 +100,15 @@ class WithdrawView(views.APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+class WalletView(APIView):
+    def get(self, request):
+        wallet, created = Wallet.objects.get_or_create(user=request.user)
+        settings = PaymentSettings.load() # Загружаем настройки из БД
+        
+        return Response({
+            "id": wallet.id,
+            "balance": str(wallet.balance),
+            # Подкидываем кошелек компании в тот же запрос:
+            "company_wallet": settings.company_crypto_wallet 
+        })

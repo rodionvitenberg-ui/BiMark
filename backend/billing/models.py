@@ -74,3 +74,41 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.type} | {self.amount} | {self.status}"
+    
+class PaymentSettings(models.Model):
+    company_crypto_wallet = models.CharField(
+        max_length=100, 
+        verbose_name="Кошелек компании (TRC20)", 
+        help_text="Этот кошелек будет отображаться пользователям на сайте",
+        blank=True,
+        default=""
+    )
+
+    class Meta:
+        verbose_name = "Настройки оплаты"
+        verbose_name_plural = "Настройки оплаты"
+
+    def __str__(self):
+        return "Настройки оплаты"
+
+    def save(self, *args, **kwargs):
+        # Жестко фиксируем ID = 1, чтобы в админке нельзя было насоздавать дублей
+        self.pk = 1 
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, created = cls.objects.get_or_create(pk=1)
+        return obj
+    
+class ProjectTransaction(Transaction):
+    class Meta:
+        proxy = True # Указывает Django, что не нужно создавать новую таблицу в БД
+        verbose_name = "Покупка проекта"
+        verbose_name_plural = "Покупки проектов"
+
+class AssetTransaction(Transaction):
+    class Meta:
+        proxy = True
+        verbose_name = "Покупка актива"
+        verbose_name_plural = "Покупки активов"
