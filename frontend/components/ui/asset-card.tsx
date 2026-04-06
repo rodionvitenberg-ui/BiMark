@@ -24,8 +24,14 @@ export function AssetCard({ asset }: AssetCardProps) {
   const locale = useLocale() as "ru" | "en" | "es";
 
   // Локализация
-  const title = asset.title[locale] || asset.title.en || "Без названия";
-  const description = asset.description[locale] || asset.description.en || "";
+  // Локализация (безопасная проверка для TypeScript)
+  const title = typeof asset.title === 'object' && asset.title !== null
+    ? (asset.title[locale] || asset.title.en || "Без названия")
+    : (asset.title || "Без названия");
+
+  const description = typeof asset.description === 'object' && asset.description !== null
+    ? (asset.description[locale] || asset.description.en || "")
+    : (asset.description || "");
 
   // Форматирование цены
   const formatCurrency = (value: number | string) => 
