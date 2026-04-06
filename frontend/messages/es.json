@@ -500,6 +500,18 @@
     "clause7_1": "7.1. Todas las disputas se resolverán mediante mediación obligatoria a través del Departamento de Arbitraje de la Plataforma.",
     "clause7_2": "7.2. La ley aplicable es la legislación de Georgia."
   },
+  "Modals": {
+    "depositTitle": "Recargar saldo",
+    "depositAmount": "Monto de recarga (USD)",
+    "depositPlaceholder": "Ejemplo: 100",
+    "withdrawTitle": "Retirar fondos",
+    "withdrawAmount": "Monto de retiro (USD)",
+    "withdrawAddress": "Dirección de billetera (TRC20)",
+    "cancel": "Cancelar",
+    "submitDeposit": "Ir a pagar",
+    "submitWithdraw": "Crear solicitud",
+    "processing": "Procesando..."
+  },
   "Landing": {
     "Hero": {
       "badge": "Un ecosistema con alcance de 1B+",

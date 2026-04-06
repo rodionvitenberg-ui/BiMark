@@ -24,6 +24,8 @@ import { Link } from "../../../i18n/routing";
 // <-- Добавили AssetOwnership в импорт
 import { Wallet, Transaction, Ownership, AssetOwnership } from "../../../types/dashboard"; 
 import { motion, AnimatePresence } from "framer-motion";
+import { DepositModal } from "../../../components/modules/deposit-modal";
+import { WithdrawModal } from "../../../components/modules/withdraw-modal";
 
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
@@ -87,7 +89,7 @@ export default function DashboardPage() {
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState<number | "">(100);
   const [depositSuccess, setDepositSuccess] = useState(false);
-  const COMPANY_CRYPTO_WALLET = "TXYZ...Ваш_TRC20_Кошелек...1234";
+  const [depositError, setDepositError] = useState<string | null>(null);
 
   // === СТЕЙТЫ ВЫВОДА ===
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
@@ -122,6 +124,12 @@ export default function DashboardPage() {
         setDepositSuccess(false);
       }, 4000);
     },
+    // <-- ДОБАВИЛИ ОБРАБОТКУ ОШИБКИ
+    onError: (error: any) => {
+      const msg = error.response?.data?.detail || "Ошибка при переходе к оплате.";
+      setDepositError(msg);
+      setTimeout(() => setDepositError(null), 5000);
+    }
   });
 
   const withdrawMutation = useMutation({
@@ -177,13 +185,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 bg-brand-light pb-24 relative">
-      <div className="bg-white border-b border-gray-200 pt-8 pb-8">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl font-extrabold text-brand-black">
-            {t("welcome")}, {user.email.split('@')[0]} 👋
-          </h1>
-        </div>
-      </div>
 
       <div className="container mx-auto px-4 mt-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -412,154 +413,30 @@ export default function DashboardPage() {
 
         </div>
       </div>
+      {/* Модалки */}
+      <DepositModal 
+        isOpen={isDepositOpen}
+        onClose={() => setIsDepositOpen(false)}
+        onSubmit={handleDepositSubmit} // <-- Исправили название
+        amount={depositAmount}
+        // Конвертируем строку из инпута в число
+        setAmount={(val) => setDepositAmount(val === "" ? "" : Number(val))} 
+        isLoading={depositMutation.isPending}
+        error={depositError} // <-- Теперь ошибка существует
+      />
 
-      {/* === МОДАЛЬНОЕ ОКНО ПОПОЛНЕНИЯ (КРИПТА) === */}
-      <AnimatePresence>
-        {isDepositOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-              onClick={() => !depositMutation.isPending && setIsDepositOpen(false)}
-              className="absolute inset-0 bg-brand-black/40 backdrop-blur-sm"
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-              className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 overflow-hidden"
-            >
-              {depositSuccess ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2">Заявка создана!</h3>
-                  <p className="text-gray-500 text-sm">Ваш баланс будет пополнен после подтверждения транзакции в сети.</p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleDepositSubmit}>
-                  <h3 className="text-2xl font-bold text-brand-black mb-2">Пополнение криптой</h3>
-                  <p className="text-sm text-gray-500 mb-6">
-                    Переведите точную сумму в <b>USDT (TRC-20)</b> на указанный кошелек. После перевода нажмите кнопку подтверждения.
-                  </p>
-                  
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Сумма пополнения ($)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      required
-                      value={depositAmount}
-                      onChange={(e) => setDepositAmount(e.target.value ? Number(e.target.value) : "")}
-                      disabled={depositMutation.isPending}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-blue outline-none text-xl font-bold"
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Адрес для перевода (USDT TRC20)</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-mono text-brand-black break-all">{COMPANY_CRYPTO_WALLET}</span>
-                      <button type="button" onClick={() => copyToClipboard(COMPANY_CRYPTO_WALLET)} className="p-2 text-gray-400 hover:text-brand-blue transition-colors">
-                        <Copy className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => setIsDepositOpen(false)} className="flex-1 py-3 px-4 bg-gray-100 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
-                      Отмена
-                    </button>
-                    <button type="submit" disabled={depositMutation.isPending || depositAmount === "" || depositAmount <= 0} className="flex-1 py-3 px-4 bg-brand-blue text-white font-semibold rounded-xl hover:bg-[#007cbd] transition-colors disabled:opacity-50">
-                      {depositMutation.isPending ? "Загрузка..." : "Я оплатил"}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* === МОДАЛЬНОЕ ОКНО ВЫВОДА === */}
-      <AnimatePresence>
-        {isWithdrawOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
-              onClick={() => !withdrawMutation.isPending && setIsWithdrawOpen(false)}
-              className="absolute inset-0 bg-brand-black/40 backdrop-blur-sm"
-            />
-            
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} 
-              className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 overflow-hidden"
-            >
-              {withdrawSuccess ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-8 text-center">
-                  <div className="w-16 h-16 bg-blue-100 text-brand-blue rounded-full flex items-center justify-center mb-4">
-                    <CheckCircle2 className="w-8 h-8" />
-                  </div>
-                  <h3 className="text-xl font-bold text-brand-black mb-2">Заявка на вывод создана!</h3>
-                  <p className="text-gray-500 text-sm">Средства зарезервированы. Наш менеджер обработает перевод в течение 24 часов.</p>
-                </motion.div>
-              ) : (
-                <form onSubmit={handleWithdrawSubmit}>
-                  <h3 className="text-2xl font-bold text-brand-black mb-2">Вывод средств</h3>
-                  <p className="text-sm text-gray-500 mb-6">Средства будут отправлены на ваш криптокошелек в USDT (TRC-20).</p>
-                  
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Сумма вывода ($)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      required
-                      value={withdrawAmount}
-                      onChange={(e) => setWithdrawAmount(e.target.value ? Number(e.target.value) : "")}
-                      disabled={withdrawMutation.isPending}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-blue outline-none text-xl font-bold"
-                      placeholder="0.00"
-                    />
-                    <p className="text-xs text-gray-500 mt-2">Доступно: {wallet ? formatCurrency(wallet.balance) : "$0.00"}</p>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ваш кошелек (USDT TRC-20)</label>
-                    <input
-                      type="text"
-                      required
-                      value={withdrawAddress}
-                      onChange={(e) => setWithdrawAddress(e.target.value)}
-                      disabled={withdrawMutation.isPending}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-blue outline-none font-mono text-sm"
-                      placeholder="T..."
-                    />
-                  </div>
-
-                  {withdrawError && (
-                    <div className="mb-6 p-3 bg-red-50 text-red-600 text-sm rounded-lg flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                      <span>{withdrawError}</span>
-                    </div>
-                  )}
-
-                  <div className="flex gap-3">
-                    <button type="button" onClick={() => setIsWithdrawOpen(false)} className="flex-1 py-3 px-4 bg-gray-100 font-semibold rounded-xl hover:bg-gray-200 transition-colors">
-                      Отмена
-                    </button>
-                    <button type="submit" disabled={withdrawMutation.isPending || withdrawAmount === "" || withdrawAmount <= 0 || !withdrawAddress} className="flex-1 py-3 px-4 bg-brand-blue text-white font-semibold rounded-xl hover:bg-[#007cbd] transition-colors disabled:opacity-50">
-                      {withdrawMutation.isPending ? "Обработка..." : "Создать заявку"}
-                    </button>
-                  </div>
-                </form>
-              )}
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
+      <WithdrawModal 
+        isOpen={isWithdrawOpen}
+        onClose={() => setIsWithdrawOpen(false)}
+        onSubmit={handleWithdrawSubmit} // <-- Исправили название
+        amount={withdrawAmount}
+        // Конвертируем строку из инпута в число
+        setAmount={(val) => setWithdrawAmount(val === "" ? "" : Number(val))} 
+        address={withdrawAddress}
+        setAddress={setWithdrawAddress}
+        isLoading={withdrawMutation.isPending}
+        error={withdrawError}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Project, Asset } from "./project";
 export interface Wallet {
   id: string;
   balance: string | number;
+  company_wallet?: string;
 }
 
 export type TransactionType = "DEPOSIT" | "WITHDRAW" | "PURCHASE" | "PURCHASE_ASSET" | "REFERRAL_BONUS";

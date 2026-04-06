@@ -500,6 +500,18 @@
     "clause7_1": "7.1. All disputes shall be subject to mandatory pre-trial mediation via the Platform's Arbitration Department.",
     "clause7_2": "7.2. The governing law is the legislation of Georgia."
   },
+  "Modals": {
+    "depositTitle": "Deposit Funds",
+    "depositAmount": "Deposit Amount (USD)",
+    "depositPlaceholder": "Example: 100",
+    "withdrawTitle": "Withdraw Funds",
+    "withdrawAmount": "Withdrawal Amount (USD)",
+    "withdrawAddress": "Wallet Address (TRC20)",
+    "cancel": "Cancel",
+    "submitDeposit": "Proceed to Payment",
+    "submitWithdraw": "Create Request",
+    "processing": "Processing..."
+  },
   "Landing": {
     "Hero": {
       "badge": "An ecosystem with 1B+ reach",
