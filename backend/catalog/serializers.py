@@ -88,7 +88,7 @@ class OwnershipSerializer(serializers.ModelSerializer):
 class BuySharesSerializer(serializers.Serializer):
     shares_to_buy = serializers.IntegerField(min_value=1)
     payment_method = serializers.ChoiceField(
-        choices=['BALANCE', 'STRIPE', 'PAYPAL', 'TRIPLEA'], 
+        choices=['BALANCE', 'STRIPE', 'PAYPAL', 'PASSIMPAY'], 
         default='BALANCE'
     )
 
@@ -99,4 +99,4 @@ class CartItemSerializer(serializers.Serializer):
 
 class CheckoutSerializer(serializers.Serializer):
     items = CartItemSerializer(many=True, allow_empty=False)
-    payment_method = serializers.ChoiceField(choices=['BALANCE', 'STRIPE', 'PAYPAL', 'TRIPLEA'])
+    payment_method = serializers.ChoiceField(choices=['BALANCE', 'STRIPE', 'PAYPAL', 'PASSIMPAY'])

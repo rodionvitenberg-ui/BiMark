@@ -11,6 +11,7 @@ from billing.exceptions import InsufficientFunds
 from referrals.services import ReferralService
 from billing.paypal import create_paypal_order
 from billing.triplea import create_triplea_payment
+from billing.passimpay import create_passimpay_invoice
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -107,8 +108,8 @@ class PurchaseService:
             return cls._process_stripe_checkout(user, cart_details, total_price)
         elif payment_method == 'PAYPAL':
             return cls._process_paypal_checkout(user, cart_details, total_price)
-        elif payment_method == 'TRIPLEA':
-            return cls._process_triplea_checkout(user, cart_details, total_price)
+        elif payment_method == 'PASSIMPAY':
+            return cls._process_passimpay_checkout(user, cart_details, total_price)
         else:
             raise ValidationError("Неизвестный метод оплаты.")
 
@@ -248,8 +249,7 @@ class PurchaseService:
             raise ValidationError(f"Ошибка шлюза PayPal: {str(e)}")
     
     @classmethod
-    def _process_triplea_checkout(cls, user, cart_details, total_price):
-        # (Оставляешь свой старый код из этого метода)
+    def _process_passimpay_checkout(cls, user, cart_details, total_price):
         pending_tx = Transaction.objects.create(
             wallet=user.wallet,
             amount=total_price,
@@ -260,17 +260,21 @@ class PurchaseService:
         )
 
         try:
-            payment_data = create_triplea_payment(amount=total_price, reference_id=pending_tx.id)
+            # Стучимся в наш passimpay.py
+            payment_url = create_passimpay_invoice(transaction_id=pending_tx.id, amount_usd=total_price)
+            
+            if not payment_url:
+                raise Exception("PassimPay не вернул ссылку на оплату")
             
             return {
                 "status": "pending_payment",
                 "transaction_id": str(pending_tx.id),
-                "hosted_url": payment_data.get("hosted_url"), 
-                "payment_gateway": "triplea",
+                "hosted_url": payment_url, 
+                "payment_gateway": "passimpay", # <--- Указываем шлюз для фронта
                 "message": "Ожидается оплата криптовалютой"
             }
         except Exception as e:
             pending_tx.status = Transaction.Status.FAILED
-            pending_tx.description = "Ошибка Triple-A API"
+            pending_tx.description = f"Ошибка PassimPay API: {str(e)}"
             pending_tx.save(update_fields=['status', 'description'])
             raise ValidationError("Сервис оплаты криптовалютой временно недоступен.")
