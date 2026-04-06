@@ -62,7 +62,7 @@ export default function RegistrationFlow() {
   const onEmailSubmit = async (data: EmailFormValues) => {
     setIsLoading(true);
     try {
-      await apiClient.post("/users/request-otp/", { 
+      await apiClient.post("/users/register/request-otp/", { 
         email: data.email, 
         is_registration: true,
         locale: locale 
