@@ -100,7 +100,7 @@ export default function RegistrationFlow() {
       
       toast({
         title: tToast("successTitle"),
-        description: "Регистрация успешна!",
+        description: tToast("registrationSuccess"),
         variant: "success",
       });
       router.push("/dashboard");

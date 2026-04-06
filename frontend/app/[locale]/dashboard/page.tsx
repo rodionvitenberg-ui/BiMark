@@ -12,18 +12,15 @@ import {
   CheckCircle2, 
   XCircle,
   Briefcase,
-  AlertCircle,
   Copy,
   Users,
-  Gem // <-- Добавили иконку для активов
+  Gem
 } from "lucide-react";
 
 import { useUser } from "../../../hooks/use-auth";
 import { apiClient } from "../../../lib/api/client";
 import { Link } from "../../../i18n/routing";
-// <-- Добавили AssetOwnership в импорт
 import { Wallet, Transaction, Ownership, AssetOwnership } from "../../../types/dashboard"; 
-import { motion, AnimatePresence } from "framer-motion";
 import { DepositModal } from "../../../components/modules/deposit-modal";
 import { WithdrawModal } from "../../../components/modules/withdraw-modal";
 
@@ -50,7 +47,6 @@ export default function DashboardPage() {
     enabled: !!user,
   });
 
-  // Запрос долей (старый)
   const { data: portfolio } = useQuery<Ownership[]>({
     queryKey: ["portfolio"],
     queryFn: async () => {
@@ -60,7 +56,6 @@ export default function DashboardPage() {
     enabled: !!user,
   });
 
-  // НОВЫЙ ЗАПРОС: Запрос целых активов
   const { data: assetPortfolio } = useQuery<AssetOwnership[]>({
     queryKey: ["assetPortfolio"],
     queryFn: async () => {
@@ -85,13 +80,11 @@ export default function DashboardPage() {
   const formatDate = (dateString: string) => 
     new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(dateString));
   
-  // === СТЕЙТЫ ПОПОЛНЕНИЯ ===
   const [isDepositOpen, setIsDepositOpen] = useState(false);
   const [depositAmount, setDepositAmount] = useState<number | "">(100);
   const [depositSuccess, setDepositSuccess] = useState(false);
   const [depositError, setDepositError] = useState<string | null>(null);
 
-  // === СТЕЙТЫ ВЫВОДА ===
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number | "">("");
   const [withdrawAddress, setWithdrawAddress] = useState("");
@@ -124,9 +117,9 @@ export default function DashboardPage() {
         setDepositSuccess(false);
       }, 4000);
     },
-    // <-- ДОБАВИЛИ ОБРАБОТКУ ОШИБКИ
     onError: (error: any) => {
-      const msg = error.response?.data?.detail || "Ошибка при переходе к оплате.";
+      // ИСПОЛЬЗУЕМ КЛЮЧ ИЗ СЛОВАРЯ ДЛЯ ФОЛБЭКА
+      const msg = error.response?.data?.detail || t("depositErrorFallback");
       setDepositError(msg);
       setTimeout(() => setDepositError(null), 5000);
     }
@@ -150,7 +143,8 @@ export default function DashboardPage() {
       }, 4000);
     },
     onError: (error: any) => {
-      const msg = error.response?.data?.detail || "Ошибка при создании заявки.";
+      // ИСПОЛЬЗУЕМ КЛЮЧ ИЗ СЛОВАРЯ ДЛЯ ФОЛБЭКА
+      const msg = error.response?.data?.detail || t("withdrawErrorFallback");
       setWithdrawError(msg);
       setTimeout(() => setWithdrawError(null), 5000);
     }
@@ -172,7 +166,8 @@ export default function DashboardPage() {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert("Адрес скопирован!"); 
+    // ИСПОЛЬЗУЕМ ПЕРЕВОД ДЛЯ АЛЕРТА
+    alert(t("addressCopiedAlert")); 
   };
 
   if (isUserLoading || !user) {
@@ -190,7 +185,6 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-8">
-            {/* Виджет Кошелька */}
             <div className="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-brand-blue/10 flex items-center justify-center text-brand-blue">
@@ -221,7 +215,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Таблица транзакций */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black">
                 {t("transactions")}
@@ -232,15 +225,14 @@ export default function DashboardPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-50/50 text-gray-500 text-sm border-b border-gray-100">
-                        <th className="px-6 py-3 font-medium">Тип</th>
-                        <th className="px-6 py-3 font-medium">Сумма</th>
-                        <th className="px-6 py-3 font-medium">Статус</th>
-                        <th className="px-6 py-3 font-medium text-right">Дата</th>
+                        <th className="px-6 py-3 font-medium">{t("thType")}</th>
+                        <th className="px-6 py-3 font-medium">{t("thAmount")}</th>
+                        <th className="px-6 py-3 font-medium">{t("thStatus")}</th>
+                        <th className="px-6 py-3 font-medium text-right">{t("thDate")}</th>
                       </tr>
                     </thead>
                     <tbody className="text-sm">
                       {transactions.map((tx) => {
-                        // Определяем, приход это или расход
                         const isIncome = tx.transaction_type === "DEPOSIT" || tx.transaction_type === "REFERRAL";
                         
                         return (
@@ -252,16 +244,18 @@ export default function DashboardPage() {
                                 <ArrowUpRight className="w-4 h-4 text-red-500 shrink-0" />
                               )}
                               <span className="truncate">
-                                {tx.transaction_type === "PURCHASE_ASSET" ? "ASSET PURCHASE" : tx.transaction_type}
+                                {/* ИСПОЛЬЗУЕМ ДИНАМИЧЕСКИЙ КЛЮЧ */}
+                                {t(`txType_${tx.transaction_type}` as any)}
                               </span>
                             </td>
                             <td className={`px-6 py-4 font-bold ${isIncome ? "text-green-600" : "text-brand-black"}`}>
                               {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
                             </td>
                             <td className="px-6 py-4">
-                              {tx.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" />Успешно</span>}
-                              {tx.status === "PENDING" && <span className="inline-flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-md text-xs font-semibold"><Clock className="w-3.5 h-3.5" />В обработке</span>}
-                              {tx.status === "FAILED" && <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-semibold"><XCircle className="w-3.5 h-3.5" />Отклонено</span>}
+                              {/* ПЕРЕВОДЫ СТАТУСОВ ИЗ СЛОВАРЯ */}
+                              {tx.status === "COMPLETED" && <span className="inline-flex items-center gap-1.5 text-green-600 bg-green-50 px-2 py-1 rounded-md text-xs font-semibold"><CheckCircle2 className="w-3.5 h-3.5" />{t("statusCompleted")}</span>}
+                              {tx.status === "PENDING" && <span className="inline-flex items-center gap-1.5 text-orange-600 bg-orange-50 px-2 py-1 rounded-md text-xs font-semibold"><Clock className="w-3.5 h-3.5" />{t("statusPending")}</span>}
+                              {tx.status === "FAILED" && <span className="inline-flex items-center gap-1.5 text-red-600 bg-red-50 px-2 py-1 rounded-md text-xs font-semibold"><XCircle className="w-3.5 h-3.5" />{t("statusFailed")}</span>}
                             </td>
                             <td className="px-6 py-4 text-right text-gray-500 whitespace-nowrap">
                               {formatDate(tx.created_at)}
@@ -280,10 +274,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* ПРАВАЯ КОЛОНКА */}
           <div className="lg:col-span-1 space-y-8 sticky top-24 self-start">
             
-            {/* Виджет 1: Портфель (Доли проектов) */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-brand-blue" />
@@ -293,7 +285,7 @@ export default function DashboardPage() {
               <div className="p-4 space-y-3">
                 {portfolio && portfolio.length > 0 ? (
                   portfolio.map((item) => {
-                    const title = item.project.title?.[locale] || item.project.title?.en || "Проект";
+                    const title = item.project.title?.[locale] || item.project.title?.en || t("defaultProject");
                     
                     return (
                       <Link key={item.id} href={`/project/${item.project.slug}`}>
@@ -318,7 +310,7 @@ export default function DashboardPage() {
                     {t("emptyPortfolio")}
                     <div className="mt-4">
                       <Link href="/category" className="text-brand-blue font-semibold hover:underline">
-                        Перейти в каталог
+                        {t("goToCatalog")}
                       </Link>
                     </div>
                   </div>
@@ -326,20 +318,18 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* НОВЫЙ Виджет 2: Купленные Активы (Целые проекты) */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
                 <Gem className="w-5 h-5 text-brand-blue" />
-                {t("myAssets", { fallback: "Мои активы" })}
+                {t("myAssets")}
               </div>
               
               <div className="p-4 space-y-3">
                 {assetPortfolio && assetPortfolio.length > 0 ? (
                   assetPortfolio.map((item) => {
-                    // === ПРАВИЛЬНАЯ ПРОВЕРКА ДЛЯ TYPESCRIPT ===
                     const title = typeof item.asset.title === 'object' && item.asset.title !== null
-                      ? (item.asset.title[locale] || item.asset.title.en || "Актив")
-                      : (item.asset.title || "Актив");
+                      ? (item.asset.title[locale] || item.asset.title.en || t("defaultAsset"))
+                      : (item.asset.title || t("defaultAsset"));
                     
                     return (
                       <Link key={item.id} href={`/assets/${item.asset.id}`}>
@@ -350,7 +340,7 @@ export default function DashboardPage() {
                             </h4>
                             {item.asset.is_unique && (
                               <span className="shrink-0 ml-2 text-[10px] uppercase font-bold bg-brand-blue/10 text-brand-blue px-2 py-0.5 rounded">
-                                Эксклюзив
+                                {t("exclusive")}
                               </span>
                             )}
                           </div>
@@ -368,10 +358,10 @@ export default function DashboardPage() {
                   })
                 ) : (
                   <div className="py-8 text-center text-gray-500 text-sm">
-                    {t("emptyAssets", { fallback: "У вас пока нет купленных активов." })}
+                    {t("emptyAssets")}
                     <div className="mt-4">
                       <Link href="/category" className="text-brand-blue font-semibold hover:underline">
-                        Смотреть эксклюзивы
+                        {t("viewExclusives")}
                       </Link>
                     </div>
                   </div>
@@ -379,7 +369,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Виджет 3: Реферальная программа */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 font-bold text-lg text-brand-black flex items-center gap-2">
                 <Users className="w-5 h-5 text-brand-blue" />
@@ -413,24 +402,21 @@ export default function DashboardPage() {
 
         </div>
       </div>
-      {/* Модалки */}
       <DepositModal 
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
-        onSubmit={handleDepositSubmit} // <-- Исправили название
+        onSubmit={handleDepositSubmit} 
         amount={depositAmount}
-        // Конвертируем строку из инпута в число
         setAmount={(val) => setDepositAmount(val === "" ? "" : Number(val))} 
         isLoading={depositMutation.isPending}
-        error={depositError} // <-- Теперь ошибка существует
+        error={depositError} 
       />
 
       <WithdrawModal 
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}
-        onSubmit={handleWithdrawSubmit} // <-- Исправили название
+        onSubmit={handleWithdrawSubmit} 
         amount={withdrawAmount}
-        // Конвертируем строку из инпута в число
         setAmount={(val) => setWithdrawAmount(val === "" ? "" : Number(val))} 
         address={withdrawAddress}
         setAddress={setWithdrawAddress}

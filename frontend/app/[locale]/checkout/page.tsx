@@ -15,7 +15,7 @@ import { useUser } from "../../../hooks/use-auth";
 import { CheckoutConsent } from "../../../components/modules/checkout-consent";
 
 // Stripe и PayPal временно убраны из доступных типов, чтобы избежать ошибок типизации
-type PaymentMethod = "BALANCE" | "TRIPLEA"; // | "STRIPE" | "PAYPAL" 
+type PaymentMethod = "BALANCE" | "PASSIMPAY"; // | "STRIPE" | "PAYPAL" 
 
 export default function CheckoutPage() {
   const t = useTranslations("Checkout");
@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   const formatItemsForBackend = () => {
     return items.map((item: any) => ({
       item_type: item.item_type || "share",
-      item_id: item.item_id || item.project_id, 
+      item_id: item.item_id || item.project_id || item.id, 
       quantity: item.quantity || item.shares_amount || 1
     }));
   };
@@ -60,7 +60,7 @@ export default function CheckoutPage() {
       return response.data;
     },
     onSuccess: (data) => {
-      if (data.payment_gateway === "triplea" && data.hosted_url) {
+      if (data.payment_gateway === "passimpay" && data.hosted_url) {
         window.location.href = data.hosted_url;
       } 
       else if (data.status === "pending_payment" && data.client_secret) {
@@ -234,9 +234,9 @@ export default function CheckoutPage() {
                 </label>
                 */}
 
-                <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "TRIPLEA" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
-                  <input type="radio" name="payment" value="TRIPLEA" checked={paymentMethod === "TRIPLEA"} onChange={() => setPaymentMethod("TRIPLEA")} className="hidden" />
-                  <Bitcoin className={`w-6 h-6 ${paymentMethod === "TRIPLEA" ? "text-brand-blue" : "text-gray-400"}`} />
+                <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-colors ${paymentMethod === "PASSIMPAY" ? "border-brand-blue bg-blue-50/50 dark:bg-brand-blue/10" : "border-gray-100 dark:border-gray-800 hover:border-gray-300"}`}>
+                  <input type="radio" name="payment" value="PASSIMPAY" checked={paymentMethod === "PASSIMPAY"} onChange={() => setPaymentMethod("PASSIMPAY")} className="hidden" />
+                  <Bitcoin className={`w-6 h-6 ${paymentMethod === "PASSIMPAY" ? "text-brand-blue" : "text-gray-400"}`} />
                   <p className="font-bold text-gray-900 dark:text-white">{t("payWithCrypto") || "Оплатить криптовалютой"}</p>
                 </label>
               </div>
