@@ -7,11 +7,11 @@ from django.conf import settings
 def create_passimpay_invoice(transaction_id, amount_usd):
     url = "https://api.passimpay.io/createorder" 
     
-    # 1. Формируем данные (Порядок ВАЖЕН для правильного хэша)
+    formatted_amount = f"{float(amount_usd):.2f}"
     payload = {
         "platform_id": str(settings.PASSIMPAY_PLATFORM_ID),
         "order_id": str(transaction_id),
-        "amount": str(amount_usd),
+        "amount": formatted_amount,
     }
 
     # 2. Собираем строку запроса для подписи (как делает PHP http_build_query)
