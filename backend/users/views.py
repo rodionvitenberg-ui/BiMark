@@ -23,16 +23,9 @@ from .serializers import OTPRequestSerializer, OTPRegistrationSerializer
 class GoogleLogin(SocialLoginView):
     """
     Эндпоинт для Google авторизации.
-    Next.js должен отправить POST запрос сюда с телом:
-    {"access_token": "токен_полученный_от_google"}
+    Принимает access_token или id_token напрямую от React.
     """
     adapter_class = GoogleOAuth2Adapter
-    client_class = OAuth2Client
-    
-    # Callback URL здесь нужен формально для библиотеки, 
-    # он должен совпадать с тем, что настроен в Google Cloud и Next.js.
-    # В headless архитектуре реальный редирект происходит на клиенте.
-    callback_url = 'http://localhost:3000/api/auth/callback/google'
 
 class RequestOTPView(views.APIView):
     """Шаг 1: Запрос OTP кода на email"""
