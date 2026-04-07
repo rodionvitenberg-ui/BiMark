@@ -81,10 +81,12 @@ REST_AUTH = {
 }
 
 # Настройки allauth (кастомный юзер на email)
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'none' # Для MVP можно отклюстить, позже 'mandatory'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'  # Указываем, что поле в БД все-таки есть
+ACCOUNT_USERNAME_REQUIRED = False               # Но мы не требуем его от пользователя
+ACCOUNT_EMAIL_REQUIRED = True                   # Email обязателен
+ACCOUNT_AUTHENTICATION_METHOD = 'email'         # Логин по email (для старых версий allauth)
+ACCOUNT_LOGIN_METHODS = {'email'}               # Логин по email (для новых версий allauth)
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 
 from datetime import timedelta
 # Настройки SimpleJWT
