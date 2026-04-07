@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/users/register/request-otp/', RequestOTPView.as_view(), name='otp_request'),
     path('api/users/register/confirm/', RegisterWithOTPView.as_view(), name='otp_register'),
     path('api/auth/google/', GoogleLogin.as_view(), name='google_login'),
+    path('accounts/', include('allauth.urls')),
     
     # --- Каталог и Портфель ---
     path('api/', include(router.urls)),
