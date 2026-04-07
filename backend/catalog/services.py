@@ -274,7 +274,4 @@ class PurchaseService:
                 "message": "Ожидается оплата криптовалютой"
             }
         except Exception as e:
-            pending_tx.status = Transaction.Status.FAILED
-            pending_tx.description = f"Ошибка PassimPay API: {str(e)}"
-            pending_tx.save(update_fields=['status', 'description'])
-            raise ValidationError("Сервис оплаты криптовалютой временно недоступен.")
+            raise ValidationError(f"Детали ошибки PassimPay: {str(e)}")
