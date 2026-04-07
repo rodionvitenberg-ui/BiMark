@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from decimal import Decimal
 from django.db import transaction
 from rest_framework.views import APIView
+from billing.passimpay import create_passimpay_invoice
 
 from billing.models import Wallet, Transaction, PaymentSettings
 from billing.serializers import WalletSerializer, TransactionSerializer
@@ -26,9 +27,9 @@ class TransactionHistoryView(views.APIView):
         serializer = TransactionSerializer(transactions, many=True)
         return Response(serializer.data)
     
-class DepositView(views.APIView):
+class DepositView(APIView):
     """
-    Создание заявки на пополнение криптой.
+    Создание инвойса на пополнение криптой через PassimPay.
     """
     permission_classes = [IsAuthenticated]
 
@@ -47,20 +48,34 @@ class DepositView(views.APIView):
 
         wallet = Wallet.objects.get(user=request.user)
         
-        # Создаем транзакцию со статусом PENDING. 
-        # Админ увидит ее в панели и переведет в COMPLETED после проверки сети.
+        # Создаем транзакцию
         tx = Transaction.objects.create(
             wallet=wallet,
             type=Transaction.Type.DEPOSIT,
             amount=amount,
             status=Transaction.Status.PENDING,
-            description="Заявка на пополнение (Crypto)"
+            description="Пополнение баланса (Криптовалюта)"
         )
 
-        return Response({
-            "detail": "Заявка на пополнение успешно создана. Ожидайте подтверждения.",
-            "transaction_id": tx.id
-        }, status=status.HTTP_200_OK)
+        try:
+            # Стучимся в PassimPay за ссылкой
+            payment_url = create_passimpay_invoice(transaction_id=tx.id, amount_usd=amount)
+            
+            if not payment_url:
+                raise Exception("PassimPay не вернул ссылку на оплату")
+            
+            return Response({
+                "detail": "Ожидается оплата криптовалютой",
+                "transaction_id": tx.id,
+                "hosted_url": payment_url  # Отдаем ссылку фронтенду
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            # Если PassimPay упал, отменяем транзакцию
+            tx.status = Transaction.Status.FAILED
+            tx.description = f"Ошибка кассы: {str(e)}"
+            tx.save(update_fields=['status', 'description'])
+            return Response({"detail": f"Ошибка сервиса оплаты: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class WithdrawView(views.APIView):

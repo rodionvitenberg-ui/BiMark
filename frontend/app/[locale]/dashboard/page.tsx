@@ -109,7 +109,14 @@ export default function DashboardPage() {
       const response = await apiClient.post("/wallet/deposit/", { amount });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // ЕСЛИ БЭКЕНД ПРИСЛАЛ ССЫЛКУ — ПЕРЕКИДЫВАЕМ НА ОПЛАТУ
+      if (data.hosted_url) {
+        window.location.href = data.hosted_url;
+        return;
+      }
+      
+      // (Этот код сработает, если по какой-то причине ссылки нет)
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       setDepositSuccess(true);
       setTimeout(() => {
@@ -118,8 +125,7 @@ export default function DashboardPage() {
       }, 4000);
     },
     onError: (error: any) => {
-      // ИСПОЛЬЗУЕМ КЛЮЧ ИЗ СЛОВАРЯ ДЛЯ ФОЛБЭКА
-      const msg = error.response?.data?.detail || t("depositErrorFallback");
+      const msg = error.response?.data?.detail || "Ошибка при переходе к оплате.";
       setDepositError(msg);
       setTimeout(() => setDepositError(null), 5000);
     }

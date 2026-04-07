@@ -174,34 +174,38 @@ class PayPalCaptureView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 class PassimPayWebhookView(APIView):
-    permission_classes = [AllowAny] # Webhook должен быть открыт для серверов PassimPay
+    permission_classes = [AllowAny]
 
     def post(self, request):
-        # PassimPay присылает данные в формате form-data
         data = request.data
         
-        platform_id = data.get('platform_id')
-        transaction_id = data.get('order_id') # Это наш ID транзакции
-        amount = data.get('amount')
+        transaction_id = data.get('order_id')
         txhash = data.get('txhash')
-        received_hash = data.get('hash')
-
-        # TODO: Добавить проверку HMAC-хэша с помощью PASSIMPAY_API_KEY для защиты от фейковых запросов,
-        # как только убедимся в формате их подписи (обычно это sha256 от склеенных параметров).
 
         if transaction_id:
-            # Твоя родная функция сделает всю магию!
-            success = fulfill_order(transaction_id)
-            
-            if success:
-                # Опционально: сохраняем хэш транзакции в блокчейне для истории
-                tx = Transaction.objects.filter(id=transaction_id).first()
-                if tx:
-                    tx.reference_id = txhash
-                    tx.save(update_fields=['reference_id'])
-                    
+            tx = Transaction.objects.filter(id=transaction_id).first()
+            if not tx:
+                return Response({"error": "Transaction not found"}, status=400)
+
+            # Сохраняем хэш транзакции в блокчейне
+            tx.reference_id = txhash
+            tx.save(update_fields=['reference_id'])
+
+            # СЦЕНАРИЙ 1: ЭТО ПОПОЛНЕНИЕ БАЛАНСА
+            if tx.type == Transaction.Type.DEPOSIT:
+                if tx.status == Transaction.Status.PENDING:
+                    tx.status = Transaction.Status.COMPLETED
+                    tx.save(update_fields=['status'])
+                    # Как только статус стал COMPLETED, свойство wallet.balance 
+                    # автоматически увеличится!
                 return Response({"status": "success"}, status=200)
-            else:
-                return Response({"detail": "Корзина недействительна (доли раскуплены)"}, status=400)
+
+            # СЦЕНАРИЙ 2: ЭТО ПОКУПКА КОРЗИНЫ
+            elif tx.type in [Transaction.Type.PURCHASE, Transaction.Type.PURCHASE_ASSET]:
+                success = fulfill_order(transaction_id)
+                if success:
+                    return Response({"status": "success"}, status=200)
+                else:
+                    return Response({"detail": "Корзина недействительна (доли раскуплены)"}, status=400)
                 
         return Response({"error": "Invalid data"}, status=400)
