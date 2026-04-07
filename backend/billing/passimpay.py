@@ -2,9 +2,6 @@ import requests
 from django.conf import settings
 
 def create_passimpay_invoice(transaction_id, amount_usd):
-    """
-    Стучится в API PassimPay и возвращает ссылку на оплату криптой.
-    """
     url = "https://api.passimpay.io/createorder" 
     
     payload = {
@@ -18,16 +15,16 @@ def create_passimpay_invoice(transaction_id, amount_usd):
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
-    try:
-        response = requests.post(url, data=payload, headers=headers)
-        
-        # Если статус 200 (ОК), отдаем ссылку
-        if response.status_code == 200:
-            return response.json().get("url")
+    # Делаем запрос без блоков try-except, чтобы любая ошибка летела прямо на фронтенд
+    response = requests.post(url, data=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        if "url" in data:
+            return data["url"]
+        else:
+            # На случай, если ответ 200, но формат JSON другой
+            raise Exception(f"Странный ответ от PassimPay: {data}")
             
-        # ЕСЛИ ОШИБКА — генерируем исключение с реальным ответом от PassimPay
-        raise Exception(f"HTTP {response.status_code}: {response.text}")
-        
-    except Exception as e:
-        # Пробрасываем ошибку выше, чтобы она попала в models.Transaction
-        raise Exception(str(e))
+    # Если статус не 200 (например, 401 или 403) — жестко выводим ответ сервера
+    raise Exception(f"PassimPay HTTP {response.status_code}: {response.text}")
