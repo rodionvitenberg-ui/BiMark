@@ -12,6 +12,7 @@ from django.db import transaction
 
 from billing.models import Transaction
 from catalog.models import Project, Ownership
+from catalog_assets.models import Asset, AssetOwnership
 from referrals.services import ReferralService
 from billing.paypal import capture_paypal_order # Импортируем наш новый сервис
 from rest_framework import status
@@ -31,30 +32,46 @@ def fulfill_order(transaction_id):
         if not cart_details:
             return False
 
-        # 2. Защита от дедлоков: Сортируем ID проектов
-        project_ids = sorted([item['project_id'] for item in cart_details])
-        projects = list(Project.objects.select_for_update().filter(id__in=project_ids))
-        project_map = {str(p.id): p for p in projects}
+        share_items = [i for i in cart_details if i.get('item_type') == 'share']
+        asset_items = [i for i in cart_details if i.get('item_type') == 'asset']
+
+        # 2. Блокируем проекты и активы
+        project_map = {}
+        if share_items:
+            project_ids = sorted([item['item_id'] for item in share_items])
+            projects = list(Project.objects.select_for_update().filter(id__in=project_ids))
+            project_map = {str(p.id): p for p in projects}
+
+        asset_map = {}
+        if asset_items:
+            asset_ids = sorted([item['item_id'] for item in asset_items])
+            assets = list(Asset.objects.select_for_update().filter(id__in=asset_ids))
+            asset_map = {str(a.id): a for a in assets}
 
         # 3. Валидация всей корзины
         can_fulfill = True
-        for item in cart_details:
-            proj = project_map.get(item['project_id'])
-            if not proj or proj.available_shares < item['shares'] or proj.status not in [Project.Status.PRESALE, Project.Status.ACTIVE]:
+        for item in share_items:
+            proj = project_map.get(item['item_id'])
+            if not proj or proj.available_shares < item['quantity'] or proj.status not in [Project.Status.PRESALE, Project.Status.ACTIVE]:
+                can_fulfill = False
+                break
+                
+        for item in asset_items:
+            asset = asset_map.get(item['item_id'])
+            if not asset or asset.status != Asset.Status.ACTIVE or (asset.is_unique and item['quantity'] > 1):
                 can_fulfill = False
                 break
 
         if not can_fulfill:
-            # Для PayPal возврат будет делаться иначе, но логика отмены транзакции та же
             tx.status = Transaction.Status.FAILED
-            tx.description += " (ОТМЕНЕНА: Часть долей из корзины раскуплена)"
+            tx.description += " (ОТМЕНЕНА: Часть товаров из корзины раскуплена)"
             tx.save(update_fields=['status', 'description', 'updated_at'])
             return False
 
-        # 4. Проводим начисление
-        for item in cart_details:
-            proj = project_map[item['project_id']]
-            shares = item['shares']
+        # 4. Проводим начисление долей
+        for item in share_items:
+            proj = project_map[item['item_id']]
+            shares = item['quantity']
             
             proj.available_shares -= shares
             if proj.available_shares == 0:
@@ -62,11 +79,9 @@ def fulfill_order(transaction_id):
             proj.save(update_fields=['available_shares', 'status', 'updated_at'])
 
             ownership, _ = Ownership.objects.get_or_create(
-                user=user, 
-                project=proj,
+                user=user, project=proj,
                 defaults={'shares_amount': 0, 'average_buy_price': Decimal('0.00')}
             )
-
             item_price_per_share = Decimal(item['price_per_share'])
             old_total = Decimal(ownership.shares_amount) * ownership.average_buy_price
             new_total = Decimal(shares) * item_price_per_share
@@ -74,6 +89,20 @@ def fulfill_order(transaction_id):
             ownership.shares_amount += shares
             ownership.average_buy_price = (old_total + new_total) / Decimal(ownership.shares_amount)
             ownership.save(update_fields=['shares_amount', 'average_buy_price', 'updated_at'])
+
+        # 4.1 Проводим начисление активов
+        for item in asset_items:
+            asset = asset_map[item['item_id']]
+            qty = item['quantity']
+            
+            if asset.is_unique:
+                asset.status = Asset.Status.SOLD
+                asset.save(update_fields=['status', 'updated_at'])
+                
+            for _ in range(qty):
+                AssetOwnership.objects.create(
+                    user=user, asset=asset, purchase_price=Decimal(item['price'])
+                )
 
         # 5. Успех
         tx.status = Transaction.Status.COMPLETED

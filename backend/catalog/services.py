@@ -174,7 +174,7 @@ class PurchaseService:
                     ownership_ids.append(f"asset_{asset_ownership.id}")
 
         # Начисляем реферальный бонус с общей суммы корзины
-        ReferralService.process_purchase_bonus(user=user, amount_spent=total_price)
+        ReferralService.process_purchase_bonus(user=user, purchase_amount=total_price)
 
         return {
             "status": "success",
