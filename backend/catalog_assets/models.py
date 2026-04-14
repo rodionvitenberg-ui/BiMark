@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from tinymce.models import HTMLField
 
 class Asset(models.Model):
     class Status(models.TextChoices):
@@ -10,7 +11,11 @@ class Asset(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, verbose_name="Название")
-    description = models.TextField(verbose_name="Описание")
+    
+    # --- ВОТ ИЗМЕНЕННОЕ ПОЛЕ (Заменили TextField на HTMLField) ---
+    description = HTMLField(verbose_name="Описание")
+    # -------------------------------------------------------------
+    
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Цена ($)")
     image = models.ImageField(upload_to='assets_images/', blank=True, null=True, verbose_name="Изображение")
     is_new = models.BooleanField(
@@ -29,13 +34,7 @@ class Asset(models.Model):
         verbose_name="Уникальный актив",
         help_text="Если включено, актив продается в одни руки и после покупки получает статус 'Продано'."
     )
-    status = models.CharField(
-        max_length=20, 
-        choices=Status.choices, 
-        default=Status.DRAFT, 
-        verbose_name="Статус",
-        db_index=True
-    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, verbose_name="Статус")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

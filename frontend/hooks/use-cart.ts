@@ -2,14 +2,14 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface CartItem {
-  item_type: 'share' | 'asset'; // Теперь корзина знает, что именно в ней лежит
-  item_id: string;              // Универсальный ID (вместо project_id)
+  item_type: 'share' | 'asset';
+  item_id: string;
   title: string;
-  price: number;                // Универсальная цена (вместо price_per_share)
-  quantity: number;             // Количество (вместо shares_amount)
-  max_quantity: number;         // Лимит покупки (вместо available_shares)
+  price: number;
+  quantity: number;
+  max_quantity: number;
   image?: string | null;
-  is_unique?: boolean;          // Флаг для уникальных активов (их нельзя купить > 1)
+  is_unique?: boolean;
 }
 
 interface CartState {
@@ -25,22 +25,25 @@ interface CartState {
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
+      // Гарантируем, что state.items всегда массив
       items: [],
 
       // Добавление товара
       addItem: (item) => {
-        const currentItems = get().items;
+        if (!item || !item.item_id) return; // Защита от пустых объектов
+
+        const currentItems = get().items || [];
         const existingItem = currentItems.find(
-          (i) => i.item_id === item.item_id && i.item_type === item.item_type
+          (i) => i?.item_id === item.item_id && i?.item_type === item.item_type
         );
 
         if (existingItem) {
-          // Если это уникальный актив, мы не можем добавить вторую штуку
           if (existingItem.is_unique) return;
 
+          // Жестко приводим к числам, чтобы избежать сложения строк или NaN
           const newQuantity = Math.min(
-            existingItem.quantity + item.quantity,
-            item.max_quantity
+            (Number(existingItem.quantity) || 0) + (Number(item.quantity) || 1),
+            Number(existingItem.max_quantity) || 1
           );
 
           set({
@@ -51,30 +54,37 @@ export const useCart = create<CartState>()(
             ),
           });
         } else {
-          set({ items: [...currentItems, item] });
+          // Очищаем данные перед добавлением нового товара
+          const cleanItem = {
+            ...item,
+            price: Number(item.price) || 0,
+            quantity: Number(item.quantity) || 1,
+            max_quantity: Number(item.max_quantity) || 1,
+          };
+          set({ items: [...currentItems, cleanItem] });
         }
       },
 
       // Удаление конкретного товара
       removeItem: (item_id) => {
+        if (!item_id) return;
         set({
-          items: get().items.filter((i) => i.item_id !== item_id),
+          // Фильтруем совпадение + заодно вычищаем "битые" товары без id
+          items: (get().items || []).filter((i) => i && i.item_id && i.item_id !== item_id),
         });
       },
 
       // Ручное обновление количества
       updateQuantity: (item_id, quantity) => {
-        const currentItems = get().items;
-        const itemToUpdate = currentItems.find((i) => i.item_id === item_id);
+        const currentItems = get().items || [];
+        const itemToUpdate = currentItems.find((i) => i?.item_id === item_id);
         
         if (!itemToUpdate) return;
-        
-        // Уникальный актив всегда = 1
         if (itemToUpdate.is_unique) return;
 
         const validQuantity = Math.max(
           1,
-          Math.min(quantity, itemToUpdate.max_quantity)
+          Math.min(Number(quantity) || 1, Number(itemToUpdate.max_quantity) || 1)
         );
 
         set({
@@ -91,19 +101,25 @@ export const useCart = create<CartState>()(
 
       // Подсчет итоговой суммы
       getTotalPrice: () => {
-        return get().items.reduce(
-          (total, item) => total + item.price * item.quantity,
-          0
-        );
+        return (get().items || []).reduce((total, item) => {
+          if (!item) return total; // Пропускаем undefined
+          
+          // Железобетонная защита от NaN
+          const price = Number(item.price) || 0;
+          const quantity = Number(item.quantity) || 0;
+          
+          return total + (price * quantity);
+        }, 0);
       },
 
       // Подсчет количества позиций
       getTotalItemsCount: () => {
-        return get().items.length;
+        // Считаем только валидные товары с существующим id
+        return (get().items || []).filter(i => i && i.item_id).length;
       },
     }),
     {
-      name: "bimark-cart-storage", // Важно: очисти LocalStorage в браузере, чтобы стереть старые "неправильные" товары!
+      name: "bimark-cart", // Название ключа в localStorage
     }
   )
 );

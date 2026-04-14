@@ -112,9 +112,12 @@ export default function AssetDetail() {
                 {typeof asset.title === 'string' ? asset.title : asset.title[locale]}
               </h1>
               
-              <div className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300">
-                 {typeof asset.description === 'string' ? asset.description : asset.description[locale]}
-              </div>
+              <div 
+                className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300"
+                dangerouslySetInnerHTML={{ 
+                  __html: typeof asset.description === 'string' ? asset.description : asset.description[locale] 
+                }}
+              />
             </div>
           </div>
 

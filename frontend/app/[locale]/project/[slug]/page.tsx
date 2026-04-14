@@ -105,9 +105,12 @@ export default function ProjectDetail() {
                 {typeof project.title === 'string' ? project.title : project.title[locale]}
               </h1>
               
-              <div className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300">
-                 {typeof project.description === 'string' ? project.description : project.description[locale]}
-              </div>
+              <div 
+                className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300"
+                dangerouslySetInnerHTML={{ 
+                  __html: typeof project.description === 'string' ? project.description : project.description[locale] 
+                }}
+              />
             </div>
           </div>
 

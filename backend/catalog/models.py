@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from tinymce.models import HTMLField
 
 class Category(models.Model):
     """Категории проектов (например: YouTube, Telegram, IT-Стартапы)"""
@@ -34,18 +35,24 @@ class Project(models.Model):
         ACTIVE = 'ACTIVE', 'Сбор закрыт / Активен'
         SOLD = 'SOLD', 'Продан полностью (Экзит)'
         
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='projects')
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='projects')
     image = models.ImageField(upload_to='projects/', null=True, blank=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, db_index=True)
-    description = models.TextField()
-    short_description = models.TextField(
+    
+    # --- ВОТ ДВА ИЗМЕНЕННЫХ ПОЛЯ (Заменили TextField на HTMLField) ---
+    description = HTMLField(
+        verbose_name="Полное описание"
+    )
+    short_description = HTMLField(
         max_length=500, 
         blank=True, 
         verbose_name="Краткое описание",
         help_text="Выводится на карточках в карусели на главной странице"
     )
+    # -----------------------------------------------------------------
+
     is_hidden = models.BooleanField(
         default=False, 
         verbose_name="Скрыть из каталога",
