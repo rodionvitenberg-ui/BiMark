@@ -20,6 +20,7 @@ router.register(r'tokens', TokenViewSet, basename='token')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('tinymce/', include('tinymce.urls')),
     
     # --- Базовая авторизация ---
     path('api/auth/', include('dj_rest_auth.urls')),
