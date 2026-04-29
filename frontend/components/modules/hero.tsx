@@ -139,7 +139,7 @@ export function Hero() {
               
               {/* АНИМИРОВАННАЯ КНОПКА 2 */}
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto flex">
-                <Link href="/vision" className="w-full px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center">
+                <Link href="/presentation" className="w-full px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center">
                   <PlayCircle className="w-5 h-5 hidden md:block" />
                   {t("secondaryCta")}
                 </Link>

@@ -218,7 +218,7 @@
     "addedToCartMsg": "Added to cart successfully!",
     "allSharesSold": "All shares sold out",
     "available": "Available",
-    "availableShares": "Disponible",
+    "availableShares": "Available",
     "backToCatalog": "Back to catalog",
     "buySharesBtn": "Buy Shares",
     "categoryFallback": "Category",
@@ -232,25 +232,25 @@
     "pricePerShare": "Per share",
     "projectNotFound": "Project not found",
     "returnToCatalog": "Return to catalog",
-    "sectionSubtitle": "Proyectos cuidadosamente seleccionados con rendimiento comprobado",
-    "sectionTitle": "Activos Disponibles",
+    "sectionSubtitle": "Carefully selected projects with proven performance",
+    "sectionTitle": "Available Assets",
     "shares": "pcs.",
     "sharesSelected": "Shares selected:",
-    "statusLive": "Activo",
-    "statusPresale": "Preventa",
-    "statusSold": "Agotado",
+    "statusLive": "Active",
+    "statusPresale": "Presale",
+    "statusSold": "Sold out",
     "successPurchase": "Purchase completed successfully!",
     "termsAgreement": "Purchasing a share means agreeing to the",
     "termsLink": "terms of service",
     "total": "Total:",
     "totalCost": "Total cost:",
     "totalShares": "Total",
-    "uncategorized": "Sin categoría",
+    "uncategorized": "Uncategorized",
     "viewAll": "View all projects",
-  "serverError": "Server connection error. Please check if the backend is running on port 8000.",
-  "noProjects": "No projects added yet. Log in to the Django admin panel to create your first asset.",
-  "buyAllShares": "Buy all remaining ({count})",
-  "buyBtn": "Buy"
+    "serverError": "Server connection error. Please check if the backend is running on port 8000.",
+    "noProjects": "No projects added yet. Log in to the Django admin panel to create your first asset.",
+    "buyAllShares": "Buy all remaining ({count})",
+    "buyBtn": "Buy"
   },
   "ProjectsPage": {
     "heroBadge": "Shares Catalog",
@@ -590,5 +590,23 @@
       "secondaryCta": "Project Catalog",
       "slogan": "Bimark. Your share in every click."
     }
+  },
+  "PresentationHero": {
+    "badge": "Platform Presentation",
+    "title_start": "Invest in the future with",
+    "title_highlight": "Bimark",
+    "description": "This is where that \"little bit\" of description we haven't thought of yet will go. It will highlight the main benefits and smoothly guide the user toward taking action.",
+    "catalog_btn": "Go to Catalog",
+    "contact_btn": "Contact Manager",
+    "video_placeholder": "Infographic video will be here",
+    "video_play_instruction": "Нажмите для симуляции просмотра"
+  },
+  "PresentationCatalog": {
+    "title": "Investment Catalog",
+    "subtitle": "Choose the right investment format: from equity participation in promising startups to purchasing entire businesses.",
+    "tab_all": "All Offers",
+    "tab_projects": "Equity Projects",
+    "tab_assets": "Full Assets",
+    "empty": "There are no offers in this category yet"
   }
 }

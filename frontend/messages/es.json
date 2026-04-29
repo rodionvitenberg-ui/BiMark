@@ -590,5 +590,23 @@
       "secondaryCta": "Catálogo de Proyectos",
       "slogan": "Bimark. Tu participación en cada clic."
     }
+  },
+  "PresentationHero": {
+    "badge": "Presentación de la plataforma",
+    "title_start": "Invierta en el futuro con",
+    "title_highlight": "Bimark",
+    "description": "Aquí irá esa \"pequeña\" descripción que aún no hemos inventado. Explicará las principales ventajas и guiará suavemente al usuario hacia la acción.",
+    "catalog_btn": "Ir al catálogo",
+    "contact_btn": "Contactar al asesor",
+    "video_placeholder": "Aquí se mostrará el video infográfico",
+    "video_play_instruction": "Нажмите для симуляции просмотра"
+  },
+  "PresentationCatalog": {
+    "title": "Catálogo de Inversiones",
+    "subtitle": "Elija el formato de inversión adecuado: desde participación accionaria en startups prometedoras hasta la compra de negocios completos.",
+    "tab_all": "Todas las ofertas",
+    "tab_projects": "Proyectos de capital",
+    "tab_assets": "Activos totales",
+    "empty": "Aún no hay ofertas en esta categoría"
   }
 }
