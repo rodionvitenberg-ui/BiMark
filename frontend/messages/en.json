@@ -608,5 +608,9 @@
     "tab_projects": "Equity Projects",
     "tab_assets": "Full Assets",
     "empty": "There are no offers in this category yet"
+  },
+  "Metadata": {
+    "title": "Investment Platform",
+    "description": "Purchase shares and invest in projects"
   }
 }

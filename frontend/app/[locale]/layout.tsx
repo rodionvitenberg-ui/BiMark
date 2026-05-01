@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Golos_Text } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server"; // Добавили getTranslations
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 import { QueryProvider } from "../../components/providers/query-provider";
@@ -14,20 +14,32 @@ import { ToastProvider } from '@/components/ui/toast';
 
 const manrope = Manrope({ 
   subsets: ["latin", "cyrillic"],
-  variable: "--font-manrope", // Создаем CSS-переменную для заголовков
+  variable: "--font-manrope",
   display: 'swap',
 });
 
 const golos = Golos_Text({ 
   subsets: ["latin", "cyrillic"],
-  variable: "--font-golos", // Создаем CSS-переменную для основного текста
+  variable: "--font-golos",
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: "Инвестиционная платформа",
-  description: "Покупка долей и инвестиции в проекты",
-};
+// ДИНАМИЧЕСКАЯ ГЕНЕРАЦИЯ МЕТАДАННЫХ
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  
+  // Загружаем переводы для неймспейса "Metadata"
+  const t = await getTranslations({ locale, namespace: 'Metadata' });
+
+  return {
+    title: t('title'),
+    description: t('description'),
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -46,19 +58,18 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      {/* ИСПРАВЛЕНО: Подключили переменные шрифтов и добавили font-sans как базовый */}
       <body className={`${golos.variable} ${manrope.variable} font-sans min-h-[100dvh] flex flex-col antialiased bg-brand-light`}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
             <GoogleProvider>
               <ToastProvider>
-            <Header />
-            <main className="flex-1 flex flex-col w-full pt-16">
-              {children}
-            </main>
-            <Footer />
-            </ToastProvider>
-            <CookieConsent />
+                <Header />
+                <main className="flex-1 flex flex-col w-full pt-16">
+                  {children}
+                </main>
+                <Footer />
+              </ToastProvider>
+              <CookieConsent />
             </GoogleProvider>
           </QueryProvider>
         </NextIntlClientProvider>

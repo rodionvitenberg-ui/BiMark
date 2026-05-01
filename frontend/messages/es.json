@@ -608,5 +608,9 @@
     "tab_projects": "Proyectos de capital",
     "tab_assets": "Activos totales",
     "empty": "Aún no hay ofertas en esta categoría"
+  },
+  "Metadata": {
+    "title": "Plataforma de Inversión",
+    "description": "Compra de acciones e inversión en proyectos"
   }
 }

@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, Variants, AnimatePresence } from "framer-motion";
-import { ArrowRight, Play, MessagesSquare, RotateCcw } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { ArrowRight, MessagesSquare, RotateCcw } from "lucide-react";
+// ДОБАВИЛИ useLocale
+import { useTranslations, useLocale } from "next-intl"; 
 
 export function PresentationHero() {
   const t = useTranslations("PresentationHero");
   
-  // Состояние: проиграно ли видео. Изначально false.
-  const [isVideoFinished, setIsVideoFinished] = useState(false);
+  // ПОЛУЧАЕМ ТЕКУЩУЮ ЛОКАЛЬ
+  const locale = useLocale(); 
+  
+  // Определяем путь к видео. Если 'ru' - русское, иначе (для 'en' и 'es') - английское
+  const videoSrc = locale === "ru" 
+    ? "/videos/presentation-ru.mp4" 
+    : "/videos/presentation-en.mp4";
 
-  // Функция для плавного скролла к каталогу
+  // Состояние: проиграно ли видео
+  const [isVideoFinished, setIsVideoFinished] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Плавный скролл к каталогу
   const scrollToCatalog = () => {
     const catalogElement = document.getElementById("presentation-catalog");
     if (catalogElement) {
@@ -19,15 +29,23 @@ export function PresentationHero() {
     }
   };
 
-  // Функция для плавного скролла к контактам
+  // Плавный скролл к контактам
   const scrollToContacts = () => {
     const contactsElement = document.getElementById("presentation-contacts");
     if (contactsElement) {
-      contactsElement.scrollIntoView({ behavior: "smooth" }); 
+      contactsElement.scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  // Анимации для появления всего блока при загрузке
+  // Перезапуск видео
+  const handleReplay = () => {
+    setIsVideoFinished(false);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play();
+    }
+  };
+
   const pageLoadVariants: Variants = {
     hidden: { opacity: 0 },
     show: {
@@ -41,17 +59,10 @@ export function PresentationHero() {
     show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 20 } },
   };
 
-  // Анимации для переключения элементов внутри видео-рамки
-  const videoContentVariants: Variants = {
-    initial: { opacity: 0, scale: 0.9 },
-    animate: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: "easeOut" } },
-    exit: { opacity: 0, scale: 1.1, transition: { duration: 0.3, ease: "easeIn" } },
-  };
-
   return (
     <section className="relative w-full pt-16 pb-20 md:pt-24 md:pb-32 overflow-hidden bg-[#0a0f1c] text-white border-b border-gray-800 min-h-screen flex items-center">
       
-      {/* Свечение на фоне (центрированное) */}
+      {/* Свечение на фоне */}
       <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[100%] h-[80%] bg-brand-blue/15 blur-[140px] rounded-full pointer-events-none" />
       
       <motion.div 
@@ -61,48 +72,37 @@ export function PresentationHero() {
         animate="show"
       >
         
-        {/* --- ВЕРХ: ЗОНА ВИДЕО (Центрированная) --- */}
+        {/* --- ВЕРХ: ЗОНА ВИДЕО --- */}
         <motion.div 
           variants={itemVariants}
-          className="w-full max-w-5xl aspect-video border border-white/10 rounded-[2rem] bg-[#121827]/60 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative overflow-hidden mb-16 md:mb-20 flex items-center justify-center group"
+          className="w-full max-w-5xl aspect-video border border-white/10 rounded-[2rem] bg-black shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative overflow-hidden mb-16 md:mb-20 flex items-center justify-center group"
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-blue/5 to-transparent pointer-events-none" />
+          {/* Нативный видеоплеер с динамическим src */}
+          {/* Нативный видеоплеер с динамическим src */}
+          <video
+            ref={videoRef}
+            src={videoSrc} 
+            controls={!isVideoFinished}
+            playsInline
+            preload="metadata"
+            autoPlay /* <-- ДОБАВЛЕНО: Автостарт */
+            muted    /* <-- ДОБАВЛЕНО: Обязательное условие для автостарта в браузерах */
+            className="absolute inset-0 w-full h-full object-cover"
+            onEnded={() => setIsVideoFinished(true)}
+          />
 
-          <AnimatePresence mode="wait">
-            {!isVideoFinished ? (
-              // СОСТОЯНИЕ 1: Заглушка видео (Кликабельна для симуляции)
-              <motion.div
-                key="video-placeholder"
-                variants={videoContentVariants}
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer group p-8"
-                onClick={() => setIsVideoFinished(true)} // Клик = видео закончилось
-              >
-                {/* Анимированная кнопка Play */}
-                <div className="w-20 h-20 md:w-28 md:h-28 rounded-full bg-brand-blue/15 flex items-center justify-center backdrop-blur-md border border-brand-blue/25 group-hover:bg-brand-blue/30 group-hover:scale-105 transition-all duration-500 z-10 shadow-lg shadow-brand-blue/10">
-                  <Play className="w-10 h-10 md:w-14 md:h-14 ml-2 md:ml-3 text-brand-blue" />
-                </div>
-                
-                <p className="mt-8 text-gray-300 font-semibold text-lg md:text-xl z-10 text-center">
-                  {t("video_placeholder")}
-                </p>
-                <p className="mt-2 text-gray-500 text-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  ({t("video_play_instruction")})
-                </p>
-              </motion.div>
-            ) : (
-              // СОСТОЯНИЕ 2: Кнопки действий (Появляются после "видео")
+          {/* Оверлей с кнопками (Появляется поверх последнего кадра видео) */}
+          <AnimatePresence>
+            {isVideoFinished && (
               <motion.div
                 key="action-buttons"
-                variants={videoContentVariants}
-                initial="initial"
-                animate="animate"
-                className="absolute inset-0 flex flex-col sm:flex-row items-center justify-center gap-6 p-8 bg-[#0a0f1c]/80 backdrop-blur-sm"
+                initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                animate={{ opacity: 1, backdropFilter: "blur(12px)", transition: { duration: 0.6 } }}
+                exit={{ opacity: 0, backdropFilter: "blur(0px)", transition: { duration: 0.4 } }}
+                className="absolute inset-0 flex flex-col sm:flex-row items-center justify-center gap-6 p-8 bg-[#0a0f1c]/70 z-10"
               >
                 
-                {/* КНОПКА 1: Каталог (Стиль как в главном Hero) */}
+                {/* КНОПКА 1: Каталог */}
                 <motion.button 
                   whileHover={{ scale: 1.03, y: -2 }} 
                   whileTap={{ scale: 0.98 }}
@@ -110,10 +110,10 @@ export function PresentationHero() {
                   className="w-full sm:w-auto bg-brand-blue text-white px-10 py-5 rounded-2xl font-bold text-xl hover:bg-[#007cbd] transition-all shadow-xl shadow-brand-blue/25 flex items-center justify-center gap-3 cursor-pointer border-none"
                 >
                   {t("catalog_btn")}
-                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-6 h-6" />
                 </motion.button>
                 
-                {/* КНОПКА 2: Контакты (Outline стиль) */}
+                {/* КНОПКА 2: Контакты */}
                 <motion.button 
                   whileHover={{ scale: 1.03, backgroundColor: "rgba(255,255,255,0.05)" }} 
                   whileTap={{ scale: 0.98 }}
@@ -124,37 +124,33 @@ export function PresentationHero() {
                   {t("contact_btn")}
                 </motion.button>
 
-                {/* Кнопка "Сбросить" (только для теста симуляции) */}
+                {/* Кнопка "Повторить видео" */}
                 <button 
-    onClick={() => setIsVideoFinished(false)} 
-    className="absolute bottom-4 right-4 text-xs text-gray-700 hover:text-gray-500 flex items-center gap-1 bg-transparent border-none cursor-pointer"
->
-    <RotateCcw className="w-3 h-3"/> Reset SIM
-</button>
+                  onClick={handleReplay} 
+                  className="absolute bottom-6 right-6 text-sm text-gray-400 hover:text-white flex items-center gap-2 bg-black/40 hover:bg-black/60 px-4 py-2 rounded-full backdrop-blur-md transition-all border border-white/10 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4"/> Повторить видео
+                </button>
 
               </motion.div>
             )}
           </AnimatePresence>
         </motion.div>
 
-
-        {/* --- НИЗ: ТЕКСТОВАЯ ЗОНА (Центрированная) --- */}
+        {/* --- НИЗ: ТЕКСТОВАЯ ЗОНА --- */}
         <motion.div 
           variants={itemVariants} 
           className="max-w-4xl text-center flex flex-col items-center"
         >
-          {/* Бадж */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-brand-blue text-sm md:text-base font-semibold mb-8 shadow-inner">
             <span className="flex w-2.5 h-2.5 rounded-full bg-brand-blue animate-pulse" />
             {t("badge")}
           </div>
           
-          {/* Заголовок */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] mb-8 tracking-tight text-white">
             {t("title_start")} <span className="text-brand-blue">{t("title_highlight")}</span>
           </h1>
           
-          {/* Описание */}
           <p className="text-lg md:text-2xl text-gray-400 max-w-3xl leading-relaxed font-medium">
             {t("description")}
           </p>
