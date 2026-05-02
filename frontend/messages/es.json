@@ -486,7 +486,13 @@
 "wholeAsset": "Activo completo",
 "readyBusiness": "Negocio llave en mano",
 "fullPrice": "Precio total",
-"buyBtn": "Comprar"
+"buyBtn": "Comprar",
+"badgeExclusive": "Activo Exclusivo",
+    "badgeBusiness": "Negocio Listo",
+    "fullPriceLabel": "Precio Total",
+    "pcs": "uds",
+    "statusSoldOut": "Vendido",
+    "buyAssetBtn": "Comprar Proyecto"
   },
   "CheckoutConsent": {
     "iAgreeTo": "Confirmo que he leído y acepto los términos del ",

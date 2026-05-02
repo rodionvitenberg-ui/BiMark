@@ -45,12 +45,12 @@ export default function ProjectDetail() {
         : (project.title[locale] || project.title["en"] || "Project");
 
     addItem({
-      item_type: 'share',                   // <-- Указываем тип!
-      item_id: project.id,                  // Было project_id
+      item_type: 'share',
+      item_id: project.id,
       title: title,
-      price: Number(project.price_per_share), // Было price_per_share
-      quantity: sharesToBuy,                // Было shares_amount
-      max_quantity: project.available_shares, // Было available_shares
+      price: Number(project.price_per_share),
+      quantity: sharesToBuy,
+      max_quantity: project.available_shares,
       image: currentImage,
     });
 
@@ -77,8 +77,49 @@ export default function ProjectDetail() {
     );
   }
 
+  // Универсальное извлечение текстов для микроразметки
+  const projectTitle = typeof project.title === 'string' ? project.title : (project.title[locale] || project.title["en"] || "Project");
+  const projectDescription = typeof project.description === 'string' ? project.description : (project.description[locale] || project.description["en"] || "");
+  const categoryName = project.category?.name[locale] || "Investment";
+
+  // ГЕНЕРАЦИЯ JSON-LD ДЛЯ GOOGLE (Схема: Product)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": `Доля в проекте: ${projectTitle}`, // Уточняем, что продается именно доля
+    "image": currentImage || "https://bimark.org/logo.png",
+    "description": projectDescription.replace(/<[^>]*>?/gm, ''), // Очищаем от HTML
+    "category": categoryName,
+    "brand": {
+      "@type": "Brand",
+      "name": "BiMark"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://bimark.org/${locale}/project/${project.slug}`,
+      "priceCurrency": "USD",
+      "price": project.price_per_share, // Цена за ОДНУ долю
+      "availability": project.available_shares > 0 ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+      "inventoryLevel": {
+        "@type": "QuantitativeValue",
+        "value": project.available_shares // Показываем Google, сколько долей осталось
+      },
+      "seller": {
+        "@type": "Organization",
+        "name": "BiMark Platform"
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black pt-24 pb-20">
+      
+      {/* ИНЖЕКЦИЯ МИКРОРАЗМЕТКИ */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <div className="max-w-7xl mx-auto px-4">
         
         <Link href="/category" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-blue transition-colors mb-8">
@@ -91,7 +132,7 @@ export default function ProjectDetail() {
           <div className="lg:col-span-2 space-y-8">
             <div className="aspect-video w-full bg-gray-200 dark:bg-zinc-900 rounded-3xl overflow-hidden relative">
               {currentImage ? (
-                <img src={currentImage} alt={typeof project.title === 'string' ? project.title : project.title[locale] || "Project"} className="w-full h-full object-cover" />
+                <img src={currentImage} alt={projectTitle} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">{t("noImage")}</div>
               )}
@@ -99,10 +140,10 @@ export default function ProjectDetail() {
 
             <div>
               <div className="inline-block px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
-                {project.category?.name[locale] || t("categoryFallback")}
+                {categoryName}
               </div>
               <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
-                {typeof project.title === 'string' ? project.title : project.title[locale]}
+                {projectTitle}
               </h1>
               
               <div 

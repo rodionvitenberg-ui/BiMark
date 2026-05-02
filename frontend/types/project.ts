@@ -26,6 +26,7 @@ export interface Project {
   available_shares: number;
   status: ProjectStatus;
   created_at: string;
+  updated_at?: string;
   is_token: boolean;
 }
 

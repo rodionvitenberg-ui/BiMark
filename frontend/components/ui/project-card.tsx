@@ -22,9 +22,19 @@ export function ProjectCard({ project }: ProjectCardProps) {
   const t = useTranslations("Projects");
   const locale = useLocale() as "ru" | "en" | "es";
 
-  // Локализация
-  const title = project.title[locale] || project.title.en || "Без названия";
-  const description = project.description[locale] || project.description.en || "";
+  // Локализация с безопасной проверкой типов
+  const title = typeof project.title === 'object' && project.title !== null
+    ? (project.title[locale] || project.title.en || "Без названия")
+    : (project.title || "Без названия");
+
+  // 1. Получаем сырое описание
+  const rawDescription = typeof project.description === 'object' && project.description !== null
+    ? (project.description[locale] || project.description.en || "")
+    : (project.description || "");
+
+  // 2. Очищаем описание от HTML-тегов для превью
+  const cleanDescription = rawDescription.replace(/<[^>]*>?/gm, '');
+
   const categoryName = project.category?.name[locale] || t("uncategorized");
 
   // Математика долей для HP бара
@@ -62,8 +72,9 @@ export function ProjectCard({ project }: ProjectCardProps) {
             {title}
           </CardTitle>
         </Link>
+        {/* Выводим очищенное описание */}
         <CardDescription className="line-clamp-2 text-md text-gray-500 leading-relaxed">
-          {description}
+          {cleanDescription}
         </CardDescription>
       </CardHeader>
 

@@ -19,21 +19,21 @@ interface AssetCardProps {
 }
 
 export function AssetCard({ asset }: AssetCardProps) {
-  // Переключили на пространство имен Assets для порядка
   const t = useTranslations("Assets"); 
   const locale = useLocale() as "ru" | "en" | "es";
 
-  // Локализация
-  // Локализация (безопасная проверка для TypeScript)
   const title = typeof asset.title === 'object' && asset.title !== null
     ? (asset.title[locale] || asset.title.en || "Без названия")
     : (asset.title || "Без названия");
 
-  const description = typeof asset.description === 'object' && asset.description !== null
+  // 1. Получаем сырое описание (с HTML)
+  const rawDescription = typeof asset.description === 'object' && asset.description !== null
     ? (asset.description[locale] || asset.description.en || "")
     : (asset.description || "");
 
-  // Форматирование цены
+  // 2. Очищаем от HTML-тегов для превью
+  const cleanDescription = rawDescription.replace(/<[^>]*>?/gm, '');
+
   const formatCurrency = (value: number | string) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value));
 
@@ -48,22 +48,20 @@ export function AssetCard({ asset }: AssetCardProps) {
   return (
     <Card className="group flex flex-col h-full bg-white hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden gap-0">
       
-      {/* ШАПКА: Заголовок и Описание */}
       <CardHeader className="p-3 pb-2 pt-0">
         <Link href={assetUrl} className="block">
           <CardTitle className="text-2xl font-bold text-brand-black line-clamp-1 group-hover:text-brand-blue transition-colors">
             {title}
           </CardTitle>
         </Link>
+        {/* Выводим очищенное описание */}
         <CardDescription className="line-clamp-2 text-md text-gray-500 leading-relaxed">
-          {description}
+          {cleanDescription}
         </CardDescription>
       </CardHeader>
 
-      {/* КОНТЕНТ: Картинка и Информация */}
       <CardContent className="p-2 pt-0 flex-1 flex flex-col">
         
-        {/* Увеличили отступ снизу (mb-4 вместо mb-2), так как убрали полоску */}
         <Link href={assetUrl} className="block w-full h-40 relative rounded-xl overflow-hidden shrink-0 mb-4 bg-gray-100">
           <img 
             src={imageSrc} 
@@ -72,11 +70,7 @@ export function AssetCard({ asset }: AssetCardProps) {
           />
         </Link>
 
-        {/* Полоска статуса полностью удалена */}
-
-        {/* Блок с информацией (Уникальность и Тип) */}
         <div className="flex flex-col gap-2.5 mt-auto">
-          {/* Уникальность с переводами */}
           <div className="flex items-center text-sm text-gray-500 font-medium">
             <Gem className={`w-4 h-4 mr-2 shrink-0 ${asset.is_unique ? 'text-brand-blue' : 'text-gray-400'}`} />
             <span>
@@ -86,7 +80,6 @@ export function AssetCard({ asset }: AssetCardProps) {
             </span>
           </div>
           
-          {/* Тип с переводами */}
           <div className="flex items-center text-sm text-gray-500 font-medium truncate">
             <Briefcase className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
             <span className="truncate">{t("readyBusiness", { fallback: "Готовый бизнес" })}</span>
@@ -95,7 +88,6 @@ export function AssetCard({ asset }: AssetCardProps) {
         
       </CardContent>
 
-      {/* ФУТЕР: Полная Цена и Кнопка */}
       <CardFooter className="p-3 pt-0 flex items-center justify-between mt-auto border-t border-gray-50/50 mt-0">
         <div className="flex flex-col">
           <span className="text-xl font-black text-brand-black leading-none">

@@ -486,7 +486,13 @@
 "wholeAsset": "Whole asset",
 "readyBusiness": "Turnkey business",
 "fullPrice": "Total price",
-"buyBtn": "Buy"
+"buyBtn": "Buy",
+"badgeExclusive": "Exclusive Asset",
+    "badgeBusiness": "Ready Business",
+    "fullPriceLabel": "Full Price",
+    "pcs": "pcs",
+    "statusSoldOut": "Sold Out",
+    "buyAssetBtn": "Buy Project"
   },
   "CheckoutConsent": {
     "iAgreeTo": "I confirm that I have read and agree to the terms of the ",

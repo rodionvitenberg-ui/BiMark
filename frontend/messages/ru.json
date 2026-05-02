@@ -484,7 +484,13 @@
 "wholeAsset": "Актив целиком",
 "readyBusiness": "Готовый бизнес",
 "fullPrice": "Полная стоимость",
-"buyBtn": "Купить"
+"buyBtn": "Купить",
+"badgeExclusive": "Эксклюзивный актив",
+    "badgeBusiness": "Готовый бизнес",
+    "fullPriceLabel": "Полная стоимость",
+    "pcs": "шт",
+    "statusSoldOut": "Продано",
+    "buyAssetBtn": "Купить проект"
   },
   "CheckoutConsent": {
     "iAgreeTo": "Я подтверждаю, что прочитал и принимаю условия ",
