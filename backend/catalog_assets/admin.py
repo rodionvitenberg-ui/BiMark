@@ -40,7 +40,9 @@ class AssetOwnershipAdmin(admin.ModelAdmin):
     list_display = ('user', 'asset', 'purchase_price', 'purchased_at')
     list_filter = ('purchased_at',)
     search_fields = ('user__email', 'asset__title')
-    readonly_fields = ('user', 'asset', 'purchase_price', 'purchased_at')
+    
+    # Оставляем только дату покупки, остальные поля делаем редактируемыми
+    readonly_fields = ('purchased_at',)
     
     # Запрещаем удалять записи о владении руками
     def has_delete_permission(self, request, obj=None):
