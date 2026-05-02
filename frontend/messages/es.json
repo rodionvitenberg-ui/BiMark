@@ -601,11 +601,17 @@
     "badge": "Presentación de la plataforma",
     "title_start": "Invierta en el futuro con",
     "title_highlight": "Bimark",
-    "description": "Aquí irá esa \"pequeña\" descripción que aún no hemos inventado. Explicará las principales ventajas и guiará suavemente al usuario hacia la acción.",
+    "description": "Cada lote en nuestro catálogo es un activo operativo con una audiencia leal que genera beneficios netos. Los proyectos digitales crecen en valor más rápido que los inmuebles: asegure su nicho ahora.",
+    "feature_1_title": "Gestión integral",
+    "feature_1_desc": "¿No quiere dedicar tiempo a la operatividad? Proporcionamos un equipo que se encargará de la creación de contenido y la promoción mientras usted recibe ingresos.",
+    "feature_2_title": "Pago flexible",
+    "feature_2_desc": "Pague al instante con criptomonedas en el sitio. ¿Prefiere una transferencia bancaria o una reunión personal? Nuestro asesor organizará la transacción en el formato que le resulte más cómodo.",
+    "feature_3_title": "Transparencia total",
+    "feature_3_desc": "Antes de comprar, puede recibir el enlace al proyecto, solicitar todas las métricas y hacer cualquier pregunta. Sin condiciones ocultas.",
     "catalog_btn": "Ir al catálogo",
     "contact_btn": "Contactar al asesor",
-    "video_placeholder": "Aquí se mostrará el video infográfico",
-    "video_play_instruction": "Нажмите для симуляции просмотра"
+    "replay_btn": "Repetir video",
+    "watch_presentation_btn": "Ver presentación"
   },
   "PresentationCatalog": {
     "title": "Catálogo de Inversiones",

@@ -601,11 +601,17 @@
     "badge": "Platform Presentation",
     "title_start": "Invest in the future with",
     "title_highlight": "Bimark",
-    "description": "This is where that \"little bit\" of description we haven't thought of yet will go. It will highlight the main benefits and smoothly guide the user toward taking action.",
+    "description": "Every listing in our catalog is a live asset with a loyal audience, generating net profit. Digital projects appreciate faster than real estate - seize the opportunity to secure your niche.",
+    "feature_1_title": "Turnkey Management",
+    "feature_1_desc": "Don't want to spend time on operations? We provide a team to handle content creation and promotion while you earn income.",
+    "feature_2_title": "Flexible Payment",
+    "feature_2_desc": "Pay instantly with cryptocurrency on the site. Prefer a bank transfer or a face-to-face meeting? Our manager will organize the deal in the format that suits you best.",
+    "feature_3_title": "Full Transparency",
+    "feature_3_desc": "Before purchasing, you can receive a link to the project, request all metrics, and ask any questions. No hidden terms.",
     "catalog_btn": "Go to Catalog",
     "contact_btn": "Contact Manager",
-    "video_placeholder": "Infographic video will be here",
-    "video_play_instruction": "Нажмите для симуляции просмотра"
+    "replay_btn": "Replay Video",
+    "watch_presentation_btn": "Watch Presentation"
   },
   "PresentationCatalog": {
     "title": "Investment Catalog",

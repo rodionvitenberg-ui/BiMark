@@ -130,7 +130,7 @@ export default function CheckoutPage() {
               {items.map((item: any) => {
                 const id = item.item_id || item.project_id;
                 const qty = item.quantity || item.shares_amount || 1;
-                const maxQty = item.available_shares || 1;
+                const maxQty = item.max_quantity || item.available_shares || 1;
                 const itemPrice = item.price_per_share || item.price;
                 const isAsset = item.item_type === 'asset';
 
