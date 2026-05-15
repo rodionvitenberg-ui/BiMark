@@ -8,7 +8,7 @@ import { motion, Variants } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
 import { apiClient } from "../../lib/api/client";
-import { Project, Asset } from "../../types/project"; // <-- Импортируем оба типа
+import { Project, Asset } from "../../types/project"; 
 import { Card } from "../ui/card"; 
 
 // EMBLA CAROUSEL
@@ -54,7 +54,6 @@ export function Hero() {
     
     if (combined.length === 0) return [];
     
-    // Перемешиваем и берем 5 случайных элементов
     const shuffled = combined.sort(() => 0.5 - Math.random()).slice(0, 5);
     
     return shuffled.map((item) => {
@@ -63,14 +62,23 @@ export function Hero() {
         ? (item.title[locale] || item.title.en || item.title.ru || "Без названия")
         : (item.title || "Без названия");
 
-      // Извлекаем описание (у Asset нет short_description, берем обычное)
-      const shortDesc = 'short_description' in item && typeof item.short_description === 'object' && item.short_description !== null
+      // Извлекаем сырое короткое описание
+      const rawShortDesc = 'short_description' in item && typeof item.short_description === 'object' && item.short_description !== null
         ? (item.short_description[locale] || item.short_description.en || item.short_description.ru)
         : null;
         
-      const fallbackDesc = typeof item.description === 'object' && item.description !== null
+      // Извлекаем сырое обычное описание
+      const rawFallbackDesc = typeof item.description === 'object' && item.description !== null
         ? (item.description[locale] || item.description.en || item.description.ru || "")
         : (item.description || "");
+
+      // ОЧИСТКА ОТ HTML-ТЕГОВ
+      const cleanShortDesc = rawShortDesc ? rawShortDesc.replace(/<[^>]*>?/gm, '') : null;
+      const cleanFallbackDesc = rawFallbackDesc.replace(/<[^>]*>?/gm, '');
+
+      // Умная обрезка текста: добавляем троеточие только если текст реально длинный
+      const finalDescription = cleanShortDesc || 
+        (cleanFallbackDesc.length > 250 ? cleanFallbackDesc.substring(0, 250) + "..." : cleanFallbackDesc);
 
       // Универсальное извлечение картинки
       const currentImage = typeof item.image === 'object' && item.image !== null
@@ -84,7 +92,7 @@ export function Hero() {
         id: item.id.toString(),
         href,
         title,
-        description: shortDesc || (fallbackDesc.substring(0, 150) + "..."),
+        description: finalDescription,
         image: currentImage,
         isAsset,
         isUnique: isAsset ? (item as Asset).is_unique : false,
@@ -129,7 +137,6 @@ export function Hero() {
             </motion.p>
             
             <motion.div variants={itemVariants} className="flex flex-row items-center justify-start gap-4 flex-wrap md:flex-nowrap">
-              {/* АНИМИРОВАННАЯ КНОПКА 1 */}
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto flex">
                 <Link href="/category" className="w-full bg-brand-blue text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#007cbd] transition-colors shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 text-center group">
                   {t("primaryCta")}
@@ -137,7 +144,6 @@ export function Hero() {
                 </Link>
               </motion.div>
               
-              {/* АНИМИРОВАННАЯ КНОПКА 2 */}
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="w-full sm:w-auto flex">
                 <Link href="/presentation" className="w-full px-8 py-4 rounded-xl font-bold text-lg text-white hover:bg-white/10 transition-colors flex items-center justify-center gap-2 border border-transparent hover:border-white/20 text-center">
                   <PlayCircle className="w-5 h-5 hidden md:block" />
