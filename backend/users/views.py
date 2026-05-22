@@ -191,7 +191,7 @@ def send_beautiful_otp_email(user_email, otp_code, is_reset=False, locale='en'):
             'msg_otp': 'Usa este código para verificar tu dirección de correo electrónico:',
             'warning': 'No compartas este código con nadie. Nuestros empleados nunca te lo pedirán.',
             'ignore': 'Si no solicitaste este código, simplemente ignora este correo electrónico.',
-            'rights': '© 2026 Bimark. Todos los derechos reservados.'
+            'rights': '© 2026 Bimark. as los derechos reservados.'
         }
     }
 

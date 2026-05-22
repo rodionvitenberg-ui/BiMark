@@ -52,6 +52,8 @@ urlpatterns = [
     # Маршруты для восстановления пароля
     path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('api/users/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
+
+    path('api/ai/', include('ai_assistant.urls')),
 ]
 
 if settings.DEBUG:
