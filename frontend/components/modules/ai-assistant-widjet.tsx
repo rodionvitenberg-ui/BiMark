@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { buildPageContext } from "../../lib/utils/ai-context";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -147,12 +148,15 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
                 const isAI = msg.role === "assistant";
                 return (
                   <div key={index} className={`flex gap-3 max-w-[85%] ${isAI ? "mr-auto" : "ml-auto flex-row-reverse"}`}>
-                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${isAI ? "bg-brand-blue/10 text-brand-blue border border-brand-blue/20" : "bg-white/10 text-gray-300 border border-white/10"}`}>
-                      {isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
-                    </div>
-                    <div className={`p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${isAI ? "bg-[#1e293b] text-gray-100 rounded-tl-none border border-gray-800" : "bg-brand-blue text-white rounded-tr-none shadow-md shadow-brand-blue/10"}`}>
-                      {msg.content}
-                    </div>
+                    <div className={`p-3 rounded-2xl text-sm leading-relaxed ${isAI ? "bg-[#1e293b] text-gray-100 rounded-tl-none border border-gray-800" : "bg-brand-blue text-white rounded-tr-none"}`}>
+  {isAI ? (
+    <ReactMarkdown className="prose prose-invert text-sm max-w-none space-y-2">
+      {msg.content}
+    </ReactMarkdown>
+  ) : (
+    <p className="whitespace-pre-wrap">{msg.content}</p>
+  )}
+</div>
                   </div>
                 );
               })}
