@@ -11,6 +11,7 @@ import "./globals.css";
 import { Footer } from "../../components/modules/footer";
 import { CookieConsent } from "../../components/ui/cookie-consent";
 import { ToastProvider } from '@/components/ui/toast';
+import { AIAssistantWidget } from "../../components/modules/ai-assistant-widjet";
 
 const manrope = Manrope({ 
   subsets: ["latin", "cyrillic"],
@@ -69,6 +70,7 @@ export default async function RootLayout({
                 </main>
                 <Footer />
               </ToastProvider>
+              <AIAssistantWidget />
               <CookieConsent />
             </GoogleProvider>
           </QueryProvider>
