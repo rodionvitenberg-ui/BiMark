@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLocale } from "next-intl";
-import { usePathname } from "../../i18n/routing"; // Или из твоего i18n/routing
+import { usePathname } from "../../i18n/routing"; 
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
@@ -15,7 +15,7 @@ interface Message {
 }
 
 interface AIAssistantWidgetProps {
-  currentPageData?: any; // Сюда можно прокинуть данные проекта/ассета со страницы
+  currentPageData?: any; 
 }
 
 export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
@@ -26,11 +26,19 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false); // Защита от Hydration Mismatch
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Безопасный клиентский монтаж для Next.js SSR
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // 1. Загрузка истории из LocalStorage при монтировании
   useEffect(() => {
+    if (!isMounted) return;
+
     const savedMessages = localStorage.getItem("bimark_ai_chat_history");
     if (savedMessages) {
       try {
@@ -47,14 +55,14 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
       };
       setMessages([{ role: "assistant", content: greetings[locale] || greetings.en }]);
     }
-  }, [locale]);
+  }, [locale, isMounted]);
 
   // 2. Сохранение истории в LocalStorage при обновлении сообщений
   useEffect(() => {
-    if (messages.length > 0) {
+    if (isMounted && messages.length > 0) {
       localStorage.setItem("bimark_ai_chat_history", JSON.stringify(messages));
     }
-  }, [messages]);
+  }, [messages, isMounted]);
 
   // 3. Автоскролл вниз при появлении новых сообщений
   useEffect(() => {
@@ -101,8 +109,11 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
     setMessages(savedGreeting.length ? savedGreeting : []);
   };
 
+  // Не рендерим разметку на сервере до момента гидратации
+  if (!isMounted) return null;
+
   return (
-    <div className="fixed bottom-6 right-6 z-50 font-sans text-white">
+    <div className="fixed bottom-6 right-6 z-[9999] font-sans text-white">
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -148,15 +159,26 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
                 const isAI = msg.role === "assistant";
                 return (
                   <div key={index} className={`flex gap-3 max-w-[85%] ${isAI ? "mr-auto" : "ml-auto flex-row-reverse"}`}>
-                    <div className={`p-3 rounded-2xl text-sm leading-relaxed ${isAI ? "bg-[#1e293b] text-gray-100 rounded-tl-none border border-gray-800" : "bg-brand-blue text-white rounded-tr-none"}`}>
-  {isAI ? (
-    <ReactMarkdown className="prose prose-invert text-sm max-w-none space-y-2">
-      {msg.content}
-    </ReactMarkdown>
-  ) : (
-    <p className="whitespace-pre-wrap">{msg.content}</p>
-  )}
-</div>
+                    <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs ${isAI ? "bg-brand-blue/10 text-brand-blue border border-brand-blue/20" : "bg-white/10 text-gray-300 border border-white/10"}`}>
+                      {isAI ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                    </div>
+                    <div className={`p-3 rounded-2xl text-sm leading-relaxed ${isAI ? "bg-[#1e293b] text-gray-100 rounded-tl-none border border-gray-800" : "bg-brand-blue text-white rounded-tr-none shadow-md shadow-brand-blue/10"}`}>
+                      {isAI ? (
+                        /* ИСПРАВЛЕНО: Перенесли className в обёртку-div, так как ReactMarkdown v9 больше не принимает className напрямую */
+                        <div className="space-y-2 text-gray-100 break-words 
+                          [&_strong]:font-extrabold [&_strong]:text-white 
+                          [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-2 
+                          [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-2
+                          [&_li]:mb-1 [&_li]:text-gray-200"
+                        >
+                          <ReactMarkdown>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -198,11 +220,10 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
 
       {/* ТРИГГЕР-КНОПКА КРУГЛЯШОК */}
       <motion.button
-        // ИСПРАВЛЕНО: Заменили shadow на boxShadow
         whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(0,124,189,0.5)" }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 bg-brand-blue rounded-full text-white flex items-center justify-center shadow-xl shadow-brand-blue/20 cursor-pointer border-none ml-auto relative group overflow-hidden"
+        className="w-14 h-14 bg-brand-blue rounded-full text-white flex items-center justify-center shadow-xl shadow-brand-blue/20 cursor-pointer border-none ml-auto relative group overflow-hidden z-[9999]"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
