@@ -248,7 +248,7 @@ export function AIAssistantWidget() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h4 className="font-bold text-sm">BiMark Agent v2</h4>
+                    <h4 className="font-bold text-sm">BiMark Bot</h4>
                     <Sparkles className="w-3 h-3 text-brand-blue animate-pulse" />
                   </div>
                   <span className="text-[11px] text-green-400 flex items-center gap-1">
