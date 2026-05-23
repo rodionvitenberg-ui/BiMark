@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocale } from "next-intl";
 import { usePathname } from "../../i18n/routing"; 
 import { motion, AnimatePresence } from "framer-motion";
@@ -24,6 +24,7 @@ export function AIAssistantWidget() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [quickReplies, setQuickReplies] = useState<string[]>([]); // Динамический стейт для подсказок[cite: 6]
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +32,7 @@ export function AIAssistantWidget() {
     setIsMounted(true);
   }, []);
 
-  // 1. Загрузка истории из LocalStorage
+  // 1. Загрузка истории из LocalStorage[cite: 6]
   useEffect(() => {
     if (!isMounted) return;
 
@@ -46,47 +47,52 @@ export function AIAssistantWidget() {
       const greetings: Record<string, string> = {
         ru: "Привет! Я ИИ-агент BiMark. Я имею прямой доступ к актуальной базе данных активов и юридическим правилам платформы. Чем могу помочь?",
         en: "Hello! I am the BiMark AI Agent. I have direct access to the live asset database and official legal guidelines. How can I assist you today?",
-        es: "¡Hola! Soy el Agente de IA de BiMark. Tengo acceso directo a la base de datos de activos y directrices legales. ¿Cómo puedo ayudarte hoy?"
+        es: "¡Hola! Soy el Agente di IA de BiMark. Tengo acceso directo a la base de datos de activos y directrices legales. ¿Cómo puedo ayudarte hoy?"
       };
       setMessages([{ role: "assistant", content: greetings[locale] || greetings.en }]);
     }
   }, [locale, isMounted]);
 
-  // 2. Сохранение истории в LocalStorage
+  // 2. Сохранение истории в LocalStorage[cite: 6]
   useEffect(() => {
     if (isMounted && messages.length > 0) {
       localStorage.setItem("bimark_ai_chat_history", JSON.stringify(messages));
     }
   }, [messages, isMounted]);
 
-  // 3. Автоскролл
+  // 3. Автоскролл[cite: 6]
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isOpen]);
 
-  // ДИНАМИЧЕСКИЕ ПОДСКАЗКИ (Quick Reply Chips)
-  const quickReplies = useMemo(() => {
-    if (pathname === "/" || pathname === "") {
-      return locale === "ru" 
-        ? ["Как устроены выплаты?", "Покажи новинки каталога", "Связаться с владельцем"]
-        : ["How do payouts work?", "Show catalog updates", "Contact platform owner"];
-    }
-    if (pathname.includes("/token")) {
-      return locale === "ru"
-        ? ["Какая аллокация на раунде?", "Расскажи про токеномику BMK", "Где купить токен?"]
-        : ["What is the token allocation?", "About BMK Tokenomics", "Where to buy BMK?"];
-    }
-    return locale === "ru"
-      ? ["Какая минимальная гарантия выплат?", "Связаться с менеджером"]
-      : ["What is the minimum payout guarantee?", "Contact official manager"];
-  }, [pathname, locale]);
+  // 4. Загрузка динамических подсказок из админки Django[cite: 6]
+  useEffect(() => {
+    if (!isMounted) return;
 
-  // СТРИМИНГ И ОБРАБОТКА ФУНКЦИЙ АГЕНТА
-  // СТРИМИНГ И ОБРАБОТКА ФУНКЦИЙ АГЕНТА
+    const fetchQuickReplies = async () => {
+      try {
+        const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const baseUrl = rawApiUrl.replace(/\/$/, "");
+        
+        // Передаем текущий путь и локаль в query-параметрах на бэкенд
+        const res = await fetch(`${baseUrl}/api/ai/quick-replies/?path=${encodeURIComponent(pathname)}&locale=${locale}`);
+        
+        if (res.ok) {
+          const data = await res.json();
+          setQuickReplies(data);
+        }
+      } catch (err) {
+        console.error("Ошибка загрузки быстрых подсказок ИИ:", err);
+      }
+    };
+
+    fetchQuickReplies();
+  }, [pathname, locale, isMounted]);
+
+  // СТРИМИНГ И ОБРАБОТКА ФУНКЦИЙ АГЕНТА[cite: 6]
   const handleProcessStream = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
-    // 1. СТРОГИЙ КЛИЕНТСКИЙ ПЕРЕХВАТ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
     const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
     
     if (!rawApiUrl) {
@@ -103,7 +109,6 @@ export function AIAssistantWidget() {
       return;
     }
 
-    // Автоматически убираем завершающий слэш из .env, если он там есть, предотвращая баг двойного слэша //
     const baseUrl = rawApiUrl.replace(/\/$/, "");
 
     const userMessage: Message = { role: "user", content: textToSend.trim() };
@@ -116,7 +121,6 @@ export function AIAssistantWidget() {
     const pageContext = buildPageContext(locale, pathname, pageData);
 
     try {
-      // Стучимся строго по очищенному адресу из конфига
       console.log(`🚀 Sending stream request to: ${baseUrl}/api/ai/chat/`);
       
       const response = await fetch(`${baseUrl}/api/ai/chat/`, {
@@ -240,7 +244,7 @@ export function AIAssistantWidget() {
             transition={{ type: "spring", duration: 0.5 }}
             className="w-[360px] sm:w-[420px] h-[580px] bg-[#0f172a]/95 backdrop-blur-xl border border-gray-800 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden mb-4"
           >
-            {/* ШАПКА ЧАТА */}
+            {/* ШАПКА ЧАТА[cite: 6] */}
             <div className="p-4 bg-[#1e293b] border-b border-gray-800 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand-blue/20 border border-brand-blue/40 flex items-center justify-center text-brand-blue shadow-[0_0_15px_rgba(0,124,189,0.2)]">
@@ -272,7 +276,7 @@ export function AIAssistantWidget() {
               </div>
             </div>
 
-            {/* ЗОНА СООБЩЕНИЙ (ИСПРАВЛЕНО: Полностью скрыт скроллбар) */}
+            {/* ЗОНА СООБЩЕНИЙ (Скрытый скроллбар)[cite: 6] */}
             <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#0a0f1c]/50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none]">
               {messages.map((msg, index) => {
                 const isAI = msg.role === "assistant";
@@ -326,7 +330,7 @@ export function AIAssistantWidget() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* БЛОК БЫСТРЫХ ВОПРОСОВ (ИСПРАВЛЕНО: Теперь они аккуратно переносятся плиткой, без горизонтального скролла) */}
+            {/* БЛОК БЫСТРЫХ ВОПРОСОВ (Перенос плиткой без скролла)[cite: 6] */}
             {quickReplies.length > 0 && !isLoading && (
               <div className="p-3 bg-[#0a0f1c]/90 border-t border-gray-900 flex flex-wrap gap-1.5 justify-start">
                 {quickReplies.map((reply, idx) => (
@@ -341,7 +345,7 @@ export function AIAssistantWidget() {
               </div>
             )}
 
-            {/* ИНПУТ ОТПРАВКИ */}
+            {/* ИНПУТ ОТПРАВКИ[cite: 6] */}
             <form onSubmit={(e) => { e.preventDefault(); handleProcessStream(input); }} className="p-3 bg-[#1e293b] border-t border-gray-800 flex gap-2 items-center">
               <input
                 type="text"
@@ -363,7 +367,7 @@ export function AIAssistantWidget() {
         )}
       </AnimatePresence>
 
-      {/* ТРИГГЕР-КНОПКА */}
+      {/* ТРИГГЕР-КНОПКА[cite: 6] */}
       <motion.button
         whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(0,124,189,0.5)" }}
         whileTap={{ scale: 0.95 }}

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
-from .models import AssistantConfig
+from .models import AssistantConfig, AssistantQuickReply
 
 @admin.register(AssistantConfig)
 class AssistantConfigAdmin(admin.ModelAdmin):
@@ -41,3 +41,9 @@ class AssistantConfigAdmin(admin.ModelAdmin):
         # ИСПРАВЛЕНО: Заменили self.model_meta на self.model._meta
         opts = self.model._meta
         return redirect(reverse(f'admin:{opts.app_label}_{opts.model_name}_change', args=(obj.pk,)))
+
+@admin.register(AssistantQuickReply)    
+class AssistantQuickReplyAdmin(admin.ModelAdmin):
+    list_display = ('text', 'path', 'locale', 'order')
+    list_filter = ('locale', 'path')
+    search_fields = ('text', 'path')

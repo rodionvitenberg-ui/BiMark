@@ -74,3 +74,40 @@ class AssistantConfig(models.Model):
         if not self.pk and AssistantConfig.objects.exists():
             self.pk = AssistantConfig.objects.first().pk
         super().save(*args, **kwargs)
+
+class AssistantQuickReply(models.Model):
+    class LocaleChoices(models.TextChoices):
+        RU = 'ru', 'Russian'
+        EN = 'en', 'English'
+        ES = 'es', 'Spanish'
+
+    path = models.CharField(
+        max_length=255, 
+        default="/", 
+        verbose_name="Путь страницы (URL)",
+        help_text="Например: '/' для главной, '/token' для страницы токена."
+    )
+    locale = models.CharField(
+        max_length=10, 
+        choices=LocaleChoices.choices, 
+        default=LocaleChoices.EN,
+        verbose_name="Язык интерфейса"
+    )
+    text = models.CharField(
+        max_length=255, 
+        verbose_name="Текст быстрой подсказки"
+    )
+    order = models.PositiveIntegerField(
+        default=0, 
+        verbose_name="Порядок сортировки",
+        help_text="Чем меньше число, тем левее/выше будет кнопка на сайте."
+    )
+
+    class Meta:
+        db_table = 'assistant_quick_replies'
+        ordering = ['order', 'id']
+        verbose_name = "Быстрая подсказка сайта"
+        verbose_name_plural = "Быстрые подсказки сайта"
+
+    def __str__(self):
+        return f"[{self.locale.upper()}] {self.path} — {self.text}"
