@@ -63,9 +63,22 @@ class AssistantConfig(models.Model):
     
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
 
+    tg_bot_token = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name="Telegram Bot Token",
+        help_text="Токен, полученный от @BotFather"
+    )
+    is_tg_bot_active = models.BooleanField(
+        default=False, 
+        verbose_name="Включить Telegram-бота",
+        help_text="Если выключено, бот будет игнорировать сообщения пользователей."
+    )
+
     class Meta:
-        verbose_name = "Конфигурация ИИ Ассистента"
-        verbose_name_plural = "Конфигурация ИИ Ассистента"
+        verbose_name = "Настройка ИИ-Агента"
+        verbose_name_plural = "Настройки ИИ-Агента"
 
     def __str__(self):
         return f"Настройки ИИ ({self.get_model_name_display()})"
