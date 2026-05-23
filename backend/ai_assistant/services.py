@@ -154,3 +154,49 @@ class AIAssistantService:
         except Exception as e:
             logger.error(f"Stream generation error: {str(e)}")
             yield "data: " + json.dumps({"content": "Technical error occurred."}) + "\n\n"
+
+    @classmethod
+    def generate_response(cls, messages: list, page_context: str = None) -> str:
+        """
+        Обычный (не потоковый) запрос к LLM.
+        Используется Telegram-ботом для получения готового текста целиком.
+        """
+        client, config = cls.get_client_and_config()
+        if not client:
+            return "AI Assistant is offline."
+
+        current_locale = 'en'
+        if page_context and "<current_language>" in page_context:
+            try:
+                current_locale = page_context.split("<current_language>")[1].split("</current_language>")[0].strip()
+            except Exception:
+                pass
+
+        # Сохраняем ту же самую последовательность для кэширования DeepSeek Context Caching
+        full_system_instruction = f"{config.system_prompt}\n\n"
+        full_system_instruction += f"BIMARK LIVE DATABASE CATALOG:\n{cls.build_backend_catalog_context(current_locale)}\n"
+        
+        if page_context:
+            full_system_instruction += f"\nFRONTEND PAGE CONTEXT:\n{page_context}\n"
+
+        api_messages = [{"role": "system", "content": full_system_instruction}]
+        for msg in messages:
+            if msg.get('role') in ['user', 'assistant']:
+                api_messages.append({"role": msg['role'], "content": msg['content']})
+
+        try:
+            kwargs = {
+                "model": config.model_name,
+                "messages": api_messages,
+                # stream=True НЕ передаем, нам нужен ответ целиком
+            }
+            # DeepSeek Reasoner (R1) падает, если передавать параметр temperature
+            if config.model_name != AssistantConfig.ModelChoices.DEEPSEEK_REASONER:
+                kwargs["temperature"] = config.temperature
+
+            response = client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
+
+        except Exception as e:
+            logger.error(f"Error in non-stream AI generation: {str(e)}")
+            return "Technical error occurred while generating response."
