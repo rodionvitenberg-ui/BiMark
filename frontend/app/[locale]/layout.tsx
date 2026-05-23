@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Golos_Text } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages, getTranslations } from "next-intl/server"; // Добавили getTranslations
+import { getMessages, getTranslations } from "next-intl/server"; 
 import { notFound } from "next/navigation";
 import { routing } from "../../i18n/routing";
 import { QueryProvider } from "../../components/providers/query-provider";
@@ -12,6 +12,7 @@ import { Footer } from "../../components/modules/footer";
 import { CookieConsent } from "../../components/ui/cookie-consent";
 import { ToastProvider } from '@/components/ui/toast';
 import { AIAssistantWidget } from "../../components/modules/ai-assistant-widjet";
+import { AiContextProvider } from "../../components/providers/ai-context-provider";
 
 const manrope = Manrope({ 
   subsets: ["latin", "cyrillic"],
@@ -62,17 +63,21 @@ export default async function RootLayout({
       <body className={`${golos.variable} ${manrope.variable} font-sans min-h-[100dvh] flex flex-col antialiased bg-brand-light`}>
         <NextIntlClientProvider messages={messages}>
           <QueryProvider>
-            <GoogleProvider>
-              <ToastProvider>
-                <Header />
-                <main className="flex-1 flex flex-col w-full pt-16">
-                  {children}
-                </main>
-                <Footer />
-              </ToastProvider>
-              <AIAssistantWidget />
-              <CookieConsent />
-            </GoogleProvider>
+            <AiContextProvider>
+              <GoogleProvider>
+                <ToastProvider>
+                  <Header />
+                  <main className="flex-1 flex flex-col w-full pt-16">
+                    {children}
+                  </main>
+                  <Footer />
+                  
+                  {/* Виджеты вынесены в общий поток дерева, где им доступны все контексты */}
+                  <AIAssistantWidget />
+                  <CookieConsent />
+                </ToastProvider>
+              </GoogleProvider>
+            </AiContextProvider>
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

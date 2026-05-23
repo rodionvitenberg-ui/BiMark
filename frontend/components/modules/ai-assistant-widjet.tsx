@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, User, Loader2 } from "lucide-react";
 import { apiClient } from "../../lib/api/client";
 import { buildPageContext } from "../../lib/utils/ai-context";
+import { useAiPageContext } from "../providers/ai-context-provider";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -18,9 +19,10 @@ interface AIAssistantWidgetProps {
   currentPageData?: any; 
 }
 
-export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
+export function AIAssistantWidget() {
   const locale = useLocale();
   const pathname = usePathname();
+  const { pageData } = useAiPageContext();
   
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -80,8 +82,8 @@ export function AIAssistantWidget({ currentPageData }: AIAssistantWidgetProps) {
     setInput("");
     setIsLoading(true);
 
-    // Собираем XML-контекст текущей страницы
-    const pageContext = buildPageContext(locale, pathname, currentPageData);
+    // Передаем динамический pageData из контекста в утилиту сборки XML
+    const pageContext = buildPageContext(locale, pathname, pageData);
 
     try {
       const response = await apiClient.post("/ai/chat/", {
