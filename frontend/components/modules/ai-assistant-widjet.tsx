@@ -82,8 +82,29 @@ export function AIAssistantWidget() {
   }, [pathname, locale]);
 
   // СТРИМИНГ И ОБРАБОТКА ФУНКЦИЙ АГЕНТА
+  // СТРИМИНГ И ОБРАБОТКА ФУНКЦИЙ АГЕНТА
   const handleProcessStream = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
+
+    // 1. СТРОГИЙ КЛИЕНТСКИЙ ПЕРЕХВАТ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
+    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    if (!rawApiUrl) {
+      console.error("❌ [BiMark Env Error]: NEXT_PUBLIC_API_URL is missing in your .env.local file!");
+      setMessages((prev) => [
+        ...prev,
+        { 
+          role: "assistant", 
+          content: locale === 'ru' 
+            ? "Ошибка конфигурации: На фронтенде не задан адрес API бэкенда в файле .env.local." 
+            : "Configuration error: NEXT_PUBLIC_API_URL is undefined in .env.local." 
+        }
+      ]);
+      return;
+    }
+
+    // Автоматически убираем завершающий слэш из .env, если он там есть, предотвращая баг двойного слэша //
+    const baseUrl = rawApiUrl.replace(/\/$/, "");
 
     const userMessage: Message = { role: "user", content: textToSend.trim() };
     const updatedMessages = [...messages, userMessage];
@@ -95,8 +116,9 @@ export function AIAssistantWidget() {
     const pageContext = buildPageContext(locale, pathname, pageData);
 
     try {
-      // ИСПРАВЛЕНО: Добавлен жесткий fallback на localhost:8000, чтобы fetch не долбился в Next.js роуты
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      // Стучимся строго по очищенному адресу из конфига
+      console.log(`🚀 Sending stream request to: ${baseUrl}/api/ai/chat/`);
+      
       const response = await fetch(`${baseUrl}/api/ai/chat/`, {
         method: "POST",
         headers: {
@@ -109,7 +131,7 @@ export function AIAssistantWidget() {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error("Network stream failure");
+        throw new Error(`Network stream failure. Status: ${response.status}`);
       }
 
       const reader = response.body.getReader();
@@ -154,7 +176,7 @@ export function AIAssistantWidget() {
                 }
               }
             } catch (e) {
-              // Игнорируем неполные чанки JSON
+              // Пропускаем битые чанки
             }
           }
         }
@@ -181,7 +203,6 @@ export function AIAssistantWidget() {
       console.error("Критическая ошибка стрима ассистента:", error);
       setMessages((prev) => {
         const updated = [...prev];
-        // Если последнее сообщение пустое из-за упавшего стрима — удаляем или заменяем его
         if (updated[updated.length - 1]?.content === "") {
           updated.pop();
         }
@@ -189,7 +210,9 @@ export function AIAssistantWidget() {
           ...updated,
           { 
             role: "assistant", 
-            content: locale === 'ru' ? "Сбой потока данных. Проверьте соединение с бэкендом." : "Data stream interrupted. Check backend connection." 
+            content: locale === 'ru' 
+              ? `Сбой потока данных. Убедитесь, что бэкенд запущен по адресу ${baseUrl}` 
+              : `Data stream interrupted. Target endpoint: ${baseUrl}` 
           }
         ];
       });
