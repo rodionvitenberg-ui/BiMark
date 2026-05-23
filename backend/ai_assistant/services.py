@@ -4,7 +4,7 @@ from openai import OpenAI
 from django.utils.html import strip_tags
 from rest_framework.exceptions import ValidationError
 from .models import AssistantConfig
-from apps.catalog.models import Project  # Твоя модель каталога[cite: 4]
+from catalog.models import Project  # Твоя модель каталога[cite: 4]
 
 logger = logging.getLogger(__name__)
 
