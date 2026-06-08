@@ -1,0 +1,135 @@
+
+
+========== START FILE: backend/referrals/tests.py ==========
+from django.test import TestCase
+
+# Create your tests here.
+
+========== END FILE: backend/referrals/tests.py ==========
+
+
+========== START FILE: backend/referrals/views.py ==========
+from django.shortcuts import render
+
+# Create your views here.
+
+========== END FILE: backend/referrals/views.py ==========
+
+
+========== START FILE: backend/referrals/apps.py ==========
+from django.apps import AppConfig
+
+
+class ReferralsConfig(AppConfig):
+    name = 'referrals'
+
+========== END FILE: backend/referrals/apps.py ==========
+
+
+========== START FILE: backend/referrals/admin.py ==========
+from django.contrib import admin
+from .models import Referral
+
+@admin.register(Referral)
+class ReferralAdmin(admin.ModelAdmin):
+    list_display = ('id', 'get_referrer', 'get_referred', 'created_at')
+    search_fields = ('referrer__email', 'referred__email')
+    readonly_fields = ('created_at',)
+
+    @admin.display(description='Кто пригласил (Рефовод)')
+    def get_referrer(self, obj):
+        return obj.referrer.email
+
+    @admin.display(description='Кого пригласили (Реферал)')
+    def get_referred(self, obj):
+        return obj.referred.email
+========== END FILE: backend/referrals/admin.py ==========
+
+
+========== START FILE: backend/referrals/services.py ==========
+from decimal import Decimal
+from django.conf import settings
+from .models import Referral
+from billing.models import Wallet
+from billing.services import WalletService
+
+class ReferralService:
+    
+    @classmethod
+    def process_purchase_bonus(cls, user, purchase_amount: Decimal, project_title: str = "Активы"):
+        """
+        Высчитывает и начисляет бонус пригласившему (если он есть) при покупке доли или корзины.
+        """
+        try:
+            # Ищем, кто пригласил этого пользователя
+            referral = Referral.objects.select_related('referrer').get(referred=user)
+            referrer = referral.referrer
+        except Referral.DoesNotExist:
+            return None  # Пользователь пришел сам, без ссылки
+
+        # УМНАЯ ЛОГИКА ПРОЦЕНТА:
+        # Берем персональный процент юзера. Если он None, берем базовый из настроек (по умолчанию 5.0)
+        if referrer.personal_referral_percent is not None:
+            percent = referrer.personal_referral_percent
+        else:
+            percent = getattr(settings, 'REFERRAL_PURCHASE_PERCENT', Decimal('5.0'))
+
+        # Считаем бонус (Сумма * Процент / 100)
+        bonus_amount = (purchase_amount * percent / Decimal('100')).quantize(Decimal('0.01'))
+
+        if bonus_amount > 0:
+            # Получаем кошелек пригласившего
+            wallet, _ = Wallet.objects.get_or_create(user=referrer)
+            
+            description = f"Реферальный бонус ({percent}%) за покупку пользователя {user.email}"
+            
+            # Начисляем деньги через надежный сервис
+            return WalletService.process_referral_bonus(
+                wallet_id=wallet.id, 
+                amount=bonus_amount, 
+                description=description
+            )
+        return None
+========== END FILE: backend/referrals/services.py ==========
+
+
+========== START FILE: backend/referrals/models.py ==========
+import uuid
+from django.db import models
+from django.conf import settings
+
+class Referral(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Тот, чья ссылка (кто пригласил)
+    referrer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='referrals_made'
+    )
+    
+    # Тот, кто зарегистрировался по ссылке (приглашенный)
+    # OneToOneField гарантирует, что юзера нельзя сделать чьим-то рефералом дважды
+    referred = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='referred_by'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'referrals'
+        verbose_name = 'Реферал'
+        verbose_name_plural = 'Рефералы'
+        # В Django 6.0 используем condition вместо check
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(referrer=models.F('referred')),
+                name='referrer_is_not_referred'
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.referrer.email} пригласил {self.referred.email}"
+========== END FILE: backend/referrals/models.py ==========

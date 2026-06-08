@@ -2,13 +2,13 @@
 
 import { useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { ArrowRight, PlayCircle, Layers3 } from "lucide-react";
+import { ArrowRight, PlayCircle, Layers3, Gem } from "lucide-react";
 import { Link } from "../../i18n/routing";
 import { motion, Variants } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 
 import { apiClient } from "../../lib/api/client";
-import { Asset } from "../../types/project"; 
+import { Project, Asset } from "../../types/project"; 
 import { Card } from "../ui/card"; 
 
 // EMBLA CAROUSEL
@@ -28,8 +28,17 @@ export function Hero() {
     ]
   );
 
-  // Запрашиваем только активы
-  const { data: assets, isLoading } = useQuery<Asset[]>({
+  // 1. Запрашиваем долевые проекты
+  const { data: projects, isLoading: isProjectsLoading } = useQuery<Project[]>({
+    queryKey: ["projects", "hero-random"],
+    queryFn: async () => {
+      const response = await apiClient.get("/projects/");
+      return response.data.results || response.data;
+    },
+  });
+
+  // 2. Запрашиваем активы
+  const { data: assets, isLoading: isAssetsLoading } = useQuery<Asset[]>({
     queryKey: ["assets", "hero-random"],
     queryFn: async () => {
       const response = await apiClient.get("/assets/");
@@ -37,47 +46,59 @@ export function Hero() {
     },
   });
 
-  // Перемешиваем и форматируем активы
+  const isLoading = isProjectsLoading || isAssetsLoading;
+
+  // 3. Объединяем, перемешиваем и форматируем
   const stackItems = useMemo(() => {
-    if (!assets || assets.length === 0) return [];
+    const combined = [...(projects || []), ...(assets || [])];
     
-    const shuffled = [...assets].sort(() => 0.5 - Math.random()).slice(0, 5);
+    if (combined.length === 0) return [];
+    
+    const shuffled = combined.sort(() => 0.5 - Math.random()).slice(0, 5);
     
     return shuffled.map((item) => {
-      // Универсальное извлечение заголовка (так как может быть string или Record)
+      // Универсальное извлечение заголовка
       const title = typeof item.title === 'object' && item.title !== null
         ? (item.title[locale] || item.title.en || item.title.ru || "Без названия")
         : (item.title || "Без названия");
+
+      // Извлекаем сырое короткое описание
+      const rawShortDesc = 'short_description' in item && typeof item.short_description === 'object' && item.short_description !== null
+        ? (item.short_description[locale] || item.short_description.en || item.short_description.ru)
+        : null;
         
-      // Извлекаем описание (у Asset берем напрямую description)
-      const rawDesc = typeof item.description === 'object' && item.description !== null
+      // Извлекаем сырое обычное описание
+      const rawFallbackDesc = typeof item.description === 'object' && item.description !== null
         ? (item.description[locale] || item.description.en || item.description.ru || "")
         : (item.description || "");
 
       // ОЧИСТКА ОТ HTML-ТЕГОВ
-      const cleanDesc = rawDesc.replace(/<[^>]*>?/gm, '');
+      const cleanShortDesc = rawShortDesc ? rawShortDesc.replace(/<[^>]*>?/gm, '') : null;
+      const cleanFallbackDesc = rawFallbackDesc.replace(/<[^>]*>?/gm, '');
 
-      // Умная обрезка текста под формат карточки hero
-      const finalDescription = cleanDesc.length > 250 
-        ? cleanDesc.substring(0, 250) + "..." 
-        : cleanDesc;
+      // Умная обрезка текста: добавляем троеточие только если текст реально длинный
+      const finalDescription = cleanShortDesc || 
+        (cleanFallbackDesc.length > 250 ? cleanFallbackDesc.substring(0, 250) + "..." : cleanFallbackDesc);
 
       // Универсальное извлечение картинки
       const currentImage = typeof item.image === 'object' && item.image !== null
-        ? (item.image[locale] || item.image.en || "")
+        ? (item.image[locale] || item.image.en)
         : item.image;
+
+      const isAsset = 'is_unique' in item;
+      const href = isAsset ? `/assets/${item.id}` : `/project/${(item as Project).slug}`;
 
       return {
         id: item.id.toString(),
-        href: `/assets/${item.id}`,
+        href,
         title,
         description: finalDescription,
         image: currentImage,
-        isAsset: true,
-        isUnique: item.is_unique,
+        isAsset,
+        isUnique: isAsset ? (item as Asset).is_unique : false,
       };
     });
-  }, [assets, locale]);
+  }, [projects, assets, locale]);
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -190,7 +211,7 @@ export function Hero() {
                  <div className="absolute inset-0 flex items-center justify-end">
                     <div className="w-full max-w-2xl h-[640px] border-0 rounded-[2rem] flex flex-col items-center justify-center bg-white/5 backdrop-blur-md">
                         <Layers3 className="w-12 h-12 text-gray-500 mb-4" />
-                        <p className="text-gray-400 font-medium text-lg">Активов пока нет</p>
+                        <p className="text-gray-400 font-medium text-lg">Проектов пока нет</p>
                     </div>
                  </div>
               )}

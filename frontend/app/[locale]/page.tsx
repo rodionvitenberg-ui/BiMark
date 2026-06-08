@@ -16,7 +16,6 @@ export default function Home() {
       <HowItWorks />
       <NewProjects />
       <AssetsGrid />
-      <ProjectsGrid />
       <TokenTeaser />
       <AboutUs />
       <ContactUs />

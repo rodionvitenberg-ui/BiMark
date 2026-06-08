@@ -1,0 +1,285 @@
+
+
+========== START FILE: backend/catalog_assets/tests.py ==========
+from django.test import TestCase
+
+# Create your tests here.
+
+========== END FILE: backend/catalog_assets/tests.py ==========
+
+
+========== START FILE: backend/catalog_assets/views.py ==========
+# catalog_assets/views.py
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, views
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import Asset, AssetOwnership
+from .serializers import AssetSerializer, AssetOwnershipSerializer
+
+class AssetViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Витрина активов (проектов целиком).
+    """
+    serializer_class = AssetSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'id'
+    
+    # Подключаем бэкенд фильтрации и указываем доступные поля
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['status', 'is_unique', 'is_new', 'is_hidden']
+
+    def get_queryset(self):
+        qs = Asset.objects.all()
+        
+        if self.action == 'list':
+            # На витрине не показываем:
+            # 1. Черновики
+            # 2. Проданные уникальные активы
+            # 3. СКРЫТЫЕ активы (is_hidden=True)
+            return qs.exclude(status=Asset.Status.DRAFT) \
+                     .exclude(is_unique=True, status=Asset.Status.SOLD) \
+                     .exclude(is_hidden=True)
+                     
+        return qs
+class AssetPortfolioView(views.APIView):
+    """
+    Купленные активы пользователя (для дашборда).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        portfolio = AssetOwnership.objects.filter(user=request.user).select_related('asset')
+        serializer = AssetOwnershipSerializer(portfolio, many=True, context={'request': request})
+        return Response(serializer.data)
+========== END FILE: backend/catalog_assets/views.py ==========
+
+
+========== START FILE: backend/catalog_assets/serializers.py ==========
+# catalog_assets/serializers.py
+from rest_framework import serializers
+from .models import Asset, AssetOwnership
+
+class AssetSerializer(serializers.ModelSerializer):
+    title = serializers.SerializerMethodField()
+    description = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Asset
+        fields = [
+            'id', 'title', 'description', 'price', 'image', 
+            'is_unique', 'is_new', 'is_hidden', 'status', 'created_at' # <-- Добавили сюда
+        ]
+
+    def get_title(self, obj):
+        return {
+            'ru': getattr(obj, 'title_ru', obj.title),
+            'en': getattr(obj, 'title_en', obj.title),
+            'es': getattr(obj, 'title_es', obj.title),
+        }
+
+    def get_description(self, obj):
+        return {
+            'ru': getattr(obj, 'description_ru', obj.description),
+            'en': getattr(obj, 'description_en', obj.description),
+            'es': getattr(obj, 'description_es', obj.description),
+        }
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+
+        def get_img_url(img_field):
+            if img_field and getattr(img_field, 'name', None):
+                url = img_field.url
+                return request.build_absolute_uri(url) if request else url
+            return None
+
+        img_ru = get_img_url(getattr(obj, 'image_ru', None))
+        img_en = get_img_url(getattr(obj, 'image_en', None))
+        img_es = get_img_url(getattr(obj, 'image_es', None))
+        img_default = get_img_url(obj.image)
+
+        fallback = img_en or img_default or img_ru or img_es
+
+        return {
+            'ru': img_ru or fallback,
+            'en': img_en or fallback,
+            'es': img_es or fallback,
+        }
+
+class AssetOwnershipSerializer(serializers.ModelSerializer):
+    asset = AssetSerializer(read_only=True)
+    
+    class Meta:
+        model = AssetOwnership
+        fields = ['id', 'asset', 'purchase_price', 'purchased_at']
+========== END FILE: backend/catalog_assets/serializers.py ==========
+
+
+========== START FILE: backend/catalog_assets/apps.py ==========
+from django.apps import AppConfig
+
+
+class CatalogAssetsConfig(AppConfig):
+    name = 'catalog_assets'
+
+========== END FILE: backend/catalog_assets/apps.py ==========
+
+
+========== START FILE: backend/catalog_assets/translation.py ==========
+# catalog_assets/translation.py
+from modeltranslation.translator import register, TranslationOptions
+from .models import Asset, SoldUniqueAsset
+
+@register(Asset)
+class AssetTranslationOptions(TranslationOptions):
+    # Те же поля, что и в Project
+    fields = ('title', 'description', 'image') 
+
+@register(SoldUniqueAsset)
+class SoldUniqueAssetTranslationOptions(TranslationOptions):
+    # Прокси-модель наследует поля родителя
+    fields = ('title', 'description', 'image')
+========== END FILE: backend/catalog_assets/translation.py ==========
+
+
+========== START FILE: backend/catalog_assets/admin.py ==========
+from django.contrib import admin
+from .models import Asset, SoldUniqueAsset, AssetOwnership
+
+@admin.register(Asset)
+class AssetAdmin(admin.ModelAdmin):
+    # Добавили is_new и is_hidden в список столбцов
+    list_display = ('title', 'price', 'is_unique', 'is_new', 'is_hidden', 'status', 'created_at')
+    
+    # Добавили is_new и is_hidden в боковой фильтр
+    list_filter = ('status', 'is_unique', 'is_new', 'is_hidden')
+    search_fields = ('title',)
+    
+    def get_queryset(self, request):
+        # В основной вкладке прячем проданные УНИКАЛЬНЫЕ активы, чтобы не засорять витрину
+        qs = super().get_queryset(request)
+        return qs.exclude(is_unique=True, status=Asset.Status.SOLD)
+
+@admin.register(SoldUniqueAsset)
+class SoldUniqueAssetAdmin(admin.ModelAdmin):
+    list_display = ('title', 'price', 'get_owner', 'updated_at')
+    search_fields = ('title', 'owners__user__email')
+    readonly_fields = ('title', 'description', 'price', 'is_unique', 'status', 'image')
+    
+    def has_add_permission(self, request):
+        # Запрещаем создавать активы прямо из папки "Проданные"
+        return False
+        
+    def get_queryset(self, request):
+        # Показываем ТОЛЬКО уникальные и проданные активы
+        qs = super().get_queryset(request)
+        return qs.filter(is_unique=True, status=Asset.Status.SOLD)
+
+    @admin.display(description='Владелец')
+    def get_owner(self, obj):
+        ownership = obj.owners.first()
+        return ownership.user.email if ownership else "—"
+
+@admin.register(AssetOwnership)
+class AssetOwnershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'asset', 'purchase_price', 'purchased_at')
+    list_filter = ('purchased_at',)
+    search_fields = ('user__email', 'asset__title')
+    
+    # Оставляем только дату покупки, остальные поля делаем редактируемыми
+    readonly_fields = ('purchased_at',)
+    
+    # Запрещаем удалять записи о владении руками
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+========== END FILE: backend/catalog_assets/admin.py ==========
+
+
+========== START FILE: backend/catalog_assets/models.py ==========
+import uuid
+from django.db import models
+from django.conf import settings
+from tinymce.models import HTMLField
+
+class Asset(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'DRAFT', 'Черновик'
+        ACTIVE = 'ACTIVE', 'В продаже'
+        SOLD = 'SOLD', 'Продано'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255, verbose_name="Название")
+    
+    # --- ВОТ ИЗМЕНЕННОЕ ПОЛЕ (Заменили TextField на HTMLField) ---
+    description = HTMLField(verbose_name="Описание")
+    # -------------------------------------------------------------
+    
+    price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Цена ($)")
+    image = models.ImageField(upload_to='assets_images/', blank=True, null=True, verbose_name="Изображение")
+    is_new = models.BooleanField(
+        default=True, 
+        verbose_name="Новый актив",
+        help_text="Если включено, актив отображается с пометкой 'Новый' на витрине."
+    )
+    is_hidden = models.BooleanField(
+        default=False, 
+        verbose_name="Скрыть из каталога",
+        help_text="Если включено, проект не будет виден в общем каталоге, но будет доступен по прямой ссылке (например, для токена BMK)."
+    )
+    
+    is_unique = models.BooleanField(
+        default=False, 
+        verbose_name="Уникальный актив",
+        help_text="Если включено, актив продается в одни руки и после покупки получает статус 'Продано'."
+    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, verbose_name="Статус")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'assets'
+        ordering = ['-created_at']
+        verbose_name = "Актив (Проект целиком)"
+        verbose_name_plural = "Активы (Проекты целиком)"
+
+    def __str__(self):
+        return f"{self.title} (${self.price})"
+
+# Магия: Прокси-модель для отдельного раздела в админке
+class SoldUniqueAsset(Asset):
+    class Meta:
+        proxy = True # Указываем Django не создавать отдельную таблицу в БД
+        verbose_name = "Проданный уникальный актив"
+        verbose_name_plural = "Проданные уникальные активы"
+
+class AssetOwnership(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='asset_ownerships'
+    )
+    asset = models.ForeignKey(
+        Asset, 
+        on_delete=models.PROTECT, 
+        related_name='owners'
+    )
+    purchase_price = models.DecimalField(
+        max_digits=12, 
+        decimal_places=2, 
+        verbose_name="Цена покупки"
+    )
+    purchased_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = 'asset_ownerships'
+        ordering = ['-purchased_at']
+        verbose_name = "Владение активом"
+        verbose_name_plural = "Владения активами"
+
+    def __str__(self):
+        return f"{self.user.email} -> {self.asset.title}"
+========== END FILE: backend/catalog_assets/models.py ==========

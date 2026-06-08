@@ -1,0 +1,214 @@
+
+
+========== START FILE: frontend/lib/utils.ts ==========
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+========== END FILE: frontend/lib/utils.ts ==========
+
+
+========== START FILE: frontend/lib/utils/ai-context.ts ==========
+/**
+ * Утилита для сборки умного XML-контекста текущей страницы для ИИ-ассистента
+ */
+export function buildPageContext(locale: string, currentPath: string, pageData?: any): string {
+  let xmlContext = `<page_context>\n`;
+  xmlContext += `  <current_language>${locale}</current_language>\n`;
+  xmlContext += `  <current_url>${currentPath}</current_url>\n`;
+
+  if (pageData) {
+    // Режим А: Пользователь просматривает КАТАЛОГ (передан массив элементов)
+    if (Array.isArray(pageData) && pageData.length > 0) {
+      xmlContext += `  <page_type>catalog_overview</page_type>\n`;
+      xmlContext += `  <visible_items_on_screen>\n`;
+      
+      // Берем первые 6 карточек, которые видит юзер
+      pageData.slice(0, 6).forEach((item: any) => {
+        const title = typeof item.title === 'object' && item.title !== null
+          ? (item.title[locale] || item.title.en || item.title.ru || '')
+          : (item.title || '');
+        const price = item.price || item.price_per_share || '';
+        const isAsset = 'is_unique' in item || item.item_type === 'asset';
+
+        xmlContext += `    <item>\n`;
+        xmlContext += `      <type>${isAsset ? 'asset' : 'project'}</type>\n`;
+        xmlContext += `      <title>${title}</title>\n`;
+        xmlContext += `      <price>$${price}</price>\n`;
+        xmlContext += `    </item>\n`;
+      });
+      
+      xmlContext += `  </visible_items_on_screen>\n`;
+    } 
+    // Режим Б: Пользователь находится внутри конкретного ЛОТА (деталка)
+    else if (typeof pageData === 'object' && pageData !== null) {
+      const isAsset = currentPath.includes('/assets/') || pageData.item_type === 'asset';
+      xmlContext += `  <page_type>${isAsset ? 'asset_detail' : 'project_detail'}</page_type>\n`;
+      xmlContext += `  <entity_info>\n`;
+      xmlContext += `    <title>${pageData.title?.[locale] || pageData.title || ''}</title>\n`;
+      xmlContext += `    <price>$${pageData.price || pageData.price_per_share || ''}</price>\n`;
+      
+      if (pageData.description) {
+        const desc = pageData.description?.[locale] || pageData.description || '';
+        const cleanDesc = desc.replace(/<[^>]*>?/gm, '');
+        xmlContext += `    <description>${cleanDesc.substring(0, 400)}...</description>\n`;
+      }
+      xmlContext += `  </entity_info>\n`;
+    }
+  } else {
+    xmlContext += `  <page_type>general_browsing</page_type>\n`;
+  }
+
+  xmlContext += `</page_context>`;
+  return xmlContext;
+}
+========== END FILE: frontend/lib/utils/ai-context.ts ==========
+
+
+========== START FILE: frontend/lib/api/client.ts ==========
+import axios from "axios";
+
+// В идеале тянем из process.env.NEXT_PUBLIC_API_URL
+const API_URL = "https://bimark.org/api"; 
+
+export const apiClient = axios.create({
+  baseURL: API_URL,
+  withCredentials: true, // КРИТИЧНО ВАЖНО: заставляет браузер отправлять и принимать httpOnly куки
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Флаг, показывающий, идет ли сейчас процесс обновления токена
+let isRefreshing = false;
+// Очередь запросов, которые упали с 401 и ждут, пока токен обновится
+let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: any) => void }> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+apiClient.interceptors.response.use(
+  (response) => response, // Если запрос успешен, просто возвращаем ответ
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Если сервер ответил 401 (Unauthorized) и мы еще не пытались повторить этот запрос
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      
+      // Игнорируем 401 ошибки от эндпоинтов логина или самого рефреша, чтобы избежать бесконечного цикла
+      if (originalRequest.url?.includes("/auth/login/") || originalRequest.url?.includes("/auth/token/refresh/")) {
+        return Promise.reject(error);
+      }
+
+      // Если другой запрос уже запустил рефреш, ставим этот запрос в очередь
+      if (isRefreshing) {
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => {
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      // Помечаем, что мы начали процесс обновления
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Делаем запрос на обновление токена.
+        // Браузер сам подставит refresh-токен из куки, так как withCredentials: true
+        await apiClient.post("/auth/token/refresh/");
+        
+        // Если рефреш прошел успешно, разблокируем очередь
+        processQueue(null);
+        
+        // Повторяем исходный запрос, который упал с 401
+        return apiClient(originalRequest);
+      } catch (err) {
+        // Если рефреш-токен тоже протух (или его нет, как у гостя)
+        processQueue(err, null);
+        
+        // Просто возвращаем ошибку компоненту. 
+        // Компонент (например, Header) сам поймет, что юзер — гость.
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+========== END FILE: frontend/lib/api/client.ts ==========
+
+
+========== START FILE: frontend/lib/validations/profile.ts ==========
+// lib/validations/profile.ts
+import * as z from "zod";
+
+export const getProfileSchemas = (t: any) => {
+  const passwordSchema = z.object({
+    oldPassword: z.string().min(1, { message: t("errors.required") }),
+    newPassword: z.string().min(10, { message: t("errors.passwordLength") }),
+    confirmPassword: z.string(),
+  }).refine((data) => data.newPassword === data.confirmPassword, {
+    message: t("errors.passwordsDoNotMatch"),
+    path: ["confirmPassword"],
+  });
+
+  return { passwordSchema };
+};
+
+export type PasswordChangeFormValues = z.infer<ReturnType<typeof getProfileSchemas>["passwordSchema"]>;
+========== END FILE: frontend/lib/validations/profile.ts ==========
+
+
+========== START FILE: frontend/lib/validations/auth.ts ==========
+import * as z from "zod";
+
+export const getAuthSchemas = (t: any) => {
+  const emailSchema = z.object({
+    email: z.string().email({ message: t("invalidEmail") }),
+  });
+
+  const otpSchema = z.object({
+    code: z.string().length(6, { message: t("invalidCode") }).regex(/^\d+$/, { message: t("invalidCode") }),
+  });
+
+  const passwordSchema = z.object({
+    password: z.string()
+      .min(8, { message: t("passwordTooWeak") })
+      // НОВОЕ: Запрещаем кириллицу
+      .regex(/^[^а-яА-ЯёЁ]*$/, { message: t("passwordCyrillic") }), 
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t("passwordsDoNotMatch"),
+    path: ["confirmPassword"],
+  });
+
+  const loginSchema = z.object({
+    email: z.string().email({ message: t("invalidEmail") }),
+    password: z.string().min(1, { message: t("required") }),
+  });
+
+  return { emailSchema, otpSchema, passwordSchema, loginSchema };
+};
+
+export type EmailFormValues = z.infer<ReturnType<typeof getAuthSchemas>["emailSchema"]>;
+export type OtpFormValues = z.infer<ReturnType<typeof getAuthSchemas>["otpSchema"]>;
+export type PasswordFormValues = z.infer<ReturnType<typeof getAuthSchemas>["passwordSchema"]>;
+export type LoginFormValues = z.infer<ReturnType<typeof getAuthSchemas>["loginSchema"]>;
+========== END FILE: frontend/lib/validations/auth.ts ==========

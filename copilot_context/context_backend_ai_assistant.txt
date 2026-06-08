@@ -1,0 +1,618 @@
+
+
+========== START FILE: backend/ai_assistant/urls.py ==========
+from django.urls import path
+from .views import AIAssistantChatView, AssistantQuickRepliesListView
+
+urlpatterns = [
+    path('chat/', AIAssistantChatView.as_view(), name='ai-assistant-chat'),
+    path('quick-replies/', AssistantQuickRepliesListView.as_view(), name='ai_quick_replies'), # Новый роут!
+]
+========== END FILE: backend/ai_assistant/urls.py ==========
+
+
+========== START FILE: backend/ai_assistant/tests.py ==========
+from django.test import TestCase
+
+# Create your tests here.
+
+========== END FILE: backend/ai_assistant/tests.py ==========
+
+
+========== START FILE: backend/ai_assistant/views.py ==========
+from django.http import StreamingHttpResponse
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from .services import AIAssistantService
+from .models import AssistantQuickReply
+
+class AIAssistantChatView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        messages = request.data.get("messages", [])
+        page_context = request.data.get("page_context", None)
+
+        if not messages:
+            return Response({"error": "Messages history array is required"}, status=400)
+
+        # Вызываем стриминг-генератор
+        stream_generator = AIAssistantService.generate_stream_response(messages, page_context)
+        
+        # Возвращаем специальный потоковый ответ с типом text/event-stream
+        response = StreamingHttpResponse(stream_generator, content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['X-Accel-Buffering'] = 'no'  # Критично для серверов на Nginx (отключает прокси-буферизацию)
+        return response
+    
+class AssistantQuickRepliesListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        path = request.query_params.get('path', '/')
+        locale = request.query_params.get('locale', 'en')
+
+        # Вытаскиваем подсказки для конкретного URL и языка
+        replies = AssistantQuickReply.objects.filter(path=path, locale=locale)
+        
+        # Фоллбек: если для текущей страницы Максим ничего не настроил,
+        # отдаем дефолтные подсказки с главной страницы ('/'), чтобы блок не пустовал
+        if not replies.exists() and path != '/':
+            replies = AssistantQuickReply.objects.filter(path='/', locale=locale)
+
+        # Возвращаем просто плоский массив строк для фронтенда
+        return Response([r.text for r in replies])
+========== END FILE: backend/ai_assistant/views.py ==========
+
+
+========== START FILE: backend/ai_assistant/serializers.py ==========
+from rest_framework import serializers
+
+class ChatMessageSerializer(serializers.Serializer):
+    role = serializers.ChoiceField(choices=['user', 'assistant'])
+    content = serializers.CharField(max_length=10000)
+
+class AIAssistantChatSerializer(serializers.Serializer):
+    messages = ChatMessageSerializer(many=True, help_text="История переписки в чате")
+    page_context = serializers.CharField(
+        required=False, 
+        allow_blank=True, 
+        allow_null=True,  # <-- ЗАМЕНИЛИ null=True НА allow_null=True
+        help_text="Слепок данных со страницы, на которой сейчас находится пользователь"
+    )
+========== END FILE: backend/ai_assistant/serializers.py ==========
+
+
+========== START FILE: backend/ai_assistant/apps.py ==========
+from django.apps import AppConfig
+
+
+class AiAssistantConfig(AppConfig):
+    name = 'ai_assistant'
+
+========== END FILE: backend/ai_assistant/apps.py ==========
+
+
+========== START FILE: backend/ai_assistant/admin.py ==========
+from django.contrib import admin
+from django.shortcuts import redirect
+from django.urls import reverse
+from .models import AssistantConfig, AssistantQuickReply
+
+from django.contrib import admin
+from .models import AssistantConfig, AssistantQuickReply
+
+@admin.register(AssistantConfig)
+class AssistantConfigAdmin(admin.ModelAdmin):
+    # Таблица синглтон, так что выводим основные тумблеры в список
+    list_display = ('model_name', 'temperature', 'is_active', 'is_tg_bot_active')
+    list_editable = ('is_active', 'is_tg_bot_active')
+
+    # Группируем поля по вкладкам/секциям для Максима
+    fieldsets = (
+        ("Глобальный тумблер", {
+            'fields': ('is_active',)
+        }),
+        ("Настройки Нейросети", {
+            'fields': ('model_name', 'temperature'),
+        }),
+        ("Ключи авторизации API", {
+            'fields': ('openai_api_key', 'deepseek_api_key', 'custom_proxy_url', 'custom_proxy_key'),
+            'description': 'Заполняйте только те ключи, которые соответствуют выбранной модели.'
+        }),
+        ("Интеграция с Telegram-ботом", {
+            'fields': ('tg_bot_token', 'is_tg_bot_active'),
+            'description': 'Параметры для управления автономным ботом-скаутом в мессенджере.'
+        }),
+    )
+
+    def has_add_permission(self, request):
+        # Запрещаем создавать больше одной конфигурации, так как это синглтон
+        if AssistantConfig.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+    def changelist_view(self, request, extra_context=None):
+        obj, created = AssistantConfig.objects.get_or_create(
+            defaults={
+                "system_prompt": "Ты — официальный ИИ-ассистент инвестиционной платформы BiMark. Твоя задача — консультировать пользователей по доступным проектам и активам..."
+            }
+        )
+        
+        # ИСПРАВЛЕНО: Заменили self.model_meta на self.model._meta
+        opts = self.model._meta
+        return redirect(reverse(f'admin:{opts.app_label}_{opts.model_name}_change', args=(obj.pk,)))
+
+@admin.register(AssistantQuickReply)    
+class AssistantQuickReplyAdmin(admin.ModelAdmin):
+    list_display = ('text', 'path', 'locale', 'order')
+    list_filter = ('locale', 'path')
+    search_fields = ('text', 'path')
+
+
+========== END FILE: backend/ai_assistant/admin.py ==========
+
+
+========== START FILE: backend/ai_assistant/services.py ==========
+import logging
+import json
+from openai import OpenAI
+from django.utils.html import strip_tags
+from rest_framework.exceptions import ValidationError
+from .models import AssistantConfig
+from catalog.models import Project  # Твоя модель каталога[cite: 4]
+
+logger = logging.getLogger(__name__)
+
+class AIAssistantService:
+    @staticmethod
+    def get_client_and_config():
+        """Инициализация клиента OpenAI/DeepSeek"""
+        config = AssistantConfig.objects.first()
+        if not config or not config.is_active:
+            return None, None
+
+        model_name = config.model_name
+        
+        if model_name in [AssistantConfig.ModelChoices.GPT_4O, AssistantConfig.ModelChoices.GPT_4O_MINI]:
+            if not config.openai_api_key:
+                raise ValidationError("В админке выбран OpenAI, но отсутствует API ключ.")
+            client = OpenAI(api_key=config.openai_api_key)
+        elif model_name in [AssistantConfig.ModelChoices.DEEPSEEK_CHAT, AssistantConfig.ModelChoices.DEEPSEEK_REASONER]:
+            if not config.deepseek_api_key:
+                raise ValidationError("В админке выбран DeepSeek, но отсутствует API ключ.")
+            # DeepSeek API полностью совместим с SDK OpenAI
+            client = OpenAI(api_key=config.deepseek_api_key, base_url="https://api.deepseek.com/v1")
+        elif model_name == AssistantConfig.ModelChoices.CUSTOM_PROXY:
+            client = OpenAI(api_key=config.custom_proxy_key, base_url=config.custom_proxy_url)
+        else:
+            raise ValidationError("Выбрана неизвестная конфигурация модели ИИ.")
+
+        return client, config
+
+    @staticmethod
+    def get_agent_tools():
+        """Определение инструментов (Function Calling) для ИИ-Агента"""
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "add_item_to_cart",
+                    "description": "Automatically adds a specified amount of project shares or a turnkey digital asset to the user's shopping cart.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "project_slug": {
+                                "type": "string", 
+                                "description": "The exact slug identifier of the investment project or asset."
+                            },
+                            "shares_amount": {
+                                "type": "integer", 
+                                "description": "Number of shares to add to cart. For unique turnkey assets, this is always 1."
+                            }
+                        },
+                        "required": ["project_slug", "shares_amount"]
+                    }
+                }
+            }
+        ]
+
+    @staticmethod
+    def build_backend_catalog_context(locale: str) -> str:
+        """Сборка XML-среза каталога из PostgreSQL в песочницу ИИ[cite: 4]"""
+        xml = "<active_platform_catalog>\n"
+        try:
+            active_projects = Project.objects.filter(
+                is_hidden=False,
+                status__in=[Project.Status.PRESALE, Project.Status.ACTIVE]
+            ).select_related('category').order_by('-created_at')[:15] #[cite: 4]
+            
+            for proj in active_projects:
+                title = getattr(proj, f'title_{locale}', getattr(proj, 'title_en', proj.title))
+                raw_short_desc = getattr(proj, f'short_description_{locale}', getattr(proj, 'short_description_en', proj.short_description))
+                clean_desc = strip_tags(raw_short_desc or "")[:200].strip()
+                
+                category_name = ""
+                if proj.category:
+                    category_name = getattr(proj.category, f'name_{locale}', getattr(proj.category, 'name_en', proj.category.name))
+
+                xml += "  <catalog_item>\n"
+                xml += f"    <slug>{proj.slug}</slug>\n" #[cite: 4]
+                xml += f"    <type>{'platform_token' if proj.is_token else 'digital_asset' if proj.category and proj.category.slug in ['youtube','telegram'] else 'investment_project'}</type>\n" #[cite: 4]
+                xml += f"    <title>{title}</title>\n"
+                xml += f"    <price_per_share>${proj.price_per_share}</price_per_share>\n" #[cite: 4]
+                xml += f"    <available_shares>{proj.available_shares} pcs</available_shares>\n" #[cite: 4]
+                if clean_desc:
+                    xml += f"    <short_description>{clean_desc}</short_description>\n"
+                xml += "  </catalog_item>\n"
+        except Exception as e:
+            logger.error(f"Context build failed: {str(e)}")
+            xml += "  <error>Catalog is temporarily sleeping</error>\n"
+        
+        xml += "</active_platform_catalog>"
+        return xml
+
+    @classmethod
+    def generate_stream_response(cls, messages: list, page_context: str = None):
+        """Генератор чанков (SSE) для трансляции ответа пользователю на лету"""
+        client, config = cls.get_client_and_config()
+        if not client:
+            yield "data: " + json.dumps({"content": "AI Assistant is offline."}) + "\n\n"
+            return
+
+        current_locale = 'en'
+        if page_context and "<current_language>" in page_context:
+            try:
+                current_locale = page_context.split("<current_language>")[1].split("</current_language>")[0].strip()
+            except Exception:
+                pass
+
+        # Оптимизация под DeepSeek Context Caching:
+        # 1. Сначала идет неизменяемый системный промт (подгружается из кэша)
+        full_system_instruction = f"{config.system_prompt}\n\n"
+        # 2. В самый конец подмешиваем динамические блоки каталога и роутинга фронтенда
+        full_system_instruction += f"BIMARK LIVE DATABASE CATALOG:\n{cls.build_backend_catalog_context(current_locale)}\n"
+        
+        if page_context:
+            full_system_instruction += f"\nFRONTEND PAGE CONTEXT:\n{page_context}\n"
+
+        api_messages = [{"role": "system", "content": full_system_instruction}]
+        for msg in messages:
+            if msg.get('role') in ['user', 'assistant']:
+                api_messages.append({"role": msg['role'], "content": msg['content']})
+
+        try:
+            kwargs = {
+                "model": config.model_name,
+                "messages": api_messages,
+                "stream": True, # Обязательно для стриминга!
+                "tools": cls.get_agent_tools(),
+                "tool_choice": "auto"
+            }
+            # DeepSeek Reasoner не поддерживает кастомную температуру
+            if config.model_name != AssistantConfig.ModelChoices.DEEPSEEK_REASONER:
+                kwargs["temperature"] = config.temperature
+
+            response = client.chat.completions.create(**kwargs)
+
+            for chunk in response:
+                delta = chunk.choices[0].delta
+                
+                # Обработка генерации обычного текста
+                if hasattr(delta, 'content') and delta.content:
+                    yield f"data: {json.dumps({'content': delta.content})}\n\n"
+                
+                # Обработка вызова инструментов (Function Calling) ИИ-агентом
+                if hasattr(delta, 'tool_calls') and delta.tool_calls:
+                    for tool_call in delta.tool_calls:
+                        yield f"data: {json.dumps({'tool_call': tool_call.model_dump()})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Stream generation error: {str(e)}")
+            yield "data: " + json.dumps({"content": "Technical error occurred."}) + "\n\n"
+
+    @classmethod
+    def generate_response(cls, messages: list, page_context: str = None) -> str:
+        """
+        Обычный (не потоковый) запрос к LLM.
+        Используется Telegram-ботом для получения готового текста целиком.
+        """
+        client, config = cls.get_client_and_config()
+        if not client:
+            return "AI Assistant is offline."
+
+        current_locale = 'en'
+        if page_context and "<current_language>" in page_context:
+            try:
+                current_locale = page_context.split("<current_language>")[1].split("</current_language>")[0].strip()
+            except Exception:
+                pass
+
+        # Сохраняем ту же самую последовательность для кэширования DeepSeek Context Caching
+        full_system_instruction = f"{config.system_prompt}\n\n"
+        full_system_instruction += f"BIMARK LIVE DATABASE CATALOG:\n{cls.build_backend_catalog_context(current_locale)}\n"
+        
+        if page_context:
+            full_system_instruction += f"\nFRONTEND PAGE CONTEXT:\n{page_context}\n"
+
+        api_messages = [{"role": "system", "content": full_system_instruction}]
+        for msg in messages:
+            if msg.get('role') in ['user', 'assistant']:
+                api_messages.append({"role": msg['role'], "content": msg['content']})
+
+        try:
+            kwargs = {
+                "model": config.model_name,
+                "messages": api_messages,
+                # stream=True НЕ передаем, нам нужен ответ целиком
+            }
+            # DeepSeek Reasoner (R1) падает, если передавать параметр temperature
+            if config.model_name != AssistantConfig.ModelChoices.DEEPSEEK_REASONER:
+                kwargs["temperature"] = config.temperature
+
+            response = client.chat.completions.create(**kwargs)
+            return response.choices[0].message.content
+
+        except Exception as e:
+            logger.error(f"Error in non-stream AI generation: {str(e)}")
+            return "Technical error occurred while generating response."
+========== END FILE: backend/ai_assistant/services.py ==========
+
+
+========== START FILE: backend/ai_assistant/models.py ==========
+import uuid
+from django.db import models
+
+class AssistantConfig(models.Model):
+    class ModelChoices(models.TextChoices):
+        # OpenAI
+        GPT_4O = 'gpt-4o', 'OpenAI GPT-4o'
+        GPT_4O_MINI = 'gpt-4o-mini', 'OpenAI GPT-4o-Mini'
+        # DeepSeek
+        DEEPSEEK_CHAT = 'deepseek-chat', 'DeepSeek Chat (V3)'
+        DEEPSEEK_REASONER = 'deepseek-reasoner', 'DeepSeek Reasoner (R1)'
+        # Кастомный вариант
+        CUSTOM_PROXY = 'custom-proxy', 'Кастомный OpenAI-совместимый Прокси'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    is_active = models.BooleanField(
+        default=True, 
+        verbose_name="Ассистент активен",
+        help_text="Если отключено, виджет чата не будет отображаться на фронтенде."
+    )
+    
+    model_name = models.CharField(
+        max_length=50, 
+        choices=ModelChoices.choices, 
+        default=ModelChoices.GPT_4O_MINI,
+        verbose_name="Используемая модель"
+    )
+    
+    temperature = models.FloatField(
+        default=0.3,
+        verbose_name="Температура (Креативность)",
+        help_text="Рекомендуется 0.1 - 0.4 для точных финансовых консультаций. Для deepseek-reasoner этот параметр игнорируется API."
+    )
+    
+    system_prompt = models.TextField(
+        verbose_name="Системный промт (Инструкции для ИИ)",
+        help_text="Здесь задаются Tone of Voice, ограничения и базовая информация о BiMark."
+    )
+
+    # Настройки авторизации провайдеров
+    openai_api_key = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="API Ключ OpenAI",
+        help_text="Оставьте пустым, если используете только DeepSeek."
+    )
+    
+    deepseek_api_key = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="API Ключ DeepSeek",
+        help_text="Ключ от платформы api.deepseek.com"
+    )
+
+    custom_proxy_url = models.URLField(
+        blank=True, null=True,
+        verbose_name="Кастомный Base URL (для прокси)",
+        help_text="Заполняется только при выборе 'Кастомный Прокси'."
+    )
+    custom_proxy_key = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="API Ключ кастомного прокси"
+    )
+    
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата изменения")
+
+    tg_bot_token = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True, 
+        verbose_name="Telegram Bot Token",
+        help_text="Токен, полученный от @BotFather"
+    )
+    is_tg_bot_active = models.BooleanField(
+        default=False, 
+        verbose_name="Включить Telegram-бота",
+        help_text="Если выключено, бот будет игнорировать сообщения пользователей."
+    )
+
+    class Meta:
+        verbose_name = "Настройка ИИ-Агента"
+        verbose_name_plural = "Настройки ИИ-Агента"
+
+    def __str__(self):
+        return f"Настройки ИИ ({self.get_model_name_display()})"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and AssistantConfig.objects.exists():
+            self.pk = AssistantConfig.objects.first().pk
+        super().save(*args, **kwargs)
+
+class AssistantQuickReply(models.Model):
+    class LocaleChoices(models.TextChoices):
+        RU = 'ru', 'Russian'
+        EN = 'en', 'English'
+        ES = 'es', 'Spanish'
+
+    path = models.CharField(
+        max_length=255, 
+        default="/", 
+        verbose_name="Путь страницы (URL)",
+        help_text="Например: '/' для главной, '/token' для страницы токена."
+    )
+    locale = models.CharField(
+        max_length=10, 
+        choices=LocaleChoices.choices, 
+        default=LocaleChoices.EN,
+        verbose_name="Язык интерфейса"
+    )
+    text = models.CharField(
+        max_length=255, 
+        verbose_name="Текст быстрой подсказки"
+    )
+    order = models.PositiveIntegerField(
+        default=0, 
+        verbose_name="Порядок сортировки",
+        help_text="Чем меньше число, тем левее/выше будет кнопка на сайте."
+    )
+
+    class Meta:
+        db_table = 'assistant_quick_replies'
+        ordering = ['order', 'id']
+        verbose_name = "Быстрая подсказка сайта"
+        verbose_name_plural = "Быстрые подсказки сайта"
+
+    def __str__(self):
+        return f"[{self.locale.upper()}] {self.path} — {self.text}"
+========== END FILE: backend/ai_assistant/models.py ==========
+
+
+========== START FILE: backend/ai_assistant/management/commands/run_tg_bot.py ==========
+import asyncio
+import logging
+import json
+from django.core.management.base import BaseCommand
+from asgiref.sync import sync_to_async
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
+
+# Импортируем настройки и наш ИИ-сервис
+from ai_assistant.models import AssistantConfig
+from ai_assistant.services import AIAssistantService
+
+logger = logging.getLogger(__name__)
+
+# Принудительно конвертируем синхронный метод генерации ответа ИИ в асинхронный
+generate_ai_response = sync_to_async(AIAssistantService.generate_response)
+
+
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /start — сбрасывает историю переписки и приветствует юзера"""
+    context.user_data['chat_history'] = []
+    
+    user_lang = update.effective_user.language_code or 'en'
+    if user_lang.startswith('ru'):
+        msg = (
+            "Привет! Я официальный ИИ-скаут платформы **BiMark**. 🤖\n\n"
+            "Я подключен напрямую к нашей базе данных и знаю всё про доступные инвестиционные доли, "
+            "активы, условия доходности (5-15% в месяц) и токеномику BMK.\n\n"
+            "Задайте мне любой вопрос о проектах каталога!"
+        )
+    else:
+        msg = (
+            "Hello! I am the official AI Scout for the **BiMark** platform. 🤖\n\n"
+            "I have direct access to our live database and know everything about available shares, "
+            "turnkey digital businesses, yield metrics (5-15% monthly), and BMK tokenomics.\n\n"
+            "Ask me anything about our active catalog listings!"
+        )
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+
+async def handle_telegram_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик всех входящих текстовых сообщений от пользователей"""
+    # 1. Динамически проверяем конфигурацию в БД (включен ли бот вообще)
+    config = await AssistantConfig.objects.afirst()
+    if not config or not config.is_tg_bot_active:
+        return  # Если тумблер в админке выключен — бот игнорирует сообщения
+
+    user_text = update.message.text
+    user_lang = update.effective_user.language_code or 'en'
+    
+    # Нормализуем локаль под поддерживаемые платформой стандарты
+    locale = 'ru' if user_lang.startswith('ru') else 'es' if user_lang.startswith('es') else 'en'
+
+    # 2. Имитируем контекст страницы для сохранения единой логики песочницы
+    page_context = f"<current_language>{locale}</current_language><current_url>/telegram-messenger-bot</current_url>"
+
+    # 3. Инициализируем и подтягиваем историю диалога конкретного юзера из кэша сессии бота
+    if 'chat_history' not in context.user_data:
+        context.user_data['chat_history'] = []
+
+    # Добавляем реплику пользователя в контекст
+    context.user_data['chat_history'].append({"role": "user", "content": user_text})
+
+    # Удерживаем скользящее окно истории в пределах последних 12 сообщений, чтобы не перегружать контекст токенов
+    context.user_data['chat_history'] = context.user_data['chat_history'][-12:]
+
+    # Включаем статус «Бот печатает...» в Telegram для создания живого эффекта
+    await context.bot.send_chat_action(chat_id=update.effective_chat.id, action="typing")
+
+    try:
+        # 4. Отправляем накопленную историю и сгенерированный XML-контекст в наш универсальный сервис
+        ai_response_text = await generate_ai_response(
+            messages=context.user_data['chat_history'],
+            page_context=page_context
+        )
+
+        # Добавляем ответ ИИ в историю переписки этого пользователя
+        context.user_data['chat_history'].append({"role": "assistant", "content": ai_response_text})
+
+        # 5. Отправляем сформированный ответ пользователю
+        await update.message.reply_text(ai_response_text, parse_mode="Markdown")
+
+    except Exception as e:
+        logger.error(f"Telegram Bot AI Generation crash: {str(e)}")
+        fallback_err = "Сервис временно перегружен запросами. Пожалуйста, попробуйте написать позже." if locale == 'ru' else "Service is temporarily busy. Please try again later."
+        await update.message.reply_text(fallback_err)
+
+
+class Command(BaseCommand):
+    help = "Запускает поллинг-демона Telegram-бота ИИ-ассистента BiMark"
+
+    def handle(self, *args, **options):
+        # Запускаем асинхронный event-loop для бесконечного цикла бота
+        try:
+            asyncio.run(self.main())
+        except KeyboardInterrupt:
+            self.stdout.write(self.style.WARNING("\nБот успешно остановлен."))
+
+    async def main(self):
+        # Извлекаем конфигурацию токена при старте воркера
+        config = await AssistantConfig.objects.afirst()
+        if not config or not config.tg_bot_token:
+            self.stdout.write(self.style.ERROR("Критическая ошибка: В админке Django отсутствует Telegram Bot Token!"))
+            return
+
+        self.stdout.write(self.style.SUCCESS(f"Запуск ядра Telegram бота на базе модели: {config.model_name}..."))
+
+        # Инициализируем приложение бота
+        application = ApplicationBuilder().token(config.tg_bot_token).build()
+
+        # Регистрируем хэндлеры команд и сообщений
+        application.add_handler(CommandHandler("start", start_command))
+        application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_telegram_message))
+
+        # Начинаем бесконечный опрос серверов Telegram (Polling)
+        await application.initialize()
+        await application.start()
+        await application.updater.start_polling()
+
+        self.stdout.write(self.style.SUCCESS("🤖 Бот успешно запущен и слушает входящие сообщения. Нажмите Ctrl+C для выхода."))
+        
+        # Держим цикл активным
+        while True:
+            await asyncio.sleep(3600)
+========== END FILE: backend/ai_assistant/management/commands/run_tg_bot.py ==========
