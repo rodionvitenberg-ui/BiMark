@@ -54,6 +54,7 @@ interface CustomProjection extends d3.GeoProjection {
   alpha(): number;
 }
 
+// ДОБАВЛЕНЫ ВСЕ НАШИ АКТУАЛЬНЫЕ ГОРОДА
 const cityCoordinates: Record<string, [number, number]> = {
   'san francisco': [37.7749, -122.4194],
   'new york': [40.7128, -74.006],
@@ -67,6 +68,12 @@ const cityCoordinates: Record<string, [number, number]> = {
   mumbai: [19.076, 72.8777],
   'los angeles': [34.0522, -118.2437],
   chicago: [41.8781, -87.6298],
+  tallinn: [59.4370, 24.7536],
+  tbilisi: [41.7151, 44.8271],
+  kyiv: [50.4501, 30.5234],
+  chisinau: [47.0105, 28.8638],
+  bucharest: [44.4268, 26.1025],
+  barcelona: [41.3851, 2.1734],
 };
 
 function orthographicRaw(x: number, y: number): [number, number] {
@@ -320,6 +327,9 @@ export default function GlobeWireframe({
   useEffect(() => {
     if (rotateCities.length === 0 || !isVisible) return;
 
+    // Смещение по широте. Чем больше число, тем ВЫШЕ на глобусе будет отображаться город
+    const cameraLatOffset = 18; 
+
     const rotateToNextCity = () => {
       const nextIndex = (currentCityIndex + 1) % rotateCities.length;
       const city = rotateCities[nextIndex].toLowerCase();
@@ -327,7 +337,7 @@ export default function GlobeWireframe({
 
       if (coordinates) {
         animateRotationTo(
-          [-coordinates[1], -coordinates[0]],
+          [-coordinates[1], -coordinates[0] + cameraLatOffset], // Применяем смещение
           rotationSpeed * 0.6,
         );
         setCurrentCityIndex(nextIndex);
@@ -339,7 +349,7 @@ export default function GlobeWireframe({
 
     if (coordinates) {
       animateRotationTo(
-        [-coordinates[1], -coordinates[0]],
+        [-coordinates[1], -coordinates[0] + cameraLatOffset], // Применяем смещение
         rotationSpeed * 0.6,
       );
     }
@@ -356,20 +366,6 @@ export default function GlobeWireframe({
     isVisible,
     animateRotationTo,
   ]);
-
-  useEffect(() => {
-    if (!rotateToLocation) return;
-
-    let coordinates: [number, number];
-    if (typeof rotateToLocation === 'string') {
-      const city = rotateToLocation.toLowerCase();
-      coordinates = cityCoordinates[city] || [0, 0];
-    } else {
-      coordinates = rotateToLocation;
-    }
-
-    setRotation([-coordinates[1], -coordinates[0]]);
-  }, [rotateToLocation]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
     if (!enableInteraction) return;
@@ -594,6 +590,46 @@ export default function GlobeWireframe({
     dimensions.width,
   ]);
 
+  // === РАСЧЕТ ПОЗИЦИИ АКТИВНОГО ГОРОДА (OVERLAY) ===
+  let activeCityMarker: { x: number; y: number; name: string } | null = null;
+  let isActiveCityVisible = false;
+
+  if (rotateCities.length > 0 && finalWidth > 0 && finalHeight > 0) {
+    const cityName = rotateCities[currentCityIndex];
+    const coords = cityCoordinates[cityName.toLowerCase()];
+    if (coords) {
+      const lonLat: [number, number] = [coords[1], coords[0]]; // D3 принимает [lon, lat]
+      
+      // Воссоздаем текущую проекцию для вычисления координат
+      const currentProj = variant === 'wireframe' 
+        ? interpolateProjection(orthographicRaw, equirectangularRaw)
+            .scale(d3.scaleLinear().domain([0, 1]).range([Math.min(finalWidth, finalHeight) / 2 * 0.9 * scale, Math.min(finalWidth, finalHeight) / 2 * 0.54 * scale])(Math.pow(progress / 100, 0.5)))
+            .translate([finalWidth / 2, finalHeight / 2])
+            .rotate([rotation[0], rotation[1]])
+        : d3.geoOrthographic()
+            .scale((Math.min(finalWidth, finalHeight) / 2) * scale * 0.9)
+            .translate([finalWidth / 2, finalHeight / 2])
+            .rotate([rotation[0], rotation[1]]);
+            
+      const projected = currentProj(lonLat);
+      
+      // Вычисляем дистанцию до центра проекции, чтобы скрыть город, если он ушел "на другую сторону" глобуса
+      const center: [number, number] = [-rotation[0], -rotation[1]];
+      const distance = d3.geoDistance(lonLat, center);
+      
+      // Город виден, если угол между ним и центром камеры меньше 90 градусов (Math.PI / 2)
+      isActiveCityVisible = distance < Math.PI / 2 + 0.1; // +0.1 для чуть более плавного скрытия на кромке
+
+      if (projected) {
+        activeCityMarker = {
+          x: projected[0],
+          y: projected[1],
+          name: cityName
+        };
+      }
+    }
+  }
+
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <svg
@@ -618,6 +654,32 @@ export default function GlobeWireframe({
           opacity: useResponsive ? (dimensions.width > 0 ? 1 : 0) : 1,
         }}
       />
+      
+      {/* === СЛОЙ ИНТЕРАКТИВНЫХ МЕТОК (OVERLAY) === */}
+      {activeCityMarker && (
+        <div
+          className="absolute pointer-events-none transition-opacity duration-300 ease-in-out"
+          style={{
+            left: activeCityMarker.x,
+            top: activeCityMarker.y,
+            opacity: isActiveCityVisible ? 1 : 0,
+            zIndex: 10
+          }}
+        >
+          {/* Пульсирующая точка */}
+          <div className="absolute top-0 left-0 transform -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
+            <div className="absolute w-8 h-8 bg-[#f7be00]/30 rounded-full animate-ping" />
+            <div className="relative w-3 h-3 bg-[#f7be00] rounded-full shadow-[0_0_12px_#f7be00]" />
+          </div>
+          
+          {/* Метка с названием города */}
+          <div className="absolute top-0 left-0 transform -translate-y-1/2 translate-x-4 bg-[#05010d]/80 border border-white/10 px-3 py-1.5 rounded-[8px] backdrop-blur-md shadow-xl whitespace-nowrap">
+            <span className="text-white font-sans text-[13px] font-bold uppercase tracking-wider">
+              {activeCityMarker.name}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

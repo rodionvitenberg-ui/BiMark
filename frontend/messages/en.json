@@ -624,5 +624,30 @@
   "Metadata": {
     "title": "Bimark - Established Business Sale",
     "description": "Buy and sell ready-made businesses and digital assets"
+  },
+  "vision": {
+    "hero": {
+      "title": "Acquire a turnkey media business generating revenue from day one",
+      "subtitle": "Verified YouTube channels and Facebook groups with autonomous teams. Generate profit from anywhere in the world while you sleep.",
+      "intro": "Skip months of waiting, complex process setups, wasted testing budgets, or micromanagement. Step directly into an active project that generates profit right now. These are fully autonomous digital assets turnkey:"
+    },
+    "features": {
+      "item1": {
+        "title": "Earn from Anywhere",
+        "desc": "Fully location-independent business. Manage operations directly from your phone from any country, or simply monitor the organic growth."
+      },
+      "item2": {
+        "title": "Revenue While You Sleep",
+        "desc": "All production pipelines are automated. Acquire a complete, operational crew (creators, editors, proofreaders) that scales the asset without your daily intervention."
+      },
+      "item3": {
+        "title": "Absolute Security & Legal Compliance",
+        "desc": "Completely transparent transaction framework. Finalize ownership via official offline legal execution in Dubai, Tallinn, Tbilisi, Kyiv, Chisinau, Bucharest, London, or Barcelona with a formal binding agreement."
+      },
+      "item4": {
+        "title": "Operational Guarantee",
+        "desc": "Contractually guaranteed 2-year full-scale support. Consultations, check-ins, or physical sessions — our team mitigates operational risks and backs your asset."
+      }
+    }
   }
 }

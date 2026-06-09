@@ -624,5 +624,30 @@
   "Metadata": {
     "title": "Bimark - Venta de Negocios en Funcionamiento",
     "description": "Compra y venta de empresas operativas y activos digitales"
+  },
+  "vision": {
+    "hero": {
+      "title": "Adquiera un negocio de medios llave en mano que genera ingresos desde el primer día",
+      "subtitle": "Canales de YouTube y grupos de Facebook verificados con equipos autónomos. Genere ganancias desde cualquier parte del mundo mientras duerme.",
+      "intro": "Olvídese de esperar meses, configurar procesos complejos, desperdiciar presupuestos en pruebas o microgestionar. Ingrese directamente a un proyecto activo que genera ganancias ahora mismo. Estos son activos digitales llave en mano completamente autónomos:"
+    },
+    "features": {
+      "item1": {
+        "title": "Gane desde cualquier lugar",
+        "desc": "Negocio totalmente independiente de la ubicación. Gestione las operaciones desde su teléfono desde cualquier país, o simplemente supervise el crecimiento orgánico."
+      },
+      "item2": {
+        "title": "Ingresos mientras duerme",
+        "desc": "Todos los procesos están automatizados. Reciba un equipo operativo completo (creadores, editores, diseñadores) que continuará expandiendo el activo sin su intervención diaria."
+      },
+      "item3": {
+        "title": "Seguridad absoluta y legalidad",
+        "desc": "Operaciones totalmente transparentes. Cierre la transacción mediante una reunión presencial en Dubái, Tallín, Tiflis, Kiev, Chisinau, Bucarest, Londres o Barcelona con la firma de un contrato vinculante."
+      },
+      "item4": {
+        "title": "Garantía contractual",
+        "desc": "Aseguramos por contrato 2 años de soporte integral. Consultas, llamadas o reuniones presenciales: nuestro equipo mitiga los riesgos operativos y respalda su activo."
+      }
+    }
   }
 }
