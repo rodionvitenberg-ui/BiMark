@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Minus, Plus, ShoppingCart, Briefcase, Gem } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Minus, Plus, ShoppingCart, Gem, Activity } from "lucide-react";
 import { Link } from "../../../../i18n/routing";
 import { apiClient } from "../../../../lib/api/client";
 import { Asset } from "../../../../types/project";
@@ -31,18 +31,20 @@ export default function AssetDetail() {
     staleTime: 60 * 1000, 
   });
 
-  const currentImage = asset?.image 
-    ? (typeof asset.image === 'object' && asset.image !== null 
-        ? (asset.image[locale]) 
-        : asset.image)
-    : null;
+  // Универсальный хелпер безопасного извлечения мультиязычных строк
+  const getLocalizedValue = (field: any, fallbackStr = ""): string => {
+    if (typeof field === 'object' && field !== null) {
+      return field[locale] || field.en || field.ru || fallbackStr;
+    }
+    return field || fallbackStr;
+  };
+
+  const currentImage = asset?.image ? getLocalizedValue(asset.image) : null;
 
   const handleAddToCart = () => {
     if (!asset) return;
 
-    const title = typeof asset.title === 'string' 
-        ? asset.title 
-        : (asset.title[locale] || asset.title["en"] || "Asset");
+    const title = getLocalizedValue(asset.title, "Asset");
 
     addItem({
       item_type: 'asset',                   
@@ -80,9 +82,8 @@ export default function AssetDetail() {
 
   const isSoldOut = asset.status === 'SOLD';
   
-  // Универсальное извлечение текстов для микроразметки
-  const assetTitle = typeof asset.title === 'string' ? asset.title : (asset.title[locale] || asset.title["en"] || "Asset");
-  const assetDescription = typeof asset.description === 'string' ? asset.description : (asset.description[locale] || asset.description["en"] || "");
+  const assetTitle = getLocalizedValue(asset.title, "Asset");
+  const assetDescription = getLocalizedValue(asset.description, "");
 
   // ГЕНЕРАЦИЯ JSON-LD ДЛЯ GOOGLE
   const jsonLd = {
@@ -126,6 +127,7 @@ export default function AssetDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
           <div className="lg:col-span-2 space-y-8">
+            {/* Контейнер изображения */}
             <div className="aspect-video w-full bg-gray-200 dark:bg-zinc-900 rounded-3xl overflow-hidden relative">
               {currentImage ? (
                 <img src={currentImage} alt={assetTitle} className="w-full h-full object-cover" />
@@ -134,21 +136,62 @@ export default function AssetDetail() {
               )}
             </div>
 
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand-blue text-xs font-bold uppercase tracking-wider mb-4">
-                {asset.is_unique ? <Gem className="w-3 h-3" /> : <Briefcase className="w-3 h-3" />}
-                {asset.is_unique 
-                  ? t("badgeExclusive", { fallback: "Эксклюзивный актив" }) 
-                  : t("badgeBusiness", { fallback: "Готовый бизнес" })
-                }
+            {/* ИСПРАВЛЕНО: Новый блок индикаторов и метаданных ПОД изображением */}
+            <div className="w-full">
+              <div className="flex flex-wrap items-center gap-2.5 mb-6">
+                
+                {/* 1. ДИНАМИЧЕСКИЕ ТЕГИ (Всегда ЛЕВЕЕ всех остальных показателей) */}
+                {asset.tags && asset.tags.length > 0 && asset.tags.map((tag, idx) => (
+                  <span 
+                    key={tag.id || idx}
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border"
+                    style={{ 
+                      backgroundColor: `${tag.color}15`, 
+                      borderColor: `${tag.color}40`, 
+                      color: tag.color 
+                    }}
+                  >
+                    {getLocalizedValue(tag.name)}
+                  </span>
+                ))}
+
+                {/* 2. СТАТУС ВЛАДЕНИЯ (Эксклюзивный актив / Актив целиком) */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-brand-blue text-xs font-bold uppercase tracking-wider border border-blue-200/20 dark:border-blue-800/30">
+                  <Gem className="w-3.5 h-3.5" />
+                  {asset.is_unique 
+                    ? t("badgeExclusive", { fallback: "Эксклюзивный актив" }) 
+                    : t("wholeAsset", { fallback: "Актив целиком" })
+                  }
+                </div>
+
+                {/* 3. ХАРАКТЕРИСТИКИ DUE DILIGENCE (Всегда ИДУТ ПОСЛЕ всех прочих показателей) */}
+                {asset.metrics && asset.metrics.length > 0 && asset.metrics.map((metric, idx) => (
+                  <div 
+                    key={idx} 
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800/60 text-gray-800 dark:text-gray-200 text-xs font-bold uppercase tracking-wider border border-gray-200 dark:border-zinc-700/80"
+                  >
+                    <span className="text-gray-400 dark:text-gray-500 font-medium">
+                      {getLocalizedValue(metric.metric_name)}:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-black">
+                      {getLocalizedValue(metric.value)}
+                    </span>
+                  </div>
+                ))}
+
               </div>
 
+              {/* Заголовок и Описание лота (Короткое описание сюда НЕ ВКЛЮЧАЕМ) */}
               <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-6">
                 {assetTitle}
               </h1>
               
               <div 
-                className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300"
+                className="prose prose-lg dark:prose-invert max-w-none text-gray-600 dark:text-gray-300
+                  [&_strong]:font-extrabold [&_strong]:text-gray-900 dark:[&_strong]:text-white
+                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-4
+                  [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-4
+                  [&_li]:mb-2"
                 dangerouslySetInnerHTML={{ 
                   __html: assetDescription 
                 }}
@@ -156,6 +199,7 @@ export default function AssetDetail() {
             </div>
           </div>
 
+          {/* Правая плашка оформления заказа (Правый сайдбар) */}
           <div className="relative">
             <div className="sticky top-32 bg-white dark:bg-[#111827] rounded-3xl shadow-xl border border-gray-100 dark:border-gray-800 p-8">
               

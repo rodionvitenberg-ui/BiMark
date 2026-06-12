@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles } from "lucide-react";
+import { Sparkles, LayoutGrid } from "lucide-react";
 import { apiClient } from "../../../lib/api/client";
-import { Asset } from "../../../types/project";
-import { AssetCard } from "../../../components/ui/asset-card";
+import { Asset, AssetCategory } from "../../../types/project";
+import { AssetCard } from "../../../components/landing/AssetCard"; // Убедись, что путь импорта карточки верный
 import { ContactUs } from "../../../components/modules/contact-us"; 
 
 type FilterType = "ALL" | "UNIQUE" | "REGULAR";
@@ -15,10 +15,23 @@ type SortType = "NEWEST" | "PRICE_ASC" | "PRICE_DESC";
 
 export default function AssetsCatalogPage() {
   const t = useTranslations("AssetsCatalog");
+  const locale = useLocale() as "ru" | "en" | "es";
 
-  const [filter, setFilter] = useState<FilterType>("ALL");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null); // Фильтр по слагам AssetCategory
+  const [typeFilter, setTypeFilter] = useState<FilterType>("ALL");
   const [sort, setSort] = useState<SortType>("NEWEST");
 
+  // 1. Загружаем динамические категории ассетов
+  const { data: categories } = useQuery<AssetCategory[]>({
+    queryKey: ["asset-categories"],
+    queryFn: async () => {
+      const response = await apiClient.get("/asset-categories/");
+      return response.data.results || response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // 2. Загружаем активы
   const { data: assets, isLoading, isError } = useQuery<Asset[]>({
     queryKey: ["assets"],
     queryFn: async () => {
@@ -28,13 +41,29 @@ export default function AssetsCatalogPage() {
     staleTime: 60 * 1000,
   });
 
+  // Хелпер локализации
+  const getLocalizedName = (nameObj: any, defaultStr = ""): string => {
+    if (typeof nameObj === 'object' && nameObj !== null) {
+      return nameObj[locale] || nameObj.en || nameObj.ru || defaultStr;
+    }
+    return nameObj || defaultStr;
+  };
+
+  // 3. Сквозная фильтрация и сортировка
   const displayedAssets = useMemo(() => {
     if (!assets) return [];
     let result = [...assets];
 
-    if (filter === "UNIQUE") result = result.filter((a) => a.is_unique);
-    else if (filter === "REGULAR") result = result.filter((a) => !a.is_unique);
+    // Фильтр 1: По бизнес-нише (Категории)
+    if (categoryFilter) {
+      result = result.filter((a) => a.category?.slug === categoryFilter);
+    }
 
+    // Фильтр 2: По типу передачи прав (Уникальность лота)
+    if (typeFilter === "UNIQUE") result = result.filter((a) => a.is_unique);
+    else if (typeFilter === "REGULAR") result = result.filter((a) => !a.is_unique);
+
+    // Сортировка по дате/цене
     result.sort((a, b) => {
       if (sort === "NEWEST") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (sort === "PRICE_ASC") return Number(a.price) - Number(b.price);
@@ -43,19 +72,24 @@ export default function AssetsCatalogPage() {
     });
 
     return result;
-  }, [assets, filter, sort]);
+  }, [assets, categoryFilter, typeFilter, sort]);
+
+  const resetAllFilters = () => {
+    setCategoryFilter(null);
+    setTypeFilter("ALL");
+    setSort("NEWEST");
+  };
 
   return (
-    // Добавили flex flex-col, чтобы подвал всегда прижимался к низу
     <div className="min-h-screen bg-zinc-50 dark:bg-black pt-24 flex flex-col">
       
-      {/* 1. HERO БЛОК (Шапка) - Растянули контейнер */}
+      {/* 1. HERO БЛОК */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 mb-12">
         <section className="relative w-full overflow-hidden bg-brand-blue/5 dark:bg-brand-blue/10 rounded-3xl px-6 py-16 sm:py-24">
           <div className="relative z-10 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 text-brand-blue text-xs font-bold uppercase tracking-wider mb-6">
               <Sparkles className="w-4 h-4" />
-              {t("heroBadge", { fallback: "Премиум сегмент" })}
+              {t("heroBadge", { fallback: "Премиум бизнес-брокер" })}
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-tight">
               {t("heroTitle", { fallback: "Эксклюзивные активы и бизнесы" })}
@@ -67,31 +101,60 @@ export default function AssetsCatalogPage() {
         </section>
       </div>
 
-      {/* Основной контейнер сетки (Сделали шире: max-w-[1600px]) */}
+      {/* Основной контейнер сетки */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 flex-1">
         
-        {/* 2. ПАНЕЛЬ УПРАВЛЕНИЯ */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 bg-white dark:bg-[#111827] p-4 sm:p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl">
-            <FilterPill active={filter === "ALL"} onClick={() => setFilter("ALL")} label={t("filterAll", { fallback: "Все проекты" })} />
-            <FilterPill active={filter === "UNIQUE"} onClick={() => setFilter("UNIQUE")} label={t("filterUnique", { fallback: "Эксклюзивы (в 1 руки)" })} />
-            <FilterPill active={filter === "REGULAR"} onClick={() => setFilter("REGULAR")} label={t("filterRegular", { fallback: "Готовый бизнес" })} />
+        {/* 2. РАСШИРЕННАЯ ПАНЕЛЬ УПРАВЛЕНИЯ ФИЛЬТРАМИ */}
+        <div className="flex flex-col gap-6 mb-12 bg-white dark:bg-[#111827] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          
+          {/* СТРОКА А: Фильтр по Нишам (Категориям) */}
+          {categories && categories.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500 px-1">
+                {locale === 'ru' ? 'Направление бизнеса' : 'Business Sector'}
+              </span>
+              <div className="flex flex-wrap items-center gap-2 bg-gray-50 dark:bg-gray-800/30 p-1.5 rounded-2xl w-fit">
+                <FilterPill 
+                  active={categoryFilter === null} 
+                  onClick={() => setCategoryFilter(null)} 
+                  label={locale === 'ru' ? "⚡ Все ниши" : "⚡ All Sectors"} 
+                />
+                {categories.map((cat) => (
+                  <FilterPill 
+                    key={cat.id}
+                    active={categoryFilter === cat.slug} 
+                    onClick={() => setCategoryFilter(cat.slug)} 
+                    label={getLocalizedName(cat.name)} 
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* СТРОКА Б: Фильтр по Типу Владения + Сортировка */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-4 border-t border-gray-100 dark:border-gray-800/60">
+            <div className="flex flex-wrap items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-1.5 rounded-2xl">
+              <FilterPill active={typeFilter === "ALL"} onClick={() => setTypeFilter("ALL")} label={t("filterAll", { fallback: "Все лоты" })} />
+              <FilterPill active={typeFilter === "UNIQUE"} onClick={() => setTypeFilter("UNIQUE")} label={t("filterUnique", { fallback: "В одни руки (100%)" })} />
+              <FilterPill active={typeFilter === "REGULAR"} onClick={() => setTypeFilter("REGULAR")} label={t("filterRegular", { fallback: "Франшизы / Сети" })} />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+                {t("sortBy", { fallback: "Сортировать:" })}
+              </span>
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value as SortType)}
+                className="bg-gray-50 dark:bg-gray-800 border-none outline-none text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3 cursor-pointer focus:ring-2 focus:ring-brand-blue transition-all"
+              >
+                <option value="NEWEST">{t("sortNewest", { fallback: "Сначала новые" })}</option>
+                <option value="PRICE_ASC">{t("sortPriceAsc", { fallback: "Сначала дешевые" })}</option>
+                <option value="PRICE_DESC">{t("sortPriceDesc", { fallback: "Сначала дорогие" })}</option>
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
-              {t("sortBy", { fallback: "Сортировать:" })}
-            </span>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as SortType)}
-              className="bg-gray-50 dark:bg-gray-800 border-none outline-none text-gray-900 dark:text-white text-sm font-bold rounded-xl px-4 py-3 cursor-pointer focus:ring-2 focus:ring-brand-blue transition-all"
-            >
-              <option value="NEWEST">{t("sortNewest", { fallback: "Сначала новые" })}</option>
-              <option value="PRICE_ASC">{t("sortPriceAsc", { fallback: "Сначала дешевые" })}</option>
-              <option value="PRICE_DESC">{t("sortPriceDesc", { fallback: "Сначала дорогие" })}</option>
-            </select>
-          </div>
         </div>
 
         {/* 3. СЕТКА КАРТОЧЕК */}
@@ -108,19 +171,19 @@ export default function AssetsCatalogPage() {
             <AnimatePresence mode="popLayout">
               {displayedAssets.length > 0 ? (
                 displayedAssets.map((asset) => (
-                  <motion.div key={asset.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.2 }}>
+                  <motion.div key={asset.id} layout initial={{ opacity: 0, scale: 0.93 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.93 }} transition={{ duration: 0.25 }}>
                     <AssetCard asset={asset} />
                   </motion.div>
                 ))
               ) : (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-full flex flex-col items-center justify-center py-20 text-center">
                   <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
-                    <Sparkles className="w-8 h-8 text-gray-400" />
+                    <LayoutGrid className="w-8 h-8 text-gray-400" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{t("emptyStateTitle", { fallback: "Ничего не найдено" })}</h3>
-                  <p className="text-gray-500 max-w-md mx-auto">{t("emptyStateDesc", { fallback: "В этой категории пока нет доступных проектов." })}</p>
-                  <button onClick={() => { setFilter("ALL"); setSort("NEWEST"); }} className="mt-6 text-brand-blue font-bold hover:underline">
-                    {t("resetFilters", { fallback: "Сбросить фильтры" })}
+                  <p className="text-gray-500 max-w-md mx-auto">{t("emptyStateDesc", { fallback: "В выбранной нише или по заданным критериям пока нет активных предложений." })}</p>
+                  <button onClick={resetAllFilters} className="mt-6 text-brand-blue font-bold hover:underline cursor-pointer border-none bg-transparent">
+                    {t("resetFilters", { fallback: "Сбросить все фильтры" })}
                   </button>
                 </motion.div>
               )}
@@ -129,7 +192,7 @@ export default function AssetsCatalogPage() {
         )}
       </div>
 
-      {/* 4. БЛОК ОБРАТНОЙ СВЯЗИ (Вынесен из контейнера, чтобы фон тянулся на 100%) */}
+      {/* 4. БЛОК ОБРАТНОЙ СВЯЗИ */}
       <div className="w-full mt-auto">
         <ContactUs />
       </div>
@@ -142,10 +205,10 @@ function FilterPill({ active, onClick, label }: { active: boolean; onClick: () =
   return (
     <button
       onClick={onClick}
-      className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 ${
+      className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 cursor-pointer border-none ${
         active 
-          ? "bg-white dark:bg-gray-700 text-brand-blue shadow-sm" 
-          : "text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+          ? "bg-white dark:bg-gray-700 text-brand-blue dark:text-white shadow-sm" 
+          : "bg-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-gray-800/50"
       }`}
     >
       {label}

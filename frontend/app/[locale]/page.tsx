@@ -8,12 +8,15 @@ import { AboutUs } from "../../components/modules/about-us";
 import { ContactUs } from "../../components/modules/contact-us";
 import TokenTeaser from "../../components/modules/token-teaser";
 import NewProjects from "@/components/modules/new-projects";
+import HeroSection from '../../components/landing/HeroSection';
+import { VisionContent } from '../../components/landing/VisionContent';
+import { PresentationCatalog } from '../../components/landing/AssetCatalog'; 
 
 export default function Home() {
   return (
     <div className="flex flex-col w-full">
-      <Hero />
-      <HowItWorks />
+      <HeroSection />
+      <VisionContent />
       <NewProjects />
       <AssetsGrid />
       <TokenTeaser />

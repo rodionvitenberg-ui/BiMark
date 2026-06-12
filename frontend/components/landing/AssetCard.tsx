@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { Briefcase, Gem } from "lucide-react";
+import { Gem, Activity } from "lucide-react";
 import { Asset } from "../../types/project";
 import { Link } from "../../i18n/routing";
 
@@ -22,75 +22,111 @@ export function AssetCard({ asset }: AssetCardProps) {
   const t = useTranslations("Assets"); 
   const locale = useLocale() as "ru" | "en" | "es";
 
-  const title = typeof asset.title === 'object' && asset.title !== null
-    ? (asset.title[locale] || asset.title.en || "Без названия")
-    : (asset.title || "Без названия");
+  // Универсальный хелпер безопасного извлечения мультиязычных строк из объектов JSON-API
+  const getLocalizedValue = (field: any, fallbackStr = ""): string => {
+    if (typeof field === 'object' && field !== null) {
+      return field[locale] || field.en || field.ru || fallbackStr;
+    }
+    return field || fallbackStr;
+  };
 
-  // 1. Получаем сырое описание (с HTML)
-  const rawDescription = typeof asset.description === 'object' && asset.description !== null
-    ? (asset.description[locale] || asset.description.en || "")
-    : (asset.description || "");
-
-  // 2. Очищаем от HTML-тегов для превью[cite: 7]
-  const cleanDescription = rawDescription.replace(/<[^>]*>?/gm, '');
+  const title = getLocalizedValue(asset.title, "Без названия");
+  const shortDescription = getLocalizedValue(asset.short_description, "");
 
   const formatCurrency = (value: number | string) => 
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Number(value));
 
   const assetUrl = `/assets/${asset.id}`; 
-  
-  const currentImage = typeof asset.image === 'object' && asset.image !== null
-    ? (asset.image[locale])
-    : asset.image;
-
-  const imageSrc = currentImage || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
+  const imageSrc = getLocalizedValue(asset.image) || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop";
 
   return (
-    // bg-[#131b2e] — синий хаб-оттенок, который идеально контрастирует с фоном #0a0f1c.
-    // При hover карточка мягко подсвечивается изнутри и приобретает аккуратный неоновый синий shadow.
     <Card className="group flex flex-col h-full bg-[#131b2e] hover:bg-[#17223b] hover:shadow-[0_0_30px_rgba(0,123,255,0.15)] transition-all duration-300 border border-white/10 rounded-2xl overflow-hidden gap-0">
       
       <CardHeader className="p-5 pb-3">
         <Link href={assetUrl} className="block">
-          {/* Сменили text-brand-black на text-white */}
           <CardTitle className="text-2xl font-bold text-white line-clamp-1 group-hover:text-brand-blue transition-colors">
             {title}
           </CardTitle>
         </Link>
-        {/* Сменили text-gray-500 на text-gray-400 */}
-        <CardDescription className="line-clamp-2 text-md text-gray-400 leading-relaxed mt-2">
-          {cleanDescription}
+        {/* ИСПРАВЛЕНО: Заменили длинное описание с очисткой тегов на аккуратное короткое описание */}
+        <CardDescription className="line-clamp-2 text-md text-gray-400 leading-relaxed mt-2 min-h-[48px]">
+          {shortDescription}
         </CardDescription>
       </CardHeader>
 
       <CardContent className="p-5 pt-0 flex-1 flex flex-col">
         
-        {/* Контейнер картинки со скруглением */}
+        {/* Контейнер картинки */}
         <Link href={assetUrl} className="block w-full h-44 relative rounded-xl overflow-hidden shrink-0 mb-5 bg-[#0a0f1c]/50 border border-white/5">
           <img 
             src={imageSrc} 
             alt={title} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
           />
-          {/* Легкий градиентный оверлей на картинке для глубины */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#131b2e]/40 to-transparent" />
         </Link>
 
-        {/* Характеристики ассета */}
-        <div className="flex flex-col gap-3 mt-auto">
-          <div className="flex items-center text-sm text-gray-400 font-medium">
-            <Gem className={`w-4 h-4 mr-2.5 shrink-0 ${asset.is_unique ? 'text-brand-blue' : 'text-gray-500'}`} />
-            <span>
-              {asset.is_unique 
-                ? <span className="text-brand-blue font-bold">{t("uniqueAsset", { fallback: "Уникальный актив" })}</span> 
-                : <span className="text-gray-300 font-bold">{t("wholeAsset", { fallback: "Актив целиком" })}</span>}
-            </span>
-          </div>
+        {/* НОВАЯ ДВУХКОЛОНОЧНАЯ АРХИТЕКТУРА ДИНАМИЧЕСКИХ ДАННЫХ */}
+        <div className="flex justify-between items-start gap-4 mt-auto">
           
-          <div className="flex items-center text-sm text-gray-400 font-medium truncate">
-            <Briefcase className="w-4 h-4 mr-2.5 text-gray-500 shrink-0" />
-            <span className="truncate text-gray-300">{t("readyBusiness", { fallback: "Готовый бизнес" })}</span>
+          {/* ЛЕВАЯ КОЛОНКА: Статус уникальности + Ключевая метрика Due Diligence */}
+          <div className="flex flex-col gap-2.5 flex-1 min-w-0">
+            <div className="flex items-center text-sm text-gray-400 font-medium">
+              <Gem className={`w-4 h-4 mr-2 shrink-0 ${asset.is_unique ? 'text-brand-blue' : 'text-gray-500'}`} />
+              <span className="truncate">
+                {asset.is_unique 
+                  ? <span className="text-brand-blue font-bold">{t("uniqueAsset", { fallback: "Уникальный актив" })}</span> 
+                  : <span className="text-gray-300 font-bold">{t("wholeAsset", { fallback: "Актив целиком" })}</span>}
+              </span>
+            </div>
+            
+            {/* Рендерим первую характеристику DD в левую колонку под статус (если они забиты на бэкенде) */}
+            {asset.metrics && asset.metrics.length > 0 && (
+              <div className="flex items-center text-sm font-medium text-gray-300 min-w-0">
+                <Activity className="w-4 h-4 mr-2 text-brand-blue shrink-0 animate-pulse" />
+                <div className="truncate text-xs">
+                  <span className="text-gray-400 mr-1">{getLocalizedValue(asset.metrics[0].metric_name)}:</span>
+                  <span className="font-extrabold text-white">{getLocalizedValue(asset.metrics[0].value)}</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* ПРАВАЯ КОЛОНКА: Блок тегов + Стек дополнительных характеристик */}
+          <div className="flex flex-col items-end gap-2.5 shrink-0 max-w-[50%]">
+            
+            {/* Вывод динамических тегов из админки (Правее, под изображением) */}
+            {asset.tags && asset.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-end">
+                {asset.tags.map((tag, idx) => (
+                  <span 
+                    key={tag.id || idx} 
+                    className="text-[10px] font-black px-2 py-0.5 rounded-md border uppercase tracking-wider transition-all"
+                    style={{ 
+                      backgroundColor: `${tag.color}15`, 
+                      borderColor: `${tag.color}40`, 
+                      color: tag.color 
+                    }}
+                  >
+                    {getLocalizedValue(tag.name)}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Второе и последующие поля характеристик (Отображаются каскадом строго под тегами) */}
+            {asset.metrics && asset.metrics.length > 1 && (
+              <div className="flex flex-col gap-1.5 items-end w-full">
+                {asset.metrics.slice(1, 3).map((metric, idx) => (
+                  <div key={idx} className="text-right text-xs font-medium truncate max-w-full text-gray-300">
+                    <span className="text-gray-400 mr-1">{getLocalizedValue(metric.metric_name)}:</span>
+                    <span className="font-black text-brand-blue">{getLocalizedValue(metric.value)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
         </div>
         
       </CardContent>
@@ -98,7 +134,6 @@ export function AssetCard({ asset }: AssetCardProps) {
       {/* Футер карточки с прайсом */}
       <CardFooter className="p-5 pt-4 flex items-center justify-between mt-auto border-t border-white/5 bg-[#0a0f1c]/20">
         <div className="flex flex-col">
-          {/* Сменили цвет цены на чистый белый */}
           <span className="text-2xl font-black text-white leading-none tracking-tight">
             {formatCurrency(asset.price)}
           </span>

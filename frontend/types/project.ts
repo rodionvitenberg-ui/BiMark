@@ -1,3 +1,5 @@
+// frontend/types/project.ts
+
 export type ProjectStatus = "DRAFT" | "PRESALE" | "ACTIVE" | "SOLD";
 
 export interface LocalizedString {
@@ -30,16 +32,47 @@ export interface Project {
   is_token: boolean;
 }
 
+// --- НОВЫЕ СТРУКТУРЫ ДАННЫХ ДЛЯ АССЕТОВ ---
+
+export interface AssetCategory {
+  id: string;
+  slug: string;
+  name: LocalizedString;
+  image: string | null;
+  is_hidden: boolean;
+}
+
+export interface AssetTag {
+  id: string;
+  slug: string;
+  name: LocalizedString;
+  color: string;
+  show_on_card: boolean;
+}
+
+export interface AssetMetricValue {
+  metric_name: LocalizedString;
+  icon: string;
+  show_on_card: boolean;
+  value: LocalizedString;
+}
+
 export interface Asset {
   id: string;
-  title: Record<string, string> | string;
-  description: Record<string, string> | string;
+  title: LocalizedString | string;
+  short_description: LocalizedString | string; // Добавили короткое описание лота
+  description: LocalizedString | string;
   price: number | string;
-  image: Record<string, string> | string | null;
+  image: LocalizedString | string | null;
   status: 'DRAFT' | 'ACTIVE' | 'SOLD';
   is_unique: boolean;
   created_at: string;
   updated_at?: string;
   is_new: boolean;
   is_hidden: boolean;
+  
+  // Добавленные связные сущности из бэкенда
+  category?: AssetCategory | null;
+  tags?: AssetTag[];
+  metrics?: AssetMetricValue[];
 }
