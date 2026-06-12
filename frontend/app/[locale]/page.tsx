@@ -20,9 +20,8 @@ export default function Home() {
       <CategoriesPreview />
       <NewProjects />
       <AssetsGrid />
-      <TokenTeaser />
-      <ContactUs />
       <AboutUs />
+      <ContactUs />
     </div>
   );
 }

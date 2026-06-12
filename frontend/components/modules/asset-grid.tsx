@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { Asset } from "../../types/project";
-import { AssetCard } from "../ui/asset-card";
+import { AssetCard } from "../landing/AssetCard";
 import { apiClient } from "../../lib/api/client";
 import { Link } from "../../i18n/routing";
 import { ArrowRight, CaretLeft, CaretRight } from "@phosphor-icons/react";
@@ -33,7 +33,7 @@ export function AssetsGrid() {
   };
 
   return (
-    <section className="relative w-full py-24 bg-brand-light border-t border-gray-200 overflow-hidden">
+    <section className="relative w-full py bg-[#f5f7fb] overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         
         {/* ШАПКА СЕТКИ И КНОПКИ УПРАВЛЕНИЯ */}

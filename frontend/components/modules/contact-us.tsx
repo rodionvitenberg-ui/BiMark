@@ -8,7 +8,7 @@ export function ContactUs() {
   const t = useTranslations("Contacts");
 
   return (
-    <section className="w-full py-24 bg-white border-t border-gray-100">
+    <section className="w-full py-24 bg-[#f5f7fb] border-t border-gray-100">
       <div className="container mx-auto px-4">
         
         <div className="max-w-4xl mx-auto bg-brand-light rounded-3xl p-8 md:p-12 border border-gray-100 shadow-sm">
