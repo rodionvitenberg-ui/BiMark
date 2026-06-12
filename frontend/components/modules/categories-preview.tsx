@@ -6,18 +6,19 @@ import { motion } from "framer-motion";
 import { ArrowRightIcon } from "@phosphor-icons/react";
 import { Link } from "../../i18n/routing";
 import { apiClient } from "../../lib/api/client";
-import { Category } from "../../types/project";
+import { AssetCategory } from "../../types/project";
 
 export function CategoriesPreview() {
   const t = useTranslations("CategoriesPreview");
   const locale = useLocale() as "ru" | "en" | "es";
 
-  const { data: categories, isLoading, isError } = useQuery<Category[]>({
-    queryKey: ["categories_preview"],
+  const { data: categories, isLoading, isError } = useQuery<AssetCategory[]>({
+    queryKey: ["asset_categories_preview"],
     queryFn: async () => {
-      const response = await apiClient.get("/categories/");
+      const response = await apiClient.get("/asset-categories/");
       return response.data.results || response.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 
   return (
@@ -26,7 +27,6 @@ export function CategoriesPreview() {
       <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-[500px] h-[500px] bg-brand-blue/20 rounded-full blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/4 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-      {/* Выравнивание сетки как в token-teaser */}
       <div className="container mx-auto px-4 relative z-10">
         
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -40,7 +40,7 @@ export function CategoriesPreview() {
           </div>
           
           <Link 
-            href="/category" 
+            href="/assets" 
             className="w-full md:w-auto px-8 py-4 bg-brand-blue hover:bg-[#007cbd] text-white rounded-xl font-bold text-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-brand-blue/20 group shrink-0"
           >
             {t("viewAll")}
@@ -56,7 +56,7 @@ export function CategoriesPreview() {
 
         {isError && (
           <div className="text-center py-10 text-red-400 bg-red-900/20 border border-red-900/50 rounded-xl font-medium">
-            Не удалось загрузить категории.
+            Не удалось加载 категории активов.
           </div>
         )}
 
@@ -65,8 +65,9 @@ export function CategoriesPreview() {
             {categories.slice(0, 3).map((category) => {
               const categoryName = category.name?.[locale] || category.name?.en || category.name?.ru || "Категория";
               
+              // ИСПРАВЛЕНО: Комментарий перенесен сюда в виде стандартного JS-синтаксиса
               return (
-                <Link key={category.id} href={`/category/${category.slug}`}>
+                <Link key={category.id} href={`/assets?category=${category.slug}`}>
                   <motion.div 
                     whileHover={{ y: -5, scale: 1.02 }}
                     transition={{ duration: 0.2 }}

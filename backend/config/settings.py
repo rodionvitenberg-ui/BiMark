@@ -226,9 +226,9 @@ REFERRAL_PURCHASE_PERCENT = Decimal('5.0')  # 5% от покупки рефер�
 REFERRAL_DEPOSIT_PERCENT = Decimal('2.0')
 
 JAZZMIN_SETTINGS = {
-    "site_title": "YouTube Shop Admin",
+    "site_title": "BiMark Admin",
     "site_header": "Управление платформой",
-    "site_brand": "YouTube Shop",
+    "site_brand": "BiMark",
     "welcome_sign": "Добро пожаловать в панель управления",
     "search_model": ["users.User", "catalog.Project"],
     "show_ui_builder": False, # Выключаем кастомизатор для продакшена
