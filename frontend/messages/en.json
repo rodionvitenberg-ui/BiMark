@@ -426,18 +426,18 @@
     "successMessage": "Your application has been successfully sent! We will contact you shortly."
   },
   "HowItWorks2": {
-    "title": "How It Works",
-    "subtitle": "A simple and transparent path from registering on the Bimark platform to receiving your first dividends.",
-    "step1Title": "1. Registration & Balance",
-    "step1Desc": "Create an account and top up your internal wallet using your preferred method (cryptocurrency or fiat).",
-    "step2Title": "2. Purchase Shares",
-    "step2Desc": "Browse the asset catalog, choose a promising project, and purchase the desired number of shares.",
-    "step3Title": "3. Earn Profits",
-    "step3Desc": "Own shares and earn passive income. Dividends from business operations are automatically credited to your balance.",
-    "step4Title": "4. Withdraw Funds",
-    "step4Desc": "Submit a withdrawal request in your personal account. Our managers will process it promptly and send the funds to your details.",
-    "ctaBtn": "Go to Catalog",
-    "ctaDesc": "Ready to start? Explore available projects right now."
+    "title": "How Digital Asset Acquisition Works",
+    "subtitle": "The BiMark platform provides a full-cycle brokerage for turnkey online businesses: from deep due diligence to secure transfer of ownership.",
+    "step1Title": "1. Selection & Qualification",
+    "step1Desc": "Explore a verified catalog of software startups, SaaS platforms, and revenue-generating media channels filtered by niche and metrics.",
+    "step2Title": "2. Due Diligence Audit",
+    "step2Desc": "Access verified financial metrics, traffic sources, and net profit data. The BiMark analytical department audits every listing prior to publication.",
+    "step3Title": "3. Secure Escrow Escrow",
+    "step3Desc": "Initiate the secure escrow sequence. Your acquisition funds are safely held inside the platform, ensuring absolute capital protection.",
+    "step4Title": "4. Ownership Transfer",
+    "step4Desc": "Our engineering and legal teams execute a seamless transfer of domains, repositories, and owner profiles. You assume complete operational control.",
+    "ctaDesc": "Ready to acquire a premier revenue-generating digital enterprise?",
+    "ctaBtn": "Explore Asset Catalog"
   },
   "Payment": {
   "successTitle": "Payment Received!",

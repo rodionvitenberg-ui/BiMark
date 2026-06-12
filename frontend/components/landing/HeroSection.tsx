@@ -32,6 +32,7 @@ export default function HeroSection() {
     ]
   );
 
+  // ИСПРАВЛЕНО: Чистый синтаксис запроса без ломающих парсер символов переноса строки
   const { data: assets, isLoading } = useQuery<Asset[]>({
     queryKey: ["assets", "hero-random"],
     queryFn: async () => {
@@ -50,7 +51,6 @@ export default function HeroSection() {
         ? (item.title[locale] || item.title.en || item.title.ru || "Without title")
         : (item.title || "Without title");
         
-      // СОХРАНЯЕМ СЫРОЙ HTML ИЗ АДМИНКИ (Убрали очистку и substring)
       const rawDescription = typeof item.description === 'object' && item.description !== null
         ? (item.description[locale] || item.description.en || item.description.ru || "")
         : (item.description || "");
@@ -63,7 +63,7 @@ export default function HeroSection() {
         id: item.id.toString(),
         href: `/assets/${item.id}`,
         title,
-        description: rawDescription, // Сюда теперь летит rich-text с жирным текстом, списками и т.д.
+        description: rawDescription,
         image: currentImage,
         isAsset: true,
         isUnique: item.is_unique,
@@ -72,7 +72,7 @@ export default function HeroSection() {
   }, [assets, locale]);
 
   const badgeText = {
-    ru: "Обновление терминала: Доступна поддержка мультивалютных активов",
+    ru: "Обновление terminalа: Доступна поддержка мультивалютных активов",
     en: "Terminal Update: Multi-asset support live",
     es: "Actualización del terminal: Soporte multi-activo activo"
   }[locale] || "Terminal Update: Multi-asset support live";
@@ -119,9 +119,10 @@ export default function HeroSection() {
         
         {/* ЛЕВАЯ ЧАСТЬ */}
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col items-start text-left max-w-xl">
-          <motion.h1 variants={itemVariants} className="font-sans text-[42px] md:text-[56px] font-extrabold tracking-[-1.4px] leading-[1.1] text-[#ffffff] mb-6 antialiased">
-            {headlineStart} <br className="hidden md:block" />
-            <span className="text-brand-blue inline-block relative min-h-[1.2em]">
+          <motion.h1 variants={itemVariants} className="font-sans text-[32px] sm:text-[42px] md:text-[56px] font-extrabold tracking-[-1.4px] leading-[1.15] text-[#ffffff] mb-6 antialiased">
+            {headlineStart} 
+            <br />
+            <span className="text-brand-blue inline-block relative min-h-[1.2em] whitespace-nowrap">
               <TextType 
                 text={typingWords}
                 typingSpeed={75}
@@ -133,7 +134,8 @@ export default function HeroSection() {
                 cursorBlinkDuration={0.5}
               />
               <span className="absolute inset-0 -m-1" />
-            </span> <br className="hidden md:block" />
+            </span> 
+            <br />
             {headlineEnd}
           </motion.h1>
 
@@ -191,7 +193,6 @@ export default function HeroSection() {
                              {item.title}
                            </h3>
 
-                           {/* ИНТЕГРАЦИЯ HTML ИЗ АДМИНКИ БЕЗ ОШИБОК СЛОЖЕННЫХ ТЕГОВ */}
                            <div 
                              className="text-md text-gray-400 leading-relaxed font-medium line-clamp-4 rich-text-container"
                              dangerouslySetInnerHTML={{ __html: item.description }}

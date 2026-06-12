@@ -104,8 +104,6 @@ export default function AssetsCatalogPage() {
       result = result.filter((asset) => {
         const titleText = getLocalizedName(asset.title).toLowerCase();
         const shortDescText = getLocalizedName(asset.short_description).toLowerCase();
-        
-        // Поиск совпадений внутри таблицы Due Diligence аудита
         const metricsMatch = asset.metrics?.some(
           (m) =>
             getLocalizedName(m.metric_name).toLowerCase().includes(query) ||
@@ -116,7 +114,6 @@ export default function AssetsCatalogPage() {
       });
     }
 
-    // Шаг Д: Сортировка по дате добавления или стоимости лота
     result.sort((a, b) => {
       if (sort === "NEWEST") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       if (sort === "PRICE_ASC") return Number(a.price) - Number(b.price);
@@ -126,6 +123,48 @@ export default function AssetsCatalogPage() {
 
     return result;
   }, [assets, categoryFilter, typeFilter, selectedTags, searchQuery, sort, locale]);
+
+  // ДОБАВЛЕНО: Динамическая генерация ИИ-паспорта каталога (JSON-LD Граф)
+  const jsonLd = useMemo(() => {
+    if (!assets) return null;
+
+    const baseUrl = "https://bimark.org";
+    const catalogTitles: Record<string, string> = {
+      ru: "Каталог Готового Цифрового Бизнеса и IT-Активов — BiMark",
+      en: "Premium Digital Asset & Turnkey Business Catalog — BiMark",
+      es: "Catálogo de Negocios Digitales y Activos IT — BiMark"
+    };
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": catalogTitles[locale] || catalogTitles.en,
+      "url": `${baseUrl}/${locale}/assets`,
+      "description": locale === 'ru'
+        ? "Инвестируйте в верифицированные Telegram-каналы, YouTube-аккаунты и SaaS-сервисы с полной передачей прав собственности через безопасный эскроу-сервис."
+        : "Acquire verified revenue-generating online businesses, software startups, and media accounts with 100% ownership transfer via secure escrow.",
+      "mainEntity": {
+        "@type": "ItemList",
+        "numberOfItems": displayedAssets.length,
+        "itemListElement": displayedAssets.slice(0, 20).map((asset, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": {
+            "@type": "Product",
+            "name": getLocalizedName(asset.title),
+            "description": getLocalizedName(asset.short_description || asset.title),
+            "url": `${baseUrl}/${locale}/assets/${asset.id}`,
+            "offers": {
+              "@type": "Offer",
+              "price": asset.price,
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            }
+          }
+        }))
+      }
+    };
+  }, [displayedAssets, assets, locale]);
 
   const resetAllFilters = () => {
     setCategoryFilter(null);
@@ -137,6 +176,14 @@ export default function AssetsCatalogPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black pt-24 flex flex-col">
+      
+      {/* ДОБАВЛЕНО: Внедрение тега JSON-LD в DOM на этапе серверного рендеринга и гидратации */}
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
       
       {/* 1. HERO БЛОК ПЛАТФОРМЫ */}
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-8 mb-12">
@@ -289,7 +336,6 @@ export default function AssetsCatalogPage() {
                     exit={{ opacity: 0, scale: 0.93 }} 
                     transition={{ duration: 0.25 }}
                   >
-                    {/* ИСПРАВЛЕНО: Рендерится обновленная, светлая карточка с тегами и метриками */}
                     <AssetCard asset={asset} />
                   </motion.div>
                 ))

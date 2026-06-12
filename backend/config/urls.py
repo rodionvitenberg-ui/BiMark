@@ -7,19 +7,21 @@ from billing.webhooks import StripeWebhookView, PayPalCaptureView, PassimPayWebh
 
 # Импорты из приложений каталогов
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
-from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView 
+from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView
 from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView, PasswordResetRequestView, PasswordResetConfirmView
 
-# ДОБАВЛЕНО: Импортируем AssetCategoryViewSet для управления категориями уникальных бизнесов целиком
+# Приложения уникальных бизнесов целиком
 from catalog_assets.views import AssetViewSet, AssetPortfolioView, AssetCategoryViewSet
+
+# Импортируем контроллер статей из приложения cms
+from cms.views import PublicArticleListView
 
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'assets', AssetViewSet, basename='asset')
 router.register(r'tokens', TokenViewSet, basename='token')
-
-# ДОБАВЛЕНО: Регистрируем новый изолированный маршрут для категорий ассетов
+router.register(r'all-assets', AssetViewSet, basename='all-asset')
 router.register(r'asset-categories', AssetCategoryViewSet, basename='asset-category')
 
 urlpatterns = [
@@ -46,7 +48,7 @@ urlpatterns = [
     path('api/wallet/', WalletView.as_view(), name='wallet'),
     path('api/wallet/transactions/', TransactionHistoryView.as_view(), name='transactions'),
     path('api/wallet/deposit/', DepositView.as_view(), name='deposit'),
-    path('api/wallet/withdraw/', WithdrawView.as_view(), name='withdraw'), 
+    path('api/wallet/withdraw/', WithdrawView.as_view(), name='withdraw'),
     
     # --- Webhooks ---
     path('api/webhooks/stripe/', StripeWebhookView.as_view(), name='stripe-webhook'),
@@ -57,7 +59,11 @@ urlpatterns = [
     path('api/users/password-reset/request/', PasswordResetRequestView.as_view(), name='password-reset-request'),
     path('api/users/password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password-reset-confirm'),
 
+    # --- ИИ-Ассистент ---
     path('api/ai/', include('ai_assistant.urls')),
+
+    # Публичный эндпоинт для выгрузки статей в Next.js
+    path('api/cms/articles/public/', PublicArticleListView.as_view(), name='public-articles'),
 ]
 
 if settings.DEBUG:

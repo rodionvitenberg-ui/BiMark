@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.conf import settings
+from .utils import process_image_to_webp
 from tinymce.models import HTMLField
 
 class AssetCategory(models.Model):
@@ -22,6 +23,14 @@ class AssetCategory(models.Model):
         db_table = 'asset_categories'
         verbose_name = 'Категория актива'
         verbose_name_plural = 'Категории активов'
+
+    def save(self, *args, **kwargs):
+        # 1. Сначала оптимизируем картинку в памяти, если она была загружена
+        if self.image:
+            process_image_to_webp(self.image, max_width=800, quality=85) # Для категорий можно чуть меньше ширину
+        
+        # 2. Вызываем стандартное сохранение Django в базу
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -146,6 +155,13 @@ class Asset(models.Model):
         ordering = ['-created_at']
         verbose_name = "Актив (Проект целиком)"
         verbose_name_plural = "Активы (Проекты целиком)"
+
+    def save(self, *args, **kwargs):
+        # 1. Перед отправкой в базу жмем картинку ассета до 1200px по ширине
+        if self.image:
+            process_image_to_webp(self.image, max_width=1200, quality=80)
+            
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.title} (${self.price})"

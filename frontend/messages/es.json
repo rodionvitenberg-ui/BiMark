@@ -426,18 +426,18 @@
     "successMessage": "¡Tu solicitud ha sido enviada con éxito! Nos pondremos en contacto contigo pronto."
   },
   "HowItWorks2": {
-    "title": "Cómo funciona",
-    "subtitle": "Un camino sencillo y transparente desde el registro en la plataforma Bimark hasta la recepción de tus primeros dividendos.",
-    "step1Title": "1. Registro y saldo",
-    "step1Desc": "Crea una cuenta y recarga tu monedero interno con el método que prefieras (criptomonedas o fiat).",
-    "step2Title": "2. Compra de participaciones",
-    "step2Desc": "Explora el catálogo de activos, elige un proyecto prometedor y adquiere la cantidad de participaciones que desees.",
-    "step3Title": "3. Obtención de beneficios",
-    "step3Desc": "Posee participaciones y genera ingresos pasivos. Los dividendos del negocio se abonan automáticamente en tu saldo.",
-    "step4Title": "4. Retiro de fondos",
-    "step4Desc": "Solicita un retiro en tu área personal. Nuestros gestores procesarán la solicitud rápidamente y enviarán los fondos a tus datos de pago.",
-    "ctaBtn": "Ir al catálogo",
-    "ctaDesc": "¿Listo para empezar? Explora los proyectos disponibles ahora mismo."
+    "title": "Cómo funciona la adquisición de activos digitales",
+    "subtitle": "La plataforma BiMark ofrece un servicio de corretaje de ciclo completo para negocios digitales listos para operar: desde auditorías de diligencia debida hasta la transferencia segura de la propiedad.",
+    "step1Title": "1. Selección y Calificación",
+    "step1Desc": "Explore un catálogo verificado de startups tecnológicas, plataformas SaaS y canales de medios rentables, filtrados por nicho, precio y retorno de inversión.",
+    "step2Title": "2. Auditoría de Diligencia Debida (Due Diligence)",
+    "step2Desc": "Acceda a métricas financieras comprobadas, fuentes de tráfico y datos de beneficio neto. El departamento de análisis de BiMark audita cada activo antes de su publicación.",
+    "step3Title": "3. Transacción Segura (Escrow)",
+    "step3Desc": "Inicie el proceso de Escrow seguro. Sus fondos de inversión se mantienen protegidos dentro de la plataforma, garantizando seguridad absoluta durante la verificación legal.",
+    "step4Title": "4. Transferencia y Control",
+    "step4Desc": "Nuestros equipos técnicos y legales ejecutan la transferencia sin contratiempos de dominios, repositorios y perfiles de propietario. Usted asume el control total del negocio.",
+    "ctaDesc": "¿Listo para convertirse en dueño de una empresa digital rentable?",
+    "ctaBtn": "Explorar el catálogo"
   },
   "Payment": {
   "successTitle": "¡Pago recibido con éxito!",
