@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { ArrowRight, Mail, Phone, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SeparatorPro } from '@/components/ui/seperatorpro';
-import GlobeWireframe from '@/components/ui/globe-wireframe';
+import GlobeWireframe from '@/components/ui/GlobeWireframe';
 
 const smoothEase = [0.25, 0.1, 0.25, 1] as const;
 

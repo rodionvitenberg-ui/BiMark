@@ -1,42 +1,124 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion'; // ИСПРАВЛЕНО: Импортировали тип Variants
+import { CoinsIcon, ShieldCheck, GlobeHemisphereEastIcon, Medal } from '@phosphor-icons/react';
 
 import BorderGlow from '../BorderGlow';
 import GlobeWireframe from '../ui/GlobeWireframe';
+import TiltShield from './TiltShield';
 
 export function VisionContent() {
   const tVision = useTranslations('vision');
 
   const globeTourCities = ["dubai", "tallinn", "tbilisi", "kyiv", "chisinau", "bucharest", "london", "barcelona"];
 
-  // Светлая версия glow-конфига, но с цветами HeroSection
+  // Светлая версия glow-конфига для ПК-версии
   const glowConfig = {
     backgroundColor: '#ffffff',
     glowColor: '210 100% 50%',
-    colors: ['#007bff', '#38bdf8', '#0ea5e9'],
+    colors: ['#0096df', '#38bdf8', '#0ea5e9'],
     borderRadius: 24,
   };
 
-  // Идеально сбалансированный цикл под твои тайминги (в секундах)
-  const LOOP_DURATION = 4.8;
+  // ИСПРАВЛЕНО: Явно указали типы : Variants, чтобы TypeScript не ругался
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  };
 
   return (
-    <section className="relative w-full pt-12 pb-24 bg-[#f5f7fb] overflow-hidden">
+    <section className="relative w-full pt-12 pb-12 bg-[#f5f7fb] overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         
+        {/* Интро-абзац (одинаков для всех разрешений) */}
         <div className="max-w-4xl mb-12">
           <p className="text-xl md:text-xl text-slate-600 leading-relaxed font-medium">
             {tVision('hero.intro')}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-6 auto-rows-[minmax(280px,_auto)]">
+        {/* ========================================================================= */}
+        {/* 📱 МОБИЛЬНАЯ ВЕРСИЯ: Адаптированная под чистый паттерн AboutUs (Светлая тема) */}
+        {/* ========================================================================= */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-50px" }}
+          className="block md:hidden bg-[#f5f7fb] rounded-[24px] p-6 border border-slate-200/60 shadow-sm space-y-8"
+        >
+          {/* Строка 1: Доход пока вы спите */}
+          <motion.div variants={itemVariants} className="flex gap-4 items-start">
+            <CoinsIcon className="w-7 h-7 text-[#0096df] shrink-0 mt-1" weight="duotone" />
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">
+                {tVision('features.item2.title')}
+              </h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                {tVision('features.item2.desc')}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Строка 2: Безопасность и легальность */}
+          <motion.div variants={itemVariants} className="flex gap-4 items-start">
+            <ShieldCheck className="w-7 h-7 text-[#0096df] shrink-0 mt-1" weight="duotone" />
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">
+                {tVision('features.item3.title')}
+              </h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                {tVision('features.item3.desc')}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Строка 3: Зарабатывайте из любой точки (С иконкой глобуса) */}
+          <motion.div variants={itemVariants} className="flex gap-4 items-start">
+            <GlobeHemisphereEastIcon className="w-7 h-7 text-[#0096df] shrink-0 mt-1" weight="duotone" />
+            <div>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">
+                {tVision('features.item1.title')}
+              </h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                {tVision('features.item1.desc')}
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Строка 4: Гарантия (С разделительной линией и вотермарком 2Y) */}
+          <motion.div variants={itemVariants} className="flex gap-4 items-start pt-6 border-t border-slate-100 relative overflow-hidden">
+            <Medal className="w-7 h-7 text-[#0096df] shrink-0 mt-1" weight="duotone" />
+            <div className="relative z-10 pr-16">
+              <h3 className="text-xl font-bold text-slate-900 mb-1">
+                {tVision('features.item4.title')}
+              </h3>
+              <p className="text-slate-600 leading-relaxed text-sm">
+                {tVision('features.item4.desc')}
+              </p>
+            </div>
+            {/* Вотермарк сохранен в правом углу */}
+            <div className="absolute right-0 bottom-0 text-6xl font-black text-slate-100 leading-none pointer-events-none select-none">
+              2Y
+            </div>
+          </motion.div>
+        </motion.div>
+
+
+        {/* ========================================================================= */}
+        {/* 💻 ДЕСКТОПНАЯ ВЕРСИЯ: Интерактивная 3D-сетка (Оставлена без изменений) */}
+        {/* ========================================================================= */}
+        <div className="hidden md:grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-6 auto-rows-[minmax(280px,_auto)]">
           
           {/* БЛОК 1: Доход пока вы спите */}
           <BorderGlow className="md:col-span-2 h-full" {...glowConfig}>
-            <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden group flex flex-col justify-between bg-white">
+            <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden group flex flex-col justify-between bg-[#f5f7fb]">
               <div className="relative z-10 max-w-sm">
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                   {tVision('features.item2.title')}
@@ -59,7 +141,7 @@ export function VisionContent() {
                   />
                   <path
                     d="M0 100C30 100 40 60 70 50C100 40 120 70 150 40C180 10 190 20 200 0"
-                    stroke="#007bff"
+                    stroke="#0096df"
                     strokeWidth="2"
                     className="opacity-60 group-hover:opacity-100 transition-opacity duration-500"
                   />
@@ -68,73 +150,50 @@ export function VisionContent() {
             </div>
           </BorderGlow>
 
-          {/* БЛОК 2: Зарабатывайте из любой точки */}
+          {/* БЛОК 2: Безопасность и легальность — Щит на месте глобуса справа */}
           <BorderGlow className="md:col-span-2 h-full" {...glowConfig}>
-            <div className="relative rounded-[24px] p-8 md:p-10 min-h-[480px] md:min-h-full overflow-hidden group flex flex-col justify-start md:justify-between bg-white">
-              <div className="relative z-10 w-full md:max-w-[50%] pointer-events-none mb-4 md:mb-2">
+            <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden group flex flex-col justify-start md:justify-between bg-white">
+              <div className="relative z-10 w-full md:max-w-[55%] pointer-events-none mb-4 md:mb-2">
                 <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
+                  {tVision('features.item3.title')}
+                </h3>
+                <p className="text-slate-600 text-lg leading-relaxed">
+                  {tVision('features.item3.desc')}
+                </p>
+              </div>
+              <div className="absolute right-12 bottom-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:right-20 z-0 pointer-events-none">
+                <TiltShield className="w-44 h-44 md:w-50 md:h-50" />
+              </div>
+            </div>
+          </BorderGlow>
+
+          {/* БЛОК 3: Зарабатывайте из любой точки — Глобус на месте щита справа от текста */}
+          <BorderGlow className="md:col-span-3 h-full" {...glowConfig}>
+            <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden group flex flex-col justify-between bg-white">
+              <div className="relative z-10 max-w-md md:max-w-xl pointer-events-none">
+                <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
                   {tVision('features.item1.title')}
                 </h3>
-                <p className="text-slate-600 text-lg leading-relaxed drop-shadow-md">
+                <p className="text-slate-600 text-lg leading-relaxed">
                   {tVision('features.item1.desc')}
                 </p>
               </div>
-              <div className="absolute -bottom-[25%] -right-[15%] w-[100%] aspect-square md:right-[-20%] md:top-[-10%] md:w-[70%] md:h-[120%] z-0 cursor-grab active:cursor-grabbing opacity-80 group-hover:opacity-100 transition-opacity duration-700">
+
+              <div className="absolute -right-[15%] -bottom-[35%] w-[95%] aspect-square md:-right-[10%] md:-top-[20%] md:w-[48%] md:h-[140%] z-0 cursor-grab active:cursor-grabbing opacity-85 group-hover:opacity-100 transition-opacity duration-700">
                 <GlobeWireframe 
                   variant="wireframesolid"
-                  strokeColor="#007bff"
-                  sphereOutlineColor="#007bff"
+                  strokeColor="#0096df"
+                  sphereOutlineColor="#0096df"
                   autoRotate={false}
                   rotateCities={globeTourCities}
                   rotationSpeed={4000}
-                  scale={1.1}
+                  scale={1.1} 
                   enableInteraction={true}
                   className="w-full h-full"
                 />
               </div>
             </div>
           </BorderGlow>
-
-          {/* БЛОК 3: Безопасность и легальность */}
-<BorderGlow className="md:col-span-3 h-full" {...glowConfig}>
-  <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden 
-                  flex flex-col md:flex-row justify-between items-center bg-white">
-
-    {/* Текст */}
-    <div className="relative z-10 max-w-2xl md:w-1/2">
-      <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-        {tVision('features.item3.title')}
-      </h3>
-      <p className="text-slate-600 text-lg leading-relaxed">
-        {tVision('features.item3.desc')}
-      </p>
-    </div>
-
-    {/* Большой чистый щит */}
-    <div className="relative md:w-1/2 flex items-center justify-center mt-10 md:mt-0">
-      <svg
-        viewBox="0 0 24 24"
-        className="w-40 h-40 md:w-64 md:h-64 drop-shadow-[0_20px_40px_rgba(0,123,255,0.25)]"
-      >
-        <defs>
-          <linearGradient id="shield3d" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#4da3ff" />
-            <stop offset="50%" stopColor="#007bff" />
-            <stop offset="100%" stopColor="#005fcc" />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-          fill="url(#shield3d)"
-          stroke="#005fcc"
-          strokeWidth="1.5"
-        />
-      </svg>
-    </div>
-
-  </div>
-</BorderGlow>
 
           {/* БЛОК 4: Гарантия */}
           <BorderGlow className="md:col-span-1 h-full" {...glowConfig}>
@@ -154,6 +213,7 @@ export function VisionContent() {
           </BorderGlow>
 
         </div>
+
       </div>
     </section>
   );

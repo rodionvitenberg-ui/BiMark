@@ -17,11 +17,12 @@ export default function Home() {
     <div className="flex flex-col w-full">
       <HeroSection />
       <VisionContent />
+      <CategoriesPreview />
       <NewProjects />
       <AssetsGrid />
       <TokenTeaser />
-      <AboutUs />
       <ContactUs />
+      <AboutUs />
     </div>
   );
 }

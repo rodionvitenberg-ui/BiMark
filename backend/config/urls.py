@@ -5,18 +5,22 @@ from django.conf import settings
 from django.conf.urls.static import static
 from billing.webhooks import StripeWebhookView, PayPalCaptureView, PassimPayWebhookView
 
-# ИЗМЕНЕНИЕ 1: Добавляем TokenViewSet в импорт из catalog.views
+# Импорты из приложений каталогов
 from catalog.views import ProjectViewSet, CheckoutView, PortfolioView, CategoryViewSet, TokenViewSet
 from billing.views import WalletView, TransactionHistoryView, DepositView, WithdrawView 
 from users.views import GoogleLogin, RequestOTPView, RegisterWithOTPView, PasswordResetRequestView, PasswordResetConfirmView
-from catalog_assets.views import AssetViewSet, AssetPortfolioView
+
+# ДОБАВЛЕНО: Импортируем AssetCategoryViewSet для управления категориями уникальных бизнесов целиком
+from catalog_assets.views import AssetViewSet, AssetPortfolioView, AssetCategoryViewSet
+
 router = DefaultRouter()
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'categories', CategoryViewSet, basename='category')
 router.register(r'assets', AssetViewSet, basename='asset')
-
-# ИЗМЕНЕНИЕ 2: Регистрируем новый маршрут для токенов
 router.register(r'tokens', TokenViewSet, basename='token')
+
+# ДОБАВЛЕНО: Регистрируем новый изолированный маршрут для категорий ассетов
+router.register(r'asset-categories', AssetCategoryViewSet, basename='asset-category')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -35,7 +39,7 @@ urlpatterns = [
     path('api/portfolio/', PortfolioView.as_view(), name='portfolio'),
     path('api/portfolio/assets/', AssetPortfolioView.as_view(), name='portfolio-assets'),
     
-    # НОВЫЙ ЭНДПОИНТ КОРЗИНЫ:
+    # ЭНДПОИНТ КОРЗИНЫ:
     path('api/catalog/checkout/', CheckoutView.as_view(), name='checkout'),
     
     # --- Биллинг ---

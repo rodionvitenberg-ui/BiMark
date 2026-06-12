@@ -121,7 +121,7 @@ export default function HeroSection() {
         <motion.div variants={containerVariants} initial="hidden" animate="show" className="flex flex-col items-start text-left max-w-xl">
           <motion.h1 variants={itemVariants} className="font-sans text-[42px] md:text-[56px] font-extrabold tracking-[-1.4px] leading-[1.1] text-[#ffffff] mb-6 antialiased">
             {headlineStart} <br className="hidden md:block" />
-            <span className="text-[#007bff] inline-block relative min-h-[1.2em]">
+            <span className="text-brand-blue inline-block relative min-h-[1.2em]">
               <TextType 
                 text={typingWords}
                 typingSpeed={75}
@@ -144,7 +144,7 @@ export default function HeroSection() {
           <motion.div variants={itemVariants}>
             <Link 
               href="/assets" 
-              className="bg-[#007bff] text-[#ffffff] text-[15px] font-bold tracking-normal rounded-[999px] py-4 px-8 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.19)] hover:bg-[#0062cc] transition-all duration-150 flex items-center gap-2 group cursor-pointer"
+              className="bg-brand-blue text-[#ffffff] text-[15px] font-bold tracking-normal rounded-[999px] py-4 px-8 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.19)] hover:bg-brand-blue/70 transition-all duration-150 flex items-center gap-2 group cursor-pointer"
             >
               {ctaText}
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -162,7 +162,7 @@ export default function HeroSection() {
           >
             {isLoading ? (
                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-10 h-10 border-4 border-[#007bff] border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
                </div>
             ) : stackItems.length > 0 ? (
                <div className="overflow-hidden w-full h-full rounded-[2rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)] border border-white/10" ref={emblaRef}>
@@ -180,7 +180,7 @@ export default function HeroSection() {
                              />
                            ) : (
                              <div className="absolute inset-0 flex items-center justify-center z-10">
-                               <Layers3 className="w-24 h-24 text-[#007bff] opacity-30" />
+                               <Layers3 className="w-24 h-24 text-brand-blue opacity-30" />
                              </div>
                            )}
                            <div className="absolute inset-0 bg-gradient-to-t from-[#121827] via-transparent to-transparent z-20 pointer-events-none" />
