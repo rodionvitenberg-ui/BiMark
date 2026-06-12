@@ -96,119 +96,45 @@ export function VisionContent() {
           </BorderGlow>
 
           {/* БЛОК 3: Безопасность и легальность */}
-          <BorderGlow className="md:col-span-3 h-full" {...glowConfig}>
-            <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden flex flex-col justify-between group bg-white">
-              <div className="relative z-10 max-w-2xl mb-16 md:mb-12">
-                <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                  {tVision('features.item3.title')}
-                </h3>
-                <p className="text-slate-600 text-lg leading-relaxed">
-                  {tVision('features.item3.desc')}
-                </p>
-              </div>
+<BorderGlow className="md:col-span-3 h-full" {...glowConfig}>
+  <div className="relative rounded-[24px] p-8 md:p-10 h-full overflow-hidden 
+                  flex flex-col md:flex-row justify-between items-center bg-white">
 
-              <div className="relative w-full max-w-lg mt-auto pb-4 h-16 flex items-center justify-center">
-                
-                {/* Линия */}
-                <div className="absolute left-5 right-5 top-1/2 -translate-y-1/2 h-0 z-10">
-                  <div className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#007bff]/40 to-transparent top-1/2 -translate-y-1/2 z-0" />
+    {/* Текст */}
+    <div className="relative z-10 max-w-2xl md:w-1/2">
+      <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+        {tVision('features.item3.title')}
+      </h3>
+      <p className="text-slate-600 text-lg leading-relaxed">
+        {tVision('features.item3.desc')}
+      </p>
+    </div>
 
-                  {/* Точка 1 */}
-                  <motion.div
-                    animate={{ 
-                      left: ["0%", "0%", "50%", "50%"],
-                      opacity: [0, 1, 1, 0] 
-                    }}
-                    transition={{
-                      duration: LOOP_DURATION,
-                      times: [0, 0.1875, 0.435, 0.4375], 
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 bg-[#007bff] rounded-full shadow-[0_0_12px_rgba(0,123,255,0.9)]"
-                  />
+    {/* Большой чистый щит */}
+    <div className="relative md:w-1/2 flex items-center justify-center mt-10 md:mt-0">
+      <svg
+        viewBox="0 0 24 24"
+        className="w-40 h-40 md:w-64 md:h-64 drop-shadow-[0_20px_40px_rgba(0,123,255,0.25)]"
+      >
+        <defs>
+          <linearGradient id="shield3d" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#4da3ff" />
+            <stop offset="50%" stopColor="#007bff" />
+            <stop offset="100%" stopColor="#005fcc" />
+          </linearGradient>
+        </defs>
 
-                  {/* Точка 2 */}
-                  <motion.div
-                    animate={{ 
-                      left: ["50%", "50%", "100%", "100%"],
-                      opacity: [0, 1, 1, 0] 
-                    }}
-                    transition={{
-                      duration: LOOP_DURATION,
-                      times: [0, 0.5625, 0.810, 0.8125], 
-                      repeat: Infinity,
-                      ease: "linear"
-                    }}
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 bg-[#007bff] rounded-full shadow-[0_0_12px_rgba(0,123,255,0.9)]"
-                  />
-                </div>
+        <path
+          d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+          fill="url(#shield3d)"
+          stroke="#005fcc"
+          strokeWidth="1.5"
+        />
+      </svg>
+    </div>
 
-                {/* Нода A */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center z-20">
-                  <motion.div
-                    animate={{ 
-                      opacity: [0.05, 0.8, 0.05, 0.05], 
-                      scale: [0.95, 1.4, 0.95, 0.95] 
-                    }}
-                    transition={{ 
-                      duration: LOOP_DURATION,
-                      times: [0, 0.1875, 0.3375, 1], 
-                      repeat: Infinity, 
-                      ease: "easeInOut" 
-                    }}
-                    className="absolute inset-0 bg-[#007bff]/35 blur-[8px] rounded-full"
-                  />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300 relative z-10" />
-                </div>
-
-                {/* Центральный терминал */}
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center">
-                  <motion.div 
-                    animate={{ opacity: [0.2, 0.8, 0.2], scale: [0.95, 1.15, 0.95] }}
-                    transition={{ duration: 3, times: [0, 0.5, 1], repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-0 bg-[#007bff]/35 blur-[20px] rounded-full" 
-                  />
-                  <div className="w-16 h-16 rounded-[18px] bg-white border border-[#007bff]/40 flex items-center justify-center relative z-20 shadow-[0_0_24px_rgba(0,123,255,0.18)] group-hover:border-[#007bff] transition-colors duration-500">
-                    <svg
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-[#007bff]"
-                    >
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" strokeWidth="1.5" className="opacity-40" />
-                      <path d="M12 8v8" strokeWidth="1.5" className="opacity-80" />
-                      <path d="M8.5 12h7" strokeWidth="1.5" className="opacity-80" />
-                      <circle cx="12" cy="12" r="2.5" fill="currentColor" strokeWidth="0" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Нода B */}
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center z-20">
-                  <motion.div
-                    animate={{ 
-                      opacity: [0.05, 0.05, 0.8, 0.05], 
-                      scale: [0.95, 0.95, 1.4, 0.95] 
-                    }}
-                    transition={{ 
-                      duration: LOOP_DURATION,
-                      times: [0, 0.7625, 0.9000, 1], 
-                      repeat: Infinity, 
-                      ease: "easeInOut" 
-                    }}
-                    className="absolute inset-0 bg-[#007bff]/35 blur-[8px] rounded-full"
-                  />
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-300 relative z-10" />
-                </div>
-
-              </div>
-            </div>
-          </BorderGlow>
+  </div>
+</BorderGlow>
 
           {/* БЛОК 4: Гарантия */}
           <BorderGlow className="md:col-span-1 h-full" {...glowConfig}>
