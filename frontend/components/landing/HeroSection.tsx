@@ -112,7 +112,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative w-full pt-24 pb-20 md:pt-32 md:pb-32 bg-[#0a0f1c] text-[#ffffff] overflow-hidden flex justify-center border-b border-gray-800">
+    <section className="relative w-full pt-12 pb-12 md:pt-32 md:pb-32 bg-[#0a0f1c] text-[#ffffff] overflow-hidden flex justify-center border-b border-gray-800">
       <div className="absolute top-[-10%] left-[-0%] w-[100%] h-[100%] bg-[#007bff]/20 blur-[120px] rounded-full pointer-events-none z-0" />
 
       <div className="max-w-[1200px] w-full mx-auto px-4 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">

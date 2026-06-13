@@ -111,7 +111,7 @@ export default function MegaMenu({ activeMenu, onClose, searchQuery, onSearchCha
 
             <div className="space-y-4">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">
-                {locale === 'ru' ? "Инвестору и ИИ" : "Investor Resources"}
+                {locale === 'ru' ? "Инвестору" : "Investor Resources"}
               </h4>
               <ul className="space-y-5">
                 <li>

@@ -50,10 +50,10 @@ export default function AssetDetailClient({ initialAsset: asset }: AssetDetailCl
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black pt-24 flex flex-col justify-between">
+    <div className="min-h-screen bg-zinc-50 dark:bg-black pt-12 flex flex-col justify-between">
       
       {/* Главный контентный блок карточки */}
-      <div className="w-full max-w-7xl mx-auto px-4 pb-20 flex-1">
+      <div className="w-full max-w-7xl mx-auto px-4 pb-4 flex-1">
         
         <Link href="/assets" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-blue transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" />
@@ -77,7 +77,7 @@ export default function AssetDetailClient({ initialAsset: asset }: AssetDetailCl
                 {asset.tags && asset.tags.length > 0 && asset.tags.map((tag, idx) => (
                   <span 
                     key={tag.id || idx}
-                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border"
+                    className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-wider"
                     style={{ 
                       backgroundColor: `${tag.color}15`, 
                       borderColor: `${tag.color}40`, 

@@ -27,13 +27,13 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
     notFound();
   }
 
-  // Сборка семантического JSON-LD графа для ИИ (GEO)
+  // Сборка семантического JSON-LD графа для ИИ (GEO)[cite: 11]
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "TechArticle",
     "headline": article.title,
     "description": article.short_description,
-    "image": article.preview_image || undefined, // Передаем картинку в ИИ-граф
+    "image": article.preview_image || undefined,
     "datePublished": article.updated_at,
     "inLanguage": locale,
     "mainEntityOfPage": {
@@ -54,11 +54,12 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <article className="max-w-4xl mx-auto px-4 py-12 text-white font-sans">
+      {/* ИСПРАВЛЕНО: Текст адаптируется под тему (темный на светлом, светлый на темном) */}
+      <article className="max-w-4xl mx-auto px-4 py-12 text-zinc-900 dark:text-zinc-100 font-sans">
         
         {/* КАРТИНКА-ОБЛОЖКА СТАТЬИ */}
         {article.preview_image && (
-          <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden mb-8 border border-gray-800 shadow-2xl">
+          <div className="w-full aspect-[21/9] rounded-3xl overflow-hidden mb-8 border border-zinc-200 dark:border-zinc-800 shadow-xl">
             <img 
               src={article.preview_image} 
               alt={article.title} 
@@ -67,20 +68,21 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
           </div>
         )}
 
-        <header className="mb-8 border-b border-gray-800 pb-6">
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4 leading-tight">
+        {/* ИСПРАВЛЕНО: Бордеры и цвета текстов переведены на контрастные адаптивные классы */}
+        <header className="mb-8 border-b border-zinc-200 dark:border-zinc-800 pb-6">
+          <h1 className="text-3xl sm:text-5xl font-black text-zinc-900 dark:text-white tracking-tight mb-4 leading-tight">
             {article.title}
           </h1>
-          <p className="text-gray-400 text-sm sm:text-base leading-relaxed italic">
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm sm:text-base leading-relaxed italic">
             {article.short_description}
           </p>
         </header>
 
-        {/* Тело статьи */}
+        {/* ИСПРАВЛЕНО: Типографика переведена с чистого prose-invert на адаптивный prose-zinc */}
         <div 
-          className="prose prose-invert max-w-none text-gray-200 
-            prose-headings:text-white prose-headings:font-bold
-            prose-p:text-gray-300 prose-p:leading-relaxed
+          className="prose prose-zinc dark:prose-invert max-w-none 
+            prose-headings:text-zinc-900 dark:prose-headings:text-white prose-headings:font-bold
+            prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed
             prose-strong:text-brand-blue prose-strong:font-extrabold
             prose-ul:list-disc prose-ul:pl-5
             prose-ol:list-decimal prose-ol:pl-5"
