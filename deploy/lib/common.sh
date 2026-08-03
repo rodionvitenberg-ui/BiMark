@@ -184,13 +184,20 @@ upsert_bimark_nginx_block() {
 
 # Ensure domain nginx conf exists and contains bimark locations.
 # Prefer existing conf (gardenhouse); only create minimal shell if missing.
+#
+# With Let's Encrypt, locations MUST land in the listen 443 server{}.
+# We write a snippet and `include` it into every SSL/app server block
+# (idempotent). See also deploy/fix_nginx_bimark.sh.
 ensure_bimark_nginx() {
     local locations_src="$1"
     local nginx_shell="$2"
     local nginx_avail="/etc/nginx/sites-available/${DOMAIN}.conf"
     local nginx_enabled="/etc/nginx/sites-enabled/${DOMAIN}.conf"
+    local snippet_dir="/etc/nginx/snippets"
+    local snippet="${snippet_dir}/bimark.conf"
+    local include_line="    include /etc/nginx/snippets/bimark.conf;  # BiMark /bimark"
 
-    mkdir -p /var/www/certbot
+    mkdir -p /var/www/certbot "${snippet_dir}"
 
     if [ ! -f "${nginx_avail}" ]; then
         log "No ${nginx_avail} — creating minimal server shell"
@@ -198,12 +205,76 @@ ensure_bimark_nginx() {
     fi
 
     if grep -q "managed by Certbot" "${nginx_avail}"; then
-        warn "${nginx_avail} is certbot-managed — upserting locations only (TLS blocks kept)"
+        warn "${nginx_avail} is certbot-managed — snippet include only (TLS blocks kept)"
     fi
 
-    upsert_bimark_nginx_block "${nginx_avail}" "${locations_src}"
+    # Always refresh snippet content (ports/paths may change)
+    render_bimark_locations "${locations_src}" > "${snippet}"
+    chmod 644 "${snippet}"
+    ok "snippet ${snippet}"
+
+    if ! grep -q 'snippets/bimark.conf' "${nginx_avail}"; then
+        python3 - <<PY
+import re
+from pathlib import Path
+conf_path = Path("${nginx_avail}")
+text = conf_path.read_text()
+include_line = """${include_line}"""
+parts = []
+i, n = 0, len(text)
+while i < n:
+    m = re.search(r'\\bserver\\s*\\{', text[i:])
+    if not m:
+        parts.append(("text", text[i:]))
+        break
+    start = i + m.start()
+    parts.append(("text", text[i:start]))
+    j = i + m.end() - 1
+    depth = 0
+    k = j
+    while k < n:
+        if text[k] == '{':
+            depth += 1
+        elif text[k] == '}':
+            depth -= 1
+            if depth == 0:
+                k += 1
+                break
+        k += 1
+    parts.append(("server", text[start:k]))
+    i = k
+out, injected = [], 0
+for kind, chunk in parts:
+    if kind != "server":
+        out.append(chunk)
+        continue
+    lower = chunk.lower()
+    is_ssl = "listen 443" in lower or "ssl_certificate" in lower
+    has_app = "gardenhouse" in lower or "proxy_pass" in lower or "/bimark" in lower
+    if not (is_ssl or has_app):
+        out.append(chunk)
+        continue
+    new_chunk, nsub = re.subn(r'(server\\s*\\{)', r'\\1\\n' + include_line + '\\n', chunk, count=1)
+    if nsub:
+        injected += 1
+        out.append(new_chunk)
+    else:
+        out.append(chunk)
+result = "".join(out)
+if injected == 0:
+    idx = result.rfind("}")
+    if idx < 0:
+        raise SystemExit("cannot parse nginx conf")
+    result = result[:idx] + "\\n" + include_line + "\\n" + result[idx:]
+conf_path.write_text(result)
+print(f"injected bimark include into {max(injected,1)} server block(s)")
+PY
+        ok "include added to ${nginx_avail}"
+    else
+        ok "include already in ${nginx_avail}"
+    fi
+
     ln -sfn "${nginx_avail}" "${nginx_enabled}"
-    # Keep gardenhouse / other sites; only drop default site
     rm -f /etc/nginx/sites-enabled/default
     nginx -t
     systemctl reload nginx || systemctl restart nginx

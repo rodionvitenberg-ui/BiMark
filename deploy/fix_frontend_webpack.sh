@@ -105,5 +105,17 @@ if ! echo "${RU}" | grep -qE '^(200|301|302|307|308)$'; then
 fi
 
 echo
-echo "=== FIX OK ==="
-echo "  Open: http://${DOMAIN}${BASE_PATH}"
+echo "=== Frontend FIX OK ==="
+echo "  Direct Next: http://127.0.0.1:${FE_PORT}${BASE_PATH}/ru"
+echo "  Via nginx (needs Host / HTTPS):"
+echo "    curl -sI -H 'Host: ${DOMAIN}' https://127.0.0.1${BASE_PATH}/ru -k"
+echo "    https://${DOMAIN}${BASE_PATH}/ru"
+echo
+# If nginx still 404, locations missing from SSL server — common after certbot
+NGX_CODE="$(curl -skS -o /dev/null -w '%{http_code}' --max-time 8 -H "Host: ${DOMAIN}" "https://127.0.0.1${BASE_PATH}/ru" 2>/dev/null || echo ERR)"
+if ! echo "${NGX_CODE}" | grep -qE '^(200|301|302|307|308)$'; then
+    warn "nginx still ${NGX_CODE} for https://${DOMAIN}${BASE_PATH}/ru"
+    warn "Run:  sudo bash ${APP_DIR}/deploy/fix_nginx_bimark.sh"
+else
+    ok "nginx also OK (${NGX_CODE})"
+fi

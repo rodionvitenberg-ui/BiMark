@@ -48,15 +48,31 @@ echo "----- proxy.ts vs middleware.ts -----"
 [ -f "${APP_DIR}/frontend/middleware.ts" ] && echo "middleware.ts: PRESENT (should remove if createMiddleware)" || echo "middleware.ts: absent (good)"
 echo
 echo "----- probes -----"
+# Direct backends (no Host needed)
 for url in \
     "http://127.0.0.1:${BE_PORT}/api/assets/" \
     "http://127.0.0.1:${FE_PORT}${BASE_PATH}/ru" \
-    "http://127.0.0.1:${FE_PORT}/ru" \
-    "http://127.0.0.1${BASE_PATH}/ru" \
-    "http://127.0.0.1${BASE_PATH}"
+    "http://127.0.0.1:${FE_PORT}/ru"
 do
     code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 "${url}" 2>/dev/null || echo ERR)"
     echo "  ${code}  ${url}"
+done
+# nginx: MUST send Host (default_server for 127.0.0.1 often 404s); certbot → HTTPS
+for spec in \
+    "http|http://127.0.0.1${BASE_PATH}/ru" \
+    "https|https://127.0.0.1${BASE_PATH}/ru" \
+    "pub|https://${DOMAIN}${BASE_PATH}/ru"
+do
+    mode="${spec%%|*}"
+    url="${spec#*|}"
+    if [ "${mode}" = "https" ]; then
+        code="$(curl -skS -o /dev/null -w '%{http_code}' --max-time 8 -H "Host: ${DOMAIN}" "${url}" 2>/dev/null || echo ERR)"
+    elif [ "${mode}" = "http" ]; then
+        code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 -H "Host: ${DOMAIN}" "${url}" 2>/dev/null || echo ERR)"
+    else
+        code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 8 "${url}" 2>/dev/null || echo ERR)"
+    fi
+    echo "  ${code}  ${url}  (Host: ${DOMAIN})"
 done
 echo
 echo "----- recent frontend logs -----"
