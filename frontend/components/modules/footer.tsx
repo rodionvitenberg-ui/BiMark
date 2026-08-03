@@ -33,7 +33,8 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white">{t("investors")}</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><Link href="/category" className="hover:text-brand-blue transition-colors">{h("assetsCatalog")}</Link></li>
+              {/* Исправлено: Путь изменен на актуальный /assets */}
+              <li><Link href="/assets" className="hover:text-brand-blue transition-colors">{h("assetsCatalog")}</Link></li>
               <li><Link href="/token" className="hover:text-brand-blue transition-colors">{h("presales")}</Link></li>
               <li><Link href="/how-it-works" className="hover:text-brand-blue transition-colors">{h("howItWorks")}</Link></li>
             </ul>
@@ -52,7 +53,6 @@ export function Footer() {
           <div>
             <h4 className="text-lg font-bold mb-6 text-white">{t("legal")}</h4>
             <ul className="space-y-4 text-gray-400">
-              {/* Прописали правильные ссылки на страницы */}
               <li><Link href="/privacy" className="hover:text-brand-blue transition-colors text-sm">{t("privacy")}</Link></li>
               <li><Link href="/terms" className="hover:text-brand-blue transition-colors text-sm">{t("terms")}</Link></li>
               <li><Link href="/aml" className="hover:text-brand-blue transition-colors text-sm">{t("aml")}</Link></li>

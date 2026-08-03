@@ -11,7 +11,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Инициализируем django-environ с дефолтными типами
 env = environ.Env(
     DEBUG=(bool, True),
-    ALLOWED_HOSTS=(list, [])
+    ALLOWED_HOSTS=(list, []),
+    SECURE_SSL_REDIRECT=(bool, False),
+    CSRF_TRUSTED_ORIGINS=(list, []),
+    CORS_ALLOWED_ORIGINS=(list, []),
 )
 
 # Читаем .env файл (если он существует)
@@ -23,6 +26,26 @@ if os.path.exists(env_file):
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+
+# Sub-path deploy (e.g. /bimark on maintest.site). Empty = root domain.
+FORCE_SCRIPT_NAME = env('FORCE_SCRIPT_NAME', default='') or None
+if FORCE_SCRIPT_NAME:
+    FORCE_SCRIPT_NAME = FORCE_SCRIPT_NAME.rstrip('/') or None
+    USE_X_FORWARDED_HOST = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# SSL redirect is handled by nginx/certbot; keep Django off by default.
+SECURE_SSL_REDIRECT = env('SECURE_SSL_REDIRECT')
+
+_csrf = env('CSRF_TRUSTED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = _csrf if _csrf else [
+    'https://bimark.org',
+    'https://www.bimark.org',
+    'https://maintest.site',
+    'http://maintest.site',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
 
 # --- APPS ---
 INSTALLED_APPS = [
@@ -73,7 +96,7 @@ REST_FRAMEWORK = {
     ),
 }
 
-# Настройки dj-rest-auth
+# Настройки dj-rest-auth (cookie path=/ is fine for sub-path same-origin)
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'auth-access-token',
@@ -90,13 +113,13 @@ ACCOUNT_AUTHENTICATION_METHOD = 'email'         # Логин по email (для 
 ACCOUNT_LOGIN_METHODS = {'email'}               # Логин по email (для новых версий allauth)
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 
-from datetime import timedelta
 # Настройки SimpleJWT
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
 }
 
 MIDDLEWARE = [
@@ -137,26 +160,27 @@ DATABASES = {
 }
 
 # --- CUSTOM USER ---
-# Говорим Django использовать нашу кастомную модель
 AUTH_USER_MODEL = 'users.User'
 
 # --- INFRASTRUCTURE ---
 CELERY_BROKER_URL = env('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
 
-CORS_ALLOWED_ORIGINS = [
+_cors_default = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "https://www.bimark.org",
     "https://bimark.org",
+    "https://maintest.site",
+    "http://maintest.site",
 ]
-
-# (Опционально) Если позже понадобятся куки для авторизации:
+_cors_env = env('CORS_ALLOWED_ORIGINS')
+CORS_ALLOWED_ORIGINS = _cors_env if _cors_env else _cors_default
 CORS_ALLOW_CREDENTIALS = True
 
 
 # Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -174,21 +198,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-STATIC_URL = '/static/'
+USE_L10N = True
 
 LANGUAGES = (
     ('ru', _('Russian')),
@@ -196,15 +210,17 @@ LANGUAGES = (
     ('es', _('Spanish')),
 )
 
-USE_I18N = True
-USE_L10N = True
-
-# Язык по умолчанию, если перевод отсутствует
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+
+# Static / media — prefix when deployed under sub-path (nginx serves with /bimark/...)
+_script = FORCE_SCRIPT_NAME or ''
+STATIC_URL = f'{_script}/static/' if _script else '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+MEDIA_URL = f'{_script}/media/' if _script else '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-        # Включаем конфигурацию через настройки, минуя БД (SocialApp)
         'APP': {
             'client_id': env('GOOGLE_CLIENT_ID', default=''),
             'secret': env('GOOGLE_CLIENT_SECRET', default=''),
@@ -217,12 +233,11 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        # Важно для JWT: мы доверяем email от Google
         'OAUTH_PKCE_ENABLED': True,
     }
 }
 
-REFERRAL_PURCHASE_PERCENT = Decimal('5.0')  # 5% от покупки реферала
+REFERRAL_PURCHASE_PERCENT = Decimal('5.0')
 REFERRAL_DEPOSIT_PERCENT = Decimal('2.0')
 
 JAZZMIN_SETTINGS = {
@@ -231,10 +246,8 @@ JAZZMIN_SETTINGS = {
     "site_brand": "BiMark",
     "welcome_sign": "Добро пожаловать в панель управления",
     "search_model": ["users.User", "catalog.Project"],
-    "show_ui_builder": False, # Выключаем кастомизатор для продакшена
+    "show_ui_builder": False,
     "navigation_expanded": True,
-    
-    # Иконки для меню (FontAwesome 5)
     "icons": {
         "users.User": "fas fa-users",
         "catalog.Project": "fas fa-briefcase",
@@ -242,18 +255,14 @@ JAZZMIN_SETTINGS = {
         "billing.Wallet": "fas fa-money-bill-wave",
         "billing.Transaction": "fas fa-exchange-alt",
         "referrals.Referral": "fas fa-link",
-        "billing.Transaction": "fas fa-exchange-alt", # Общие транзакции
-        "billing.ProjectTransaction": "fas fa-chart-pie", # Покупки проектов (доли)
+        "billing.ProjectTransaction": "fas fa-chart-pie",
         "billing.AssetTransaction": "fas fa-gem",
     },
 }
 
 JAZZMIN_UI_TWEAKS = {
-    "theme": "flatly", # Приятная темная тема по умолчанию
+    "theme": "flatly",
 }
-
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
 ANYMAIL = {
@@ -261,27 +270,16 @@ ANYMAIL = {
 }
 DEFAULT_FROM_EMAIL = "BiMark Support <support@bimark.org>"
 
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15), # Короткий срок для безопасности
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),    # Пользователь остается залогиненным 7 дней
-    'ROTATE_REFRESH_TOKENS': True,                  # При каждом рефреше выдавать новый refresh-токен (безопасно)
-    'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
-}
-
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 PASSIMPAY_PLATFORM_ID = env('PASSIMPAY_PLATFORM_ID', default='')
-PASSIMPAY_API_KEY = env('PASSIMPAY_API_KEY', default='') # Тот самый "Secret Key"
+PASSIMPAY_API_KEY = env('PASSIMPAY_API_KEY', default='')
 
-STRIPE_PUBLIC_KEY = 'pk_test_...'
-STRIPE_SECRET_KEY = 'sk_test_...'
-STRIPE_WEBHOOK_SECRET = 'whsec_...'
+STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY', default='pk_test_...')
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY', default='sk_test_...')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET', default='whsec_...')
 
-PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='твой_тестовый_client_id')
-PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='твой_тестовый_secret')
-PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox') # 'sandbox' или 'live'
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_MODE = env('PAYPAL_MODE', default='sandbox')
 
 TRIPLEA_CLIENT_ID = env('TRIPLEA_CLIENT_ID', default='')
 TRIPLEA_CLIENT_SECRET = env('TRIPLEA_CLIENT_SECRET', default='')

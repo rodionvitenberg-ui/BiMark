@@ -1,5 +1,6 @@
 import { getRequestConfig } from 'next-intl/server';
 import { routing } from './routing';
+import { getServerApiUrl } from '../lib/server-api-url';
 
 export default getRequestConfig(async ({ requestLocale }) => {
   let locale = await requestLocale;
@@ -11,10 +12,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
   let messages = {};
   
   try {
-    // 1. Пытаемся стянуть свежайшие переводы с нашего Django API.
-    // Опция cache: 'no-store' - это магия, которая отключает кэш.
-    // Замени URL на свой, если бэкенд крутится не на 8000 порту.
-    const res = await fetch(`http://127.0.0.1:8000/api/cms/translations/${locale}/`, {
+    // Server-side only: loopback to Gunicorn (API_URL / default :8001)
+    const apiBase = getServerApiUrl();
+    const res = await fetch(`${apiBase}/cms/translations/${locale}/`, {
       cache: 'no-store'
     });
     
@@ -24,7 +24,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
       throw new Error('API is not available');
     }
   } catch (error) {
-    // 2. Фолбэк: если API недоступен, берем из кэша импорта
+    // Fallback to static JSON when Django CMS translations are down
     console.warn(`Fallback to cached translations for ${locale}`);
     messages = (await import(`../messages/${locale}.json`)).default;
   }

@@ -64,6 +64,8 @@ urlpatterns = [
 
     # Публичный эндпоинт для выгрузки статей в Next.js
     path('api/cms/articles/public/', PublicArticleListView.as_view(), name='public-articles'),
+    # CMS translations for next-intl (fallback: frontend/messages/*.json)
+    path('api/cms/', include('cms.urls')),
 ]
 
 if settings.DEBUG:

@@ -1,18 +1,16 @@
-import { MetadataRoute } from 'next';
+import { MetadataRoute } from "next";
+
+const siteUrl = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://bimark.org"
+).replace(/\/$/, "");
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      // Закрываем от индексации служебные страницы и личные кабинеты
-      disallow: [
-        '/*/profile/', 
-        '/*/checkout/', 
-        '/*/payment/', 
-        '/api/'
-      ],
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/*/profile/", "/*/checkout/", "/*/payment/", "/api/"],
     },
-    sitemap: 'https://bimark.org/sitemap.xml',
+    sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

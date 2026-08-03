@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, X, Send, Bot, User, Loader2, Sparkles } from "lucide-react";
 import { buildPageContext } from "../../lib/utils/ai-context";
 import { useAiPageContext } from "../providers/ai-context-provider";
+import { getBrowserApiUrl } from "@/lib/server-api-url";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -71,11 +72,11 @@ export function AIAssistantWidget() {
 
     const fetchQuickReplies = async () => {
       try {
-        const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const baseUrl = rawApiUrl.replace(/\/$/, "");
-        
-        // Передаем текущий путь и локаль в query-параметрах на бэкенд
-        const res = await fetch(`${baseUrl}/api/ai/quick-replies/?path=${encodeURIComponent(pathname)}&locale=${locale}`);
+        // base already includes /api (e.g. /bimark/api or http://localhost:8000/api)
+        const apiBase = getBrowserApiUrl();
+        const res = await fetch(
+          `${apiBase}/ai/quick-replies/?path=${encodeURIComponent(pathname)}&locale=${locale}`
+        );
         
         if (res.ok) {
           const data = await res.json();
@@ -93,23 +94,7 @@ export function AIAssistantWidget() {
   const handleProcessStream = async (textToSend: string) => {
     if (!textToSend.trim() || isLoading) return;
 
-    const rawApiUrl = process.env.NEXT_PUBLIC_API_URL;
-    
-    if (!rawApiUrl) {
-      console.error("❌ [BiMark Env Error]: NEXT_PUBLIC_API_URL is missing in your .env.local file!");
-      setMessages((prev) => [
-        ...prev,
-        { 
-          role: "assistant", 
-          content: locale === 'ru' 
-            ? "Ошибка конфигурации: На фронтенде не задан адрес API бэкенда в файле .env.local." 
-            : "Configuration error: NEXT_PUBLIC_API_URL is undefined in .env.local." 
-        }
-      ]);
-      return;
-    }
-
-    const baseUrl = rawApiUrl.replace(/\/$/, "");
+    const apiBase = getBrowserApiUrl();
 
     const userMessage: Message = { role: "user", content: textToSend.trim() };
     const updatedMessages = [...messages, userMessage];
@@ -121,9 +106,9 @@ export function AIAssistantWidget() {
     const pageContext = buildPageContext(locale, pathname, pageData);
 
     try {
-      console.log(`🚀 Sending stream request to: ${baseUrl}/api/ai/chat/`);
+      console.log(`🚀 Sending stream request to: ${apiBase}/ai/chat/`);
       
-      const response = await fetch(`${baseUrl}/api/ai/chat/`, {
+      const response = await fetch(`${apiBase}/ai/chat/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -215,8 +200,8 @@ export function AIAssistantWidget() {
           { 
             role: "assistant", 
             content: locale === 'ru' 
-              ? `Сбой потока данных. Убедитесь, что бэкенд запущен по адресу ${baseUrl}` 
-              : `Data stream interrupted. Target endpoint: ${baseUrl}` 
+              ? `Сбой потока данных. Убедитесь, что бэкенд запущен по адресу ${apiBase}` 
+              : `Data stream interrupted. Target endpoint: ${apiBase}` 
           }
         ];
       });

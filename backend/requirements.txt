@@ -40,3 +40,6 @@ urllib3==2.6.3
 vine==5.1.0
 wcwidth==0.6.0
 whitenoise==6.12.0
+gunicorn==23.0.0
+django-anymail[resend]>=11.0
+django-tinymce>=4.1.0
