@@ -15,6 +15,7 @@ Django==6.0.2
 django-allauth==65.14.3
 django-cors-headers==4.9.0
 django-environ==0.13.0
+django-filter==25.2
 django-jazzmin==3.0.3
 django-modeltranslation==0.19.19
 djangorestframework==3.16.1

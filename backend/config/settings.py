@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'rest_framework.authtoken',  # Требуется для dj-rest-auth
+    'django_filters',
     'corsheaders',
     'anymail',
     'tinymce',
